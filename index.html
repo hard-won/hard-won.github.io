@@ -243,6 +243,85 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/04/12/Advanced-Architecture-CA1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Shengyi Wei">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Shengyi Wei's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/04/12/Advanced-Architecture-CA1/" class="post-title-link" itemprop="url">Advanced Architecture CA1 分支预测竞赛</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-04-12 14:15:03 / 修改时间：14:31:11" itemprop="dateCreated datePublished" datetime="2024-04-12T14:15:03-07:00">2024-04-12</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E8%AF%BE/" itemprop="url" rel="index"><span itemprop="name">课</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E8%AF%BE/Advanced-Architecture/" itemprop="url" rel="index"><span itemprop="name">Advanced Architecture</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>竞赛内容：<a target="_blank" rel="noopener" href="https://docs.google.com/document/d/1wGhjB8iqROP4Ovs78SrmGrZcxDbrATPX9CFyKd7pTxo/edit">https://docs.google.com/document/d/1wGhjB8iqROP4Ovs78SrmGrZcxDbrATPX9CFyKd7pTxo/edit</a></p>
+<h1>例子解释</h1>
+<p><img src="/2024/04/12/Advanced-Architecture-CA1/G-share.png" alt="G-share"></p>
+<p>例子用的是G-share predictior，就是将Global History和PC进行XOR。这么做是因为PC太长了，我们只会会取PC的里面的几位，但有一个问题，有些instructions的PC的那几位是一样的，所以如果存进prediction table里就会影响结果。所以我们加入了Global History和PC进行XOR，XOR后得到的数据本身并没有意义，并不能说明任何事情（如这个instruction有没有发生过），它就只是作为prediction table的index，它的value（00 strongly not take，01，10，11）才是告诉predictor自己有没有发生过的。用XOR：原因一是适合被解耦，可以释放出原来的PC值；原因二是处理一下PC从而区别出更多PC，得到的index数量 &gt; kinds of PC的那几位。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2024/04/12/DSP-architect-HW1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -564,14 +643,14 @@
       <nav class="site-state">
           <div class="site-state-item site-state-posts">
               <a href="/archives">
-              <span class="site-state-item-count">4</span>
+              <span class="site-state-item-count">5</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
           <div class="site-state-item site-state-categories">
                 <a href="/categories/">
               
-            <span class="site-state-item-count">7</span>
+            <span class="site-state-item-count">8</span>
             <span class="site-state-item-name">分类</span></a>
           </div>
           <div class="site-state-item site-state-tags">
