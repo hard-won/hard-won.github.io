@@ -21,16 +21,22 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta property="og:type" content="article">
-<meta property="og:title" content="高速接口PCIe无痛入门（二）">
+  <meta name="description" content="Reference：https:&#x2F;&#x2F;r12f.com&#x2F;posts&#x2F;pcie-3-tl-dll&#x2F; 上篇主要是总体的大致架构，这节开始每一层详细。 PCIe总线通信机制 假设进行read操作，首先Requester给Completer发送一个Request，然后Completer通过Completion Packet返回要read的data或error info。 在PCIe的Spec里规定了四种Re">
+<meta property="og:type" content="article">
+<meta property="og:title" content="高速接口PCIe无痛入门（二）事务层">
 <meta property="og:url" content="http://example.com/2024/04/14/PCIe-2/index.html">
 <meta property="og:site_name" content="Shengyi Wei&#39;s Blog">
+<meta property="og:description" content="Reference：https:&#x2F;&#x2F;r12f.com&#x2F;posts&#x2F;pcie-3-tl-dll&#x2F; 上篇主要是总体的大致架构，这节开始每一层详细。 PCIe总线通信机制 假设进行read操作，首先Requester给Completer发送一个Request，然后Completer通过Completion Packet返回要read的data或error info。 在PCIe的Spec里规定了四种Re">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2024/04/14/PCIe-2/PCIe_Request.png">
+<meta property="og:image" content="http://example.com/2024/04/14/PCIe-2/pcie-tlp.png">
+<meta property="og:image" content="http://example.com/2024/04/14/PCIe-2//PCIe-2/pcie-tlp-header-common-fields.png">
 <meta property="article:published_time" content="2024-04-14T19:42:40.000Z">
-<meta property="article:modified_time" content="2024-04-14T19:44:08.506Z">
+<meta property="article:modified_time" content="2024-04-14T21:26:54.282Z">
 <meta property="article:author" content="Shengyi Wei">
 <meta property="article:tag" content="芯片工程师">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/04/14/PCIe-2/PCIe_Request.png">
 
 <link rel="canonical" href="http://example.com/2024/04/14/PCIe-2/">
 
@@ -45,7 +51,7 @@
   };
 </script>
 
-  <title>高速接口PCIe无痛入门（二） | Shengyi Wei's Blog</title>
+  <title>高速接口PCIe无痛入门（二）事务层 | Shengyi Wei's Blog</title>
   
 
 
@@ -169,7 +175,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          高速接口PCIe无痛入门（二）
+          高速接口PCIe无痛入门（二）事务层
         </h1>
 
         <div class="post-meta">
@@ -180,7 +186,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2024-04-14 12:42:40 / 修改时间：12:44:08" itemprop="dateCreated datePublished" datetime="2024-04-14T12:42:40-07:00">2024-04-14</time>
+              <time title="创建时间：2024-04-14 12:42:40 / 修改时间：14:26:54" itemprop="dateCreated datePublished" datetime="2024-04-14T12:42:40-07:00">2024-04-14</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -211,7 +217,80 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        
+        <p>Reference：<a target="_blank" rel="noopener" href="https://r12f.com/posts/pcie-3-tl-dll/">https://r12f.com/posts/pcie-3-tl-dll/</a></p>
+<p>上篇主要是总体的大致架构，这节开始每一层详细。</p>
+<h1>PCIe总线通信机制</h1>
+<p>假设进行read操作，首先Requester给Completer发送一个Request，然后Completer通过Completion Packet返回要read的data或error info。</p>
+<p>在PCIe的Spec里规定了四种Request：<strong>Memory</strong>，<strong>IO</strong>，<strong>Configuration</strong>，<strong>Message</strong>。前三种是从PCI/PCI-X继承过来的，第四种Message是PCIe新增的类型。</p>
+<img src="/2024/04/14/PCIe-2/PCIe_Request.png" alt="PCIe_Request" style="zoom:75%;">
+<span id="more"></span>
+<p>上面值得注意的是，Memory Write和Message是Posted类型的，其他都是Non-Posted类型的。</p>
+<p>Non-Posted：Requester发送一个包含Request的包以后，必须要得到一个包含Completion包的Response，这一次传输才算结束，不然会一直wait。</p>
+<p>Posted：Requester的请求并不需要Completer发送包含Completion的包进行应答，也不需要wait。</p>
+<p>Posted的操作对总线的Utilization效率要 &gt;&gt; Non-Posted。分这两种类型是因为，对Memory Write来说，对效率要求高。但不意味着Posted完全不需要Completer进行应答，Completer可以采用Ack/Nak机制（在Data Link Layer实现）。</p>
+<h1>事务层（Transaction Layer）</h1>
+<p>这是PCIe协议栈的最上层，定义了所有和用户相关的PCIe操作。</p>
+<h2 id="Transaction">Transaction</h2>
+<p>PCIe的所有操作都被称为一个Transaction，分为四类：</p>
+<ul>
+<li>内存事务（Memory Transaction）</li>
+<li>IO事务（IO Transaction）</li>
+<li>配置事务（Configuration Transaction）</li>
+<li>消息事务（Message Transaction）</li>
+</ul>
+<p>一个事务根据其请求的处理方式又被分为两种：</p>
+<ul>
+<li><strong>Non-Posted</strong>：每个事务的请求消息发送出去后，会需要一个完成消息（Completion）来完成事务。比如，读内存。</li>
+<li><strong>Posted</strong>：请求发送后不需要完成消息，属于Fire and forget。比如，写内存和所有的消息事务（这也是唯二的两类请求）</li>
+</ul>
+<p>所以，事务层的消息有三类：Non-Posted（NP），Posted（P）和Completion（Cpl）。</p>
+<h2 id="TLP（Transaction-Layer-Packet）">TLP（Transaction Layer Packet）</h2>
+<p>PCIe的Transaction Request和Completion的消息都是以TLP为单位传输的。</p>
+<img src="/2024/04/14/PCIe-2/pcie-tlp.png" alt="pcie-tlp">
+<ul>
+<li><strong>TLP Prefix</strong>：用来实现一些高级特性，比如精确时间测量（Precision Time Measurement），因为它不是必须的，所以我们先跳过。</li>
+<li><strong>TLP Digest</strong>：4个字节，可以存放诸如CRC的校验码，不过一般不需要开启，因为后面说的数据链路层已经自带了校验了，这里相当于是双保险。</li>
+<li><strong>TLP Header</strong>：这个是TLP中最重要的部分，我们后面马上会详细介绍。</li>
+<li><strong>TLP Payload</strong>：这个是TLP中的数据部分，根据不同的事务类型，其大小也不同。比如，读事务就不需要Payload。另外Payload的大小也是有限制的，它不能超过<code>Max_Payload_Size</code>，最大为4096字节。</li>
+</ul>
+<h3 id="TLP-Header">TLP Header</h3>
+<p>TLP的头部（Header）设计用于确保数据能正确传输与解析。头部的长度根据处理地址的长度可能是12字节（称为3DW）或16字节（称为4DW）。</p>
+<ul>
+<li><strong>3DW</strong> vs <strong>4DW</strong>: 3DW和4DW的区别主要在于地址字段的长度。3DW用于32位地址，而4DW则用于64位地址，以支持更大的地址空间。</li>
+<li><strong>头部结构</strong>: TLP的头部包括多个字段，第一个DW（Double Word，双字，等于4个字节）是所有类型的TLP都共有的。这4个字节包含了描述该事务本身的信息和行为的大部分字段。这些字段包括：
+<ol>
+<li><strong>格式与类型（Format and Type）</strong>: 标识TLP的格式（比如3DW或4DW）和类型（比如内存读取、写入等）。</li>
+<li><strong>事务ID（Transaction ID）</strong>: 包含发起该事务的设备的ID，用于事务的追踪和管理。</li>
+<li><strong>长度（Length）</strong>: 指示数据字段的长度，单位是DW。</li>
+</ol>
+</li>
+<li><strong>变化部分</strong>: 头部的后续8个字节（即第二和第三个DW）则根据事务类型的不同而有所不同。例如，内存读写事务会包含目的地址信息，而配置读写事务则包括配置空间的偏移和被访问的设备的信息。</li>
+</ul>
+<p>其前四个公共字节如下：</p>
+<p><img src=".//PCIe-2/pcie-tlp-header-common-fields.png" alt="pcie-tlp-header-common-fields"></p>
+<blockquote>
+<p>Fmt字段解释</p>
+</blockquote>
+<p>“Fmt”字段位于TLP头部的最前面，通常占据第一个字节的前三位（Bit 7, 6, 5）。这个字段的具体设置指示了TLP的基本格式和处理方式：</p>
+<ul>
+<li><strong>Bit 7</strong>: 当此位为1时，指示这个TLP包含一个前缀（TLP Prefix），通常用于添加额外的路由或安全信息。如果是1，则“Fmt”必须是100，这是专门用于包含前缀的TLP格式。</li>
+<li><strong>Bit 6</strong>: 这一位用于区分读写事务。如果为1，表示是读事务，意味着TLP头部之后没有Payload；如果为0，则表示是写事务，TLP头部之后有Payload。</li>
+<li><strong>Bit 5</strong>: 用于指示地址的位数。如果为1，则使用32位地址，头部长度为12字节（3DW Header）；如果为0，则使用64位地址，头部长度为16字节（4DW Header）。</li>
+</ul>
+<blockquote>
+<p>其他重要字段</p>
+</blockquote>
+<ul>
+<li><strong>Type</strong>: 这个字段定义了TLP的事务类型，如内存事务、I/O事务、配置事务、消息事务等。</li>
+<li><strong>LN (Lightweight Notification)</strong>: 标识该内存请求或完成消息是否为轻量级通知。</li>
+<li><strong>TH (TLP Hints)</strong>: 表示是否启用了TPH (TLP Processing Hint) 以及是否存在TPH TLP前缀。</li>
+<li><strong>TD (TLP Digest)</strong>: 指示是否包含TLP摘要。如果为1，则有TLP Digest；如果为0，则没有TLP Digest。</li>
+<li><strong>EP (Error Poisoning)</strong>: 用于标识数据是否有错误。如果为1，则表示数据被标记为错误；如果为0，则无错误。</li>
+<li><strong>AT (Address Translation)</strong>: 与虚拟化相关的字段，指示地址转换的状态。00表示无地址转换，01表示需要地址转换，10表示地址转换已完成，11保留。</li>
+<li><strong>Length</strong>: 定义Payload的长度，单位为DW (Double Word)。1DW等于4字节。</li>
+</ul>
+<p>这里有两个字段TC和Attr没有介绍，因为它们是Transaction Descriptor事务描述符的一部分，马上就会介绍。</p>
+
     </div>
 
     
