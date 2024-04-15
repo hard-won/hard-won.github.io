@@ -31,8 +31,9 @@
 <meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-2/PCIe_Request.png">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-2/pcie-tlp.png">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-2/pcie-tlp-header-common-fields.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-2/pcie-tlp-memory-tx-desc.png">
 <meta property="article:published_time" content="2024-04-14T19:42:40.000Z">
-<meta property="article:modified_time" content="2024-04-14T21:28:36.323Z">
+<meta property="article:modified_time" content="2024-04-15T00:26:55.168Z">
 <meta property="article:author" content="Shengyi Wei">
 <meta property="article:tag" content="芯片工程师">
 <meta name="twitter:card" content="summary">
@@ -186,7 +187,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2024-04-14 12:42:40 / 修改时间：14:28:36" itemprop="dateCreated datePublished" datetime="2024-04-14T12:42:40-07:00">2024-04-14</time>
+              <time title="创建时间：2024-04-14 12:42:40 / 修改时间：17:26:55" itemprop="dateCreated datePublished" datetime="2024-04-14T12:42:40-07:00">2024-04-14</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -290,6 +291,30 @@
 <li><strong>Length</strong>: 定义Payload的长度，单位为DW (Double Word)。1DW等于4字节。</li>
 </ul>
 <p>这里有两个字段TC和Attr没有介绍，因为它们是Transaction Descriptor事务描述符的一部分，马上就会介绍。</p>
+<h3 id="事务描述符-Transaction-Descriptor">事务描述符 Transaction Descriptor</h3>
+<p>事务描述符是TLP头中的关键组成部分，包括事务ID（Requester ID和Tag两个字段），消息的属性（Attr字段），流量分类（TC字段），这些字段在多数事务中都是必须的，提供了关于事务发起者和处理方式的重要信息。</p>
+<p>这四个字段几乎会在所有的消息中存在（某些情况下Tag会被忽略），这里用一个内存请求的消息来做例子，展示它们在TLP中的位置：</p>
+<p><img src="/2024/04/14/PCIe-2/pcie-tlp-memory-tx-desc.png" alt="pcie-tlp-memory-tx-desc"></p>
+<h4 id="事务ID-Transaction-ID">事务ID Transaction ID</h4>
+<p>事务ID（Transaction ID）在PCI Express (PCIe) 中是一个至关重要的元素，用于标识并跟踪各种事务。事务ID由两个主要部分组成：Requester ID和Tag。</p>
+<h5 id="Requester-ID">Requester ID</h5>
+<p>Requester ID是一个16位的字段，用于唯一标识发起PCIe事务的设备。这个ID是基于BDF格式（Bus Device Function，总线设备功能）编码的，其中包括：</p>
+<ul>
+<li><strong>Bus</strong>: 总线号，表示PCIe设备连接的总线。</li>
+<li><strong>Device</strong>: 设备号，表示在特定总线上的设备。</li>
+<li><strong>Function</strong>: 功能号，表示在特定设备上的逻辑单元。</li>
+</ul>
+<p>这种结构确保了每个发起事务的device都可以被唯一确定，并且在数据传输过程中可以清楚地识别出source和target。</p>
+<h5 id="Tag">Tag</h5>
+<p>Tag是一个10位的字段，为每一个发出的TLP分配一个唯一的标签。这个标签对于PCIe系统来说非常重要，因为它帮助系统进行以下操作：</p>
+<ul>
+<li><strong>数据传输跟踪</strong>: 确保可以追踪每个事务的状态，从而正确地处理响应和重传。</li>
+<li><strong>并行处理</strong>: 在多个事务同时进行时，Tag帮助确保各个事务的数据不会混淆。</li>
+<li><strong>流控制和乱序处理</strong>: 系统可以使用Tag来管理数据包的接收顺序，确保数据即使在乱序到达时也能被正确重组。</li>
+</ul>
+<h5 id="特殊位：T8和T9">特殊位：T8和T9</h5>
+<p>在Tag的10个位中，T8和T9两个位通常与其他位分开处理（绿色高亮）。为了使用完整的10位Tag，系统必须启用“10-Bit Tag Requester Enable”配置寄存器。这个功能的启用允许系统处理更大量的并发事务，提高了PCIe接口的效率和多任务处理能力。</p>
+<p>事务ID通过其两个组成部分（Requester ID和Tag）为PCIe提供了一种强大的方式来标识、跟踪和管理跨系统的数据传输。这确保了在高负载和多任务环境中数据传输的准确性和系统的高效运行。</p>
 
     </div>
 
