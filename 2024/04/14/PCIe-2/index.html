@@ -32,8 +32,10 @@
 <meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-2/pcie-tlp.png">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-2/pcie-tlp-header-common-fields.png">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-2/pcie-tlp-memory-tx-desc.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-2/pcie-tlp-tx-attributes.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-2/pcie-tc-vc-config.png">
 <meta property="article:published_time" content="2024-04-14T19:42:40.000Z">
-<meta property="article:modified_time" content="2024-04-15T00:26:55.168Z">
+<meta property="article:modified_time" content="2024-04-15T01:08:14.503Z">
 <meta property="article:author" content="Shengyi Wei">
 <meta property="article:tag" content="芯片工程师">
 <meta name="twitter:card" content="summary">
@@ -187,7 +189,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2024-04-14 12:42:40 / 修改时间：17:26:55" itemprop="dateCreated datePublished" datetime="2024-04-14T12:42:40-07:00">2024-04-14</time>
+              <time title="创建时间：2024-04-14 12:42:40 / 修改时间：18:08:14" itemprop="dateCreated datePublished" datetime="2024-04-14T12:42:40-07:00">2024-04-14</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -315,6 +317,103 @@
 <h5 id="特殊位：T8和T9">特殊位：T8和T9</h5>
 <p>在Tag的10个位中，T8和T9两个位通常与其他位分开处理（绿色高亮）。为了使用完整的10位Tag，系统必须启用“10-Bit Tag Requester Enable”配置寄存器。这个功能的启用允许系统处理更大量的并发事务，提高了PCIe接口的效率和多任务处理能力。</p>
 <p>事务ID通过其两个组成部分（Requester ID和Tag）为PCIe提供了一种强大的方式来标识、跟踪和管理跨系统的数据传输。这确保了在高负载和多任务环境中数据传输的准确性和系统的高效运行。</p>
+<h4 id="消息属性-Attributes">消息属性 Attributes</h4>
+<p>消息属性（Attr字段）由三个位组成，这些位定义了TLP的处理优先级和数据一致性要求。这个字段虽然只有三个比特位，但它对于确定如何在系统中传输和处理TLP至关重要。高两位 Attr[2:1]（Byte 1 - Bit 2，Byte 2 - Bit 5）用于控制消息处理的Ordering，而最低位 Attr[0]（Byte 2 - Bit 4）用于控制Coherency。</p>
+<p><img src="/2024/04/14/PCIe-2/pcie-tlp-tx-attributes.png" alt="pcie-tlp-tx-attributes"></p>
+<h5 id="消息处理顺序-Ordering">消息处理顺序 Ordering</h5>
+<p>Attr[2:1]这两个Bits用于控制消息处理的顺序，一共有四种情况：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"><strong>Attr[2]</strong></th>
+<th style="text-align:center"><strong>Attr[1]</strong></th>
+<th><strong>顺序类型</strong></th>
+<th style="text-align:left"><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">0</td>
+<td style="text-align:center">0</td>
+<td>强制顺序</td>
+<td style="text-align:left">Default值，不允许乱序处理</td>
+</tr>
+<tr>
+<td style="text-align:center">0</td>
+<td style="text-align:center">1</td>
+<td>Relaxed Ordering</td>
+<td style="text-align:left">允许Completer在当前请求没有完成的时候，同时处理任何后续的Request</td>
+</tr>
+<tr>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0</td>
+<td>ID-based Ordering</td>
+<td style="text-align:left">允许Completer在当前请求没有完成的时候，同时处理来自其他device的Request</td>
+</tr>
+<tr>
+<td style="text-align:center">1</td>
+<td style="text-align:center">1</td>
+<td>无序</td>
+<td style="text-align:left">相当于是Relaxed Ordering和ID-based Ordering的并集，允许接收者在当前请求没有完成的时候，同时处理任何的请求</td>
+</tr>
+</tbody>
+</table>
+<h5 id="No-Snoop">No Snoop</h5>
+<p>NoSnoop（Attr[0]）使用来控制缓存一致性Coherency的。</p>
+<p>Cache Coherency缓存一致性的重要性：</p>
+<p>在一个Multi-Processor System中，每个Processor或Device可能有自己的Cache。如果这些Cache没有被适当地同步，就会出现问题：</p>
+<ul>
+<li><strong>数据过时</strong> <strong>Data Staleness</strong>：一个处理器的Cache中的数据可能比系统中的其他部分的数据更旧，因此它可能会基于过时的信息做出决策。</li>
+<li><strong>数据冲突</strong> <strong>Data Conflicts</strong>：不同的处理器可能会同时尝试修改同一数据块，如果Cache不一致，就可能导致数据丢失或错误。</li>
+</ul>
+<p>NoSnoop（Attr[0]，无窥探属性）是在PCI Express (PCIe) 传输中使用的一个重要属性，用于控制缓存一致性。在默认情况下（值为0），PCIe的请求会遵循缓存一致性的规则。这意味着，例如在进行内存读请求时，系统会首先检查缓存（Cache）中是否存在所需数据。如果缓存中没有找到数据，系统才会从主内存中读取。</p>
+<p>然而，当NoSnoop的值设置为1时，PCIe会跳过缓存直接访问主内存。这种操作可以提高性能，因为它减少了查询缓存的步骤，特别是在那些我们知道数据不在Cache中或者Cache Coherency不是关键因素的情况下。但这种做法也带来了一定的风险，因为如果缓存中的数据已被修改但尚未写回主内存，直接从Main Memory中读取数据可能会得到<strong>过时</strong>或<strong>错误</strong>的数据，从而导致数据一致性问题。</p>
+<p>因为这种潜在的一致性风险，许多类型的PCIe事务禁止使用NoSnoop标志。这包括配置事务、I/O事务、大多数消息事务以及MSI（Message Signaled Interrupts，消息信号中断）。使用NoSnoop属性进行这些事务可能会导致严重的错误，如DMA（Direct Memory Access，直接内存访问）操作错误，或读取到的数据不准确。</p>
+<p>总之，NoSnoop属性在特定场景下可以提供性能优势，但在使用时需要仔细考虑其对系统一致性的影响。</p>
+<h4 id="流量分类-Traffic-Class">流量分类 Traffic Class</h4>
+<p>Traffic Class (TC, 流量类别) 用于流量控制。TC 总共有3个比特，意味着可以定义最多8个不同的流量类别（0到7）。这些类别允许网络在传输过程中区分不同类型的数据，确保某些数据（如实时数据包）可以获得更高的优先级。</p>
+<p><img src="/2024/04/14/PCIe-2/pcie-tc-vc-config.png" alt="pcie-tc-vc-config"></p>
+<h5 id="TC-与-VC（Virtual-Channel-虚拟通道）的合作机制：">TC 与 VC（Virtual Channel, 虚拟通道）的合作机制：</h5>
+<ol>
+<li>
+<p><strong>虚拟通道（VC）</strong>:</p>
+<ul>
+<li>每条PCIe物理链路（Link）都可以创建多个VC。每个VC是一个独立的传输通道，都有自己的流量控制机制。</li>
+<li>这些VC可以独立工作，彼此之间不会直接干扰。</li>
+</ul>
+</li>
+<li>
+<p><strong>TC到VC的映射</strong>:</p>
+<ul>
+<li>一个或多个TC可以映射到一个VC上。这意味着通过改变传输数据包（Transaction Layer Packet, TLP）的TC标签，可以控制这个数据包应该通过哪个VC传输。</li>
+<li>这种映射提供了一种方法，通过调整TC来改变数据的传输路径和优先级。</li>
+</ul>
+</li>
+<li>
+<p><strong>信用机制</strong>:</p>
+<ul>
+<li>每个VC都具备信用机制（Credit Mechanism），用于控制数据包的发送频率。</li>
+<li>每个VC有自己的Credit Pool（信用池）。只要VC的信用点数不为0，它就可以发送TLP，并消耗一定数量的信用点数。</li>
+<li>VC的信用点数会在特定时刻自动补充，确保数据传输可以持续进行，避免因信用耗尽而中断。</li>
+</ul>
+</li>
+<li>
+<p><strong>默认行为</strong>:</p>
+<ul>
+<li>TC的默认值是0，这也是所有PCIe设备必须实现的基本配置。TC为0的TLP会被Hardcoded（硬编码）映射到VC0。</li>
+<li>如果没有对TC进行特定的设置，所有的TLP都将通过VC0进行传输。</li>
+</ul>
+</li>
+<li>
+<p><strong>顺序性</strong>:</p>
+<ul>
+<li>如果两个数据包分别映射到不同的VC或者使用了不同的TC，PCIe不保证这两个包的传输顺序。</li>
+</ul>
+</li>
+</ol>
+<p>示例：</p>
+<p>假设我们需要对一些急需处理的数据包给予高优先级，我们可以将这些数据包的TC设置为1，并映射到一个专门配置的VC（如VC1），这个VC可以有更高的信用分配和优先级设置。这样，即使在高流量情况下，这些高优先级的数据包也能快速传输。</p>
+<p>通过上述机制，PCIe可以灵活地对不同类型的数据传输进行管理和优先级控制。这里我们主要了解TC到VC的映射，关于VC的具体机制，会在后面数据链路层介绍。</p>
 
     </div>
 
