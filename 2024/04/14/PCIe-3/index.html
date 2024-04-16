@@ -28,16 +28,24 @@
 <meta property="og:site_name" content="肖恩 Wei&#39;s Blog">
 <meta property="og:description" content="数据链路层 Data Link Layer 数据链路层负责：保证transaction消息能够正确传输到目的地。 在数据链路层（Data Link Layer）的传输过程中，包（Packet）分为两大类：事务层包（Transaction Layer Packet, TLP）和数据链路层包（Data Link Layer Packet, DLLP）。这两种包各自承担不同的职责，并通过物理层PHY的标">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/DLL.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/Data_Link_layer.png">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-layout.png">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-tlp-packet.png">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-tlp-receive.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/DLLP.png">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-dllp.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/ack:nak.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-ack-nak.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-fc.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-sfc.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-arch.png">
 <meta property="article:published_time" content="2024-04-15T02:20:18.000Z">
-<meta property="article:modified_time" content="2024-04-16T00:06:17.497Z">
+<meta property="article:modified_time" content="2024-04-16T04:07:34.211Z">
 <meta property="article:author" content="Shaun Wei">
 <meta property="article:tag" content="芯片工程师">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-layout.png">
+<meta name="twitter:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/DLL.png">
 
 <link rel="canonical" href="https://hard-won.github.io/2024/04/14/PCIe-3/">
 
@@ -193,7 +201,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-04-15 17:06:17" itemprop="dateModified" datetime="2024-04-15T17:06:17-07:00">2024-04-15</time>
+                <time title="修改时间：2024-04-15 21:07:34" itemprop="dateModified" datetime="2024-04-15T21:07:34-07:00">2024-04-15</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -228,6 +236,38 @@
 <p>数据链路层负责：<strong>保证transaction消息能够正确传输到目的地</strong>。</p>
 <p>在数据链路层（Data Link Layer）的传输过程中，包（Packet）分为两大类：事务层包（Transaction Layer Packet, <strong>TLP</strong>）和数据链路层包（Data Link Layer Packet, <strong>DLLP</strong>）。这两种包各自承担不同的职责，并通过物理层PHY的标记来区分。</p>
 <span id="more"></span>
+<img src="/2024/04/14/PCIe-3/DLL.png" alt="DLL" style="zoom:75%;">
+<p>这幅图展示了PCI Express (PCIe) 数据链路层的基本传输和接收流程。左侧的蓝色部分代表发送方（Tx），右侧的蓝色部分代表接收方（Rx），两者通过中间的链路相连。下面是对图中各个部分的详细解释：</p>
+<ol>
+<li><strong>发送方（Tx）</strong>：
+<ul>
+<li><strong>来自事务层</strong>：数据包（TLP）从事务层发送到数据链路层。</li>
+<li><strong>Link Packet</strong>：表示数据链路层对TLP包的封装，其中包括序列号和LCRC（Link CRC）校验码。</li>
+<li><strong>Replay Buffer</strong>：重发缓冲区，用于存储发送出去的数据包，以便在需要时可以重新发送。</li>
+<li><strong>Mux（Multiplexer）</strong>：复用器，用于在数据链路层管理数据流和控制流（如DLLP ACK/NAK消息）。</li>
+</ul>
+</li>
+<li><strong>链路</strong>：
+<ul>
+<li><strong>Tx到Rx</strong>：数据包通过物理链路从发送端传输到接收端。</li>
+</ul>
+</li>
+<li><strong>接收方（Rx）</strong>：
+<ul>
+<li><strong>De-mux（Demultiplexer）</strong>：解复用器，用于在接收端分离数据流和控制流。</li>
+<li><strong>Error Check</strong>：错误检测，接收端检查序列号和LCRC来验证数据包是否完整无误。</li>
+<li><strong>Link Packet</strong>：表示接收到的数据包。如果出现错误（如序列号或CRC错误），这些错误会被标记出来（如图中的红叉）。</li>
+</ul>
+</li>
+<li><strong>DLLP ACK/NAK</strong>：
+<ul>
+<li><strong>ACK</strong>：如果数据包无误，接收方会发送一个确认消息（ACK），通知发送方数据已成功接收。</li>
+<li><strong>NAK</strong>：如果检测到错误，接收方会发送一个否认消息（NAK），请求发送方重发数据包。</li>
+</ul>
+</li>
+</ol>
+<p>此图中的红色部分表示接收方检测到一个错误的数据包，因此不接受它，可能会发送一个NAK消息给发送方，请求重新发送。同时，发送方在发送数据包时，会先将其存储在重发缓冲区中，以备不时之需。这整个流程保障了数据的可靠传输，在发现错误时能够及时纠正。</p>
+<p><img src="/2024/04/14/PCIe-3/Data_Link_layer.png" alt="Data_Link_layer"></p>
 <ol>
 <li><strong>事务层包（TLP）</strong>：
 <ul>
@@ -321,6 +361,13 @@
 <p>更加具体的数据接收处理流程：</p>
 <p><img src="/2024/04/14/PCIe-3/pcie-data-link-layer-tlp-receive.png" alt="pcie-data-link-layer-tlp-receive"></p>
 <h2 id="控制消息-DLLP">控制消息 DLLP</h2>
+<p><strong>数据链路层数据包（DLLP）</strong>：</p>
+<ul>
+<li><strong>DLLP Type</strong>：DLLP类型，标识这是一个控制数据包，并且包含了具体的控制信息类型，比如ACK或NAK。</li>
+<li><strong>Misc.</strong>：杂项，这里可以包含不同的控制信息，具体依赖于DLLP的类型。</li>
+<li><strong>CRC</strong>：循环冗余校验码，仅针对DLLP数据包内容的校验码，保证了DLLP在传输过程中的数据完整性。</li>
+</ul>
+<p><img src="/2024/04/14/PCIe-3/DLLP.png" alt="DLLP"></p>
 <p>Data Link Layer Packet</p>
 <p><img src="/2024/04/14/PCIe-3/pcie-data-link-layer-dllp.png" alt="pcie-data-link-layer-dllp"></p>
 <p>DLLP中DLLP Type用来指定包的类型，最后16位的CRC用来做校验，其主要分为以下几种类型：</p>
@@ -376,6 +423,141 @@
 </tbody>
 </table>
 <h3 id="Ack-Nak">Ack/Nak</h3>
+<p>一个Non-Posted传输中，Ack/Nak的执行过程如下图所示：</p>
+<p><img src="/2024/04/14/PCIe-3/ack:nak.png" alt="ack:nak"></p>
+<p>之前在TLP事务消息传输里提到过Ack和Nak，它们是DLLP中最常用的消息。两个包的格式如下：</p>
+<p><img src="/2024/04/14/PCIe-3/pcie-data-link-layer-ack-nak.png" alt="pcie-data-link-layer-ack-nak"></p>
+<p><code>AckNak_Seq_Num</code> 是数据链路层协议中的一个重要概念，它用于指示已经成功接收的数据包的序列号。Ack（确认）和Nak（否认）机制确保了数据的正确传输，同时提供了类似于TCP协议的流量控制功能。</p>
+<ol>
+<li><strong>AckNak_Seq_Num</strong>：
+<ul>
+<li><strong>定义</strong>：AckNak_Seq_Num指的是接收方已经成功接收并处理的最新消息的序列号。</li>
+<li><strong>作用</strong>：它告诉发送方，所有序列号小于或等于此序列号的数据包都已被成功接收。</li>
+</ul>
+</li>
+<li><strong>Ack和Nak的批量操作</strong>：
+<ul>
+<li><strong>批量确认</strong>：由于<code>AckNak_Seq_Num</code>表示最新的消息序号，发送方在收到Ack消息后，就可以放心地将Retry Buffer中序列号小于或等于这个序列号的所有消息移除。</li>
+<li><strong>批量否认</strong>：而如果接收到的是Nak消息，则发送方知道至少有一个包（具体是AckNak_Seq_Num所指的包）未被正确接收。发送方需要移除Retry Buffer中比这个序列号老的消息，并将这个序列号以及之后的所有消息重新发送。</li>
+</ul>
+</li>
+<li><strong>Ack与Nak的区别</strong>：
+<ul>
+<li><strong>确认与否认</strong>：Ack消息是一个积极的信号，表示数据包已被正确接收；而Nak消息则是一个负面信号，提示发送方有一个或多个数据包需要重传。</li>
+<li><strong>重传机制</strong>：收到Nak之后，发送方会重新发送指定序列号之后的所有数据包。</li>
+</ul>
+</li>
+<li><strong>DLLP的重传次数限制</strong>：
+<ul>
+<li><strong>默认阈值</strong>：DLLP的重传是有限次数的，默认的重传阈值是4次。这是为了防止无限重传无法正确接收的数据包，这样的设计可以有效避免系统资源的浪费。</li>
+<li><strong>链路重建</strong>：如果一个数据包重传超过了4次仍然失败，协议规定将触发物理层开始重建（retrain）链路的过程。这个过程涉及到硬件层面的重新同步，可能会影响到链路的性能。</li>
+<li><strong>链路关闭</strong>：如果重建链路依然失败，系统可能会选择将该链路关闭，以维护整个系统的稳定性和性能。</li>
+</ul>
+</li>
+</ol>
+<h3 id="Virtual-Channel-Traffic-Control">Virtual Channel &amp; Traffic Control</h3>
+<p>PCIe流量控制通过交错地使用信用（Credit）系统来管理数据传输，以避免发送方过量发送数据而淹没接收方，造成数据丢失。下面详细解释PCIe流量控制中的信用机制：</p>
+<ol>
+<li>
+<p><strong>流量类别（Traffic Class, TC）到虚拟通道（Virtual Channel, VC）的映射</strong>：</p>
+<ul>
+<li><strong>TC</strong>: 数据根据服务质量要求被分配到不同的流量类别。</li>
+<li><strong>VC</strong>: 每个流量类别可以映射到不同的虚拟通道。VC作为传输路径的逻辑分割，可以有多个，并且每个VC可以有不同的优先级和资源。</li>
+</ul>
+</li>
+<li>
+<p><strong>TLP的不同处理方式和信用额度管理</strong>：</p>
+<ul>
+<li><strong>Posted (P)</strong>：指那些不需要立即确认的消息，如写操作。</li>
+<li><strong>Non-Posted (NP)</strong>：指那些需要立即确认的操作，如读操作请求。</li>
+<li><strong>Completion (Cpl)</strong>：指完成消息，如读操作的响应。</li>
+<li>每种类型的TLP都有独立的信用额度，互不干扰。</li>
+</ul>
+</li>
+<li>
+<p><strong>虚拟通道的信用额度</strong>：</p>
+<ul>
+<li><strong>独立管理</strong>：每个VC有自己的信用额度，而不是整个链路共享一个信用额度。</li>
+<li><strong>多VC支持</strong>：如果一个链路上有多个VC，每个VC都必须独立进行初始化和信用额度的更新。</li>
+</ul>
+</li>
+<li>
+<p><strong>流量控制的三个步骤</strong>：</p>
+<ul>
+<li><strong>InitFC1-P/NP/Cpl</strong>：这是流量控制的第一步。接收方根据自己的缓冲能力发送InitFC1消息，向发送方初始化信用额度。</li>
+<li><strong>InitFC2-P/NP/Cpl</strong>：发送方通过InitFC2消息响应接收方的InitFC1消息。虽然InitFC2携带了信用信息，但接收方通常会忽略这些信息。发送此消息后，发送方不再响应后续的InitFC1消息。</li>
+<li><strong>UpdateFC-P/NP/Cpl</strong>：在信用额度初始化后，接收方可使用UpdateFC消息根据实际情况向发送方更新信用额度。</li>
+</ul>
+</li>
+</ol>
+<p>通过以上的信用机制，PCIe确保数据包（特别是TLP）在传输过程中不会超出接收方的处理能力，从而避免了数据丢失和流量拥塞的问题。这个机制类似于网络世界中的流量控制协议，比如TCP的滑动窗口机制。这样的设计允许设备根据自己和对端的能力，动态地调整传输速率和数据量。</p>
+<p><img src="/2024/04/14/PCIe-3/pcie-data-link-layer-fc.png" alt="pcie-data-link-layer-fc"></p>
+<p>这个消息中各个字段含义如下：</p>
+<ul>
+<li><strong>Type</strong>：消息ID，映射如下：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Id</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>InitFC1-P</td>
+<td>0100b</td>
+</tr>
+<tr>
+<td>InitFC1-NP</td>
+<td>0101b</td>
+</tr>
+<tr>
+<td>InitFC1-Cpl</td>
+<td>0110b</td>
+</tr>
+<tr>
+<td>InitFC2-P</td>
+<td>1100b</td>
+</tr>
+<tr>
+<td>InitFC2-NP</td>
+<td>1101b</td>
+</tr>
+<tr>
+<td>InitFC2-Cpl</td>
+<td>1110b</td>
+</tr>
+<tr>
+<td>UpdateFC-P</td>
+<td>1000b</td>
+</tr>
+<tr>
+<td>UpdateFC-NP</td>
+<td>1001b</td>
+</tr>
+<tr>
+<td>UpdateFC-Cpl</td>
+<td>1010b</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>VC ID（v[2:0]）</strong>：Virtual Channel的ID，ID一共有3位，代表8个VC。</li>
+<li><strong>HdrFC</strong>：TLP头部的Credit数量。在发送时，一个TLP头对应着一个Header Credit，无论该TLP的大小。</li>
+<li><strong>DataFC</strong>：TLP数据部分的Credit数量。一个 DW（Double Word，双字，即4字节）对应着一个Data Credit。</li>
+</ul>
+<p>想象一下，你的电脑想要写入一段数据到内存中，而这段数据有128字节那么长。在PCI Express (PCIe) 协议中，这就意味着你需要告诉内存很多细节，比如数据要写在哪里，这就需要一个包头（TLP头），它占用了16字节（因为每个DW（Data Word）是4字节，所以4 DW就是16字节）。加上你要写的128字节数据，这就构成了我们所说的数据包的有效载荷（Payload）。</p>
+<p>现在，还有一个可选的部分叫TLP Digest，如果用到的话，它会再占用4字节。这个东西用于确保数据的完整性没问题。但不是每次传输都需要它。</p>
+<p>所以，如果把这所有的东西加起来，你的电脑为了发送这128字节的数据，最多会使用到33个数据信用额度（因为128字节的数据和16字节的头部加起来，总共144字节，除以4字节每个信用额度，正好是36，但是头部占用的那个信用额度是单独算的，所以数据信用额度其实只用了32个，再加上那个可选的TLP Digest占用的1个信用额度，总共是33个）。</p>
+<p>现在，假设你的数据已经飞向内存，内存处理了一部分数据后，它会告诉你的电脑：“好了，我处理了一些，你可以继续发送更多的数据了。” 这就是所谓的信用额度更新（UpdateFC消息）。内存会根据它现在还能处理多少数据，也就是它的缓存有多大，来告诉你的电脑还剩下多少信用额度。内存除了在处理完数据后告诉电脑外，它还会定期报告一次，最长不超过30微秒。这是为了防止出现比如CRC校验错误这样的问题，如果这些错误发生了，可能会让更新的信息丢失，这样电脑就不知道还能不能继续发送数据了。</p>
+<p>最后，为了能够管理更大量的数据，PCIe还支持一种叫做“比例流量控制”（Scaled Flow Control）的技巧。这意味着信用额度不再是一次一个单位那么简单，而是可以是2的幂次方的数量，比如说2, 4, 8, 16等等，这样就可以灵活地适应不同大小的数据传输需求了。</p>
+<p>Scaled Flow Control:</p>
+<p><img src="/2024/04/14/PCIe-3/pcie-data-link-layer-sfc.png" alt="pcie-data-link-layer-sfc"></p>
+<h2 id="数据链路层小结">数据链路层小结</h2>
+<p>整体架构：</p>
+<p><img src="/2024/04/14/PCIe-3/pcie-data-link-layer-arch.png" alt="pcie-data-link-layer-arch"></p>
+<p>数据链路层中其实还有很多其他的内容，比如Link的初始化，状态机，电源管理，和Vendor-specific DLLP等等，但没有介绍。</p>
 
     </div>
 
