@@ -21,16 +21,23 @@
     var CONFIG = {"hostname":"hard-won.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta property="og:type" content="article">
+  <meta name="description" content="数据链路层 Data Link Layer 数据链路层负责：保证transaction消息能够正确传输到目的地。 在数据链路层（Data Link Layer）的传输过程中，包（Packet）分为两大类：事务层包（Transaction Layer Packet, TLP）和数据链路层包（Data Link Layer Packet, DLLP）。这两种包各自承担不同的职责，并通过物理层PHY的标">
+<meta property="og:type" content="article">
 <meta property="og:title" content="高速接口PCIe无痛入门（三）数据链路层">
 <meta property="og:url" content="https://hard-won.github.io/2024/04/14/PCIe-3/index.html">
 <meta property="og:site_name" content="肖恩 Wei&#39;s Blog">
+<meta property="og:description" content="数据链路层 Data Link Layer 数据链路层负责：保证transaction消息能够正确传输到目的地。 在数据链路层（Data Link Layer）的传输过程中，包（Packet）分为两大类：事务层包（Transaction Layer Packet, TLP）和数据链路层包（Data Link Layer Packet, DLLP）。这两种包各自承担不同的职责，并通过物理层PHY的标">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-layout.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-tlp-packet.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-tlp-receive.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-dllp.png">
 <meta property="article:published_time" content="2024-04-15T02:20:18.000Z">
-<meta property="article:modified_time" content="2024-04-15T02:21:16.595Z">
+<meta property="article:modified_time" content="2024-04-16T00:06:17.497Z">
 <meta property="article:author" content="Shaun Wei">
 <meta property="article:tag" content="芯片工程师">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hard-won.github.io/2024/04/14/PCIe-3/pcie-data-link-layer-layout.png">
 
 <link rel="canonical" href="https://hard-won.github.io/2024/04/14/PCIe-3/">
 
@@ -178,10 +185,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2024-04-14 19:20:18 / 修改时间：19:21:16" itemprop="dateCreated datePublished" datetime="2024-04-14T19:20:18-07:00">2024-04-14</time>
+              <time title="创建时间：2024-04-14 19:20:18" itemprop="dateCreated datePublished" datetime="2024-04-14T19:20:18-07:00">2024-04-14</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-04-15 17:06:17" itemprop="dateModified" datetime="2024-04-15T17:06:17-07:00">2024-04-15</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -211,7 +224,158 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <span id="more"></span>
+        <h1>数据链路层 Data Link Layer</h1>
+<p>数据链路层负责：<strong>保证transaction消息能够正确传输到目的地</strong>。</p>
+<p>在数据链路层（Data Link Layer）的传输过程中，包（Packet）分为两大类：事务层包（Transaction Layer Packet, <strong>TLP</strong>）和数据链路层包（Data Link Layer Packet, <strong>DLLP</strong>）。这两种包各自承担不同的职责，并通过物理层PHY的标记来区分。</p>
+<span id="more"></span>
+<ol>
+<li><strong>事务层包（TLP）</strong>：
+<ul>
+<li><strong>用途</strong>：TLP主要用于传输应用数据和执行事务，如读写内存操作。</li>
+<li><strong>标记</strong>：TLP的起始标记为STP（Start of TLP），这个Token用来指示一个TLP消息的开始。</li>
+</ul>
+</li>
+<li><strong>数据链路层包（DLLP）</strong>：
+<ul>
+<li><strong>用途</strong>：DLLP则主要用于在数据链路层之间传输控制信息，例如功能控制（Feature Control）、流量控制（Flow Control）和电源管理（Power Management）等。这些包用于管理和控制数据链路层的行为和状态，而不是直接传输用户数据。</li>
+<li><strong>标记</strong>：DLLP的起始标记为SDP（Start of DLLP），这个Token用来指示一个控制消息的开始。</li>
+</ul>
+</li>
+</ol>
+<p>通过这种方式，PHY可以识别传入的包是属于哪一类型，从而正确地处理数据或控制信息的传输。这种区分机制确保了数据传输的效率和链路控制的准确性。</p>
+<p><img src="/2024/04/14/PCIe-3/pcie-data-link-layer-layout.png" alt="pcie-data-link-layer-layout"></p>
+<h2 id="TLP-Transaction消息的传输">TLP Transaction消息的传输</h2>
+<h3 id="Data-Package格式和数据发送">Data Package格式和数据发送</h3>
+<p>Data Link Layer会对数据包再进行一层封装，这个过程涉及到添加序列号和CRC校验码。</p>
+<ol>
+<li><strong>序列号（Sequence Number）</strong>：
+<ul>
+<li><strong>大小和作用</strong>：序列号占用2个字节，其主要目的是确保数据包能够按照发送的顺序被接收。这对于处理数据包的顺序性和完整性极其重要，尤其是在高速数据传输中，包的顺序可能会因为多种原因（如并行处理或网络拥堵）而被打乱。</li>
+<li><strong>独立性</strong>：每个链路（Link）都有独立的序列号。这意味着链路两端的设备（发送端和接收端）各自维护一个序列号计数器。接收端设备会记录下一个期望接收的序列号（NEXT_RCV_SEQ），只有当接收到的数据包序列号与这个期望值一致时，数据包才会被正式接收。</li>
+</ul>
+</li>
+<li><strong>链路CRC（LCRC，Link CRC）</strong>：
+<ul>
+<li><strong>大小和作用</strong>：LCRC占用4个字节，它是一种校验码，用来验证数据包在传输过程中的数据完整性和正确性。通过这种方式，可以检测到数据在传输过程中可能发生的任何错误或损坏。</li>
+<li><strong>计算范围</strong>：计算LCRC时，包中已经添加的序列号也会被包括在内。这是因为序列号的任何错误或篡改都可能影响数据包的接收顺序，从而对数据传输的可靠性造成影响。</li>
+</ul>
+</li>
+</ol>
+<p><img src="/2024/04/14/PCIe-3/pcie-data-link-layer-tlp-packet.png" alt="pcie-data-link-layer-tlp-packet"></p>
+<p>数据链路层在处理数据包发送的过程中，采用了一套精心设计的机制来确保数据的可靠传输，涉及到重试缓冲区（Retry Buffer）的使用以及与接收方进行交互确认。这个过程可以分为以下几个步骤：</p>
+<ol>
+<li><strong>使用重试缓冲区（Retry Buffer）</strong>：
+<ul>
+<li><strong>作用</strong>：当数据链路层封装完数据包后，这些包会先被存储在一个叫做Retry Buffer的临时存储空间中。这个缓冲区的主要作用是在发送过程中保存已发送的数据包副本，以备不时之需，即如果需要重发时可以立即使用。</li>
+<li><strong>原因</strong>：这种预备措施是为了应对可能出现的传输错误，确保数据可以在出现问题时重新发送，而不需要重新从源头生成数据包。</li>
+</ul>
+</li>
+<li><strong>数据传输至物理层（Physical Layer）</strong>：
+<ul>
+<li><strong>流程</strong>：数据包从Retry Buffer送往物理层进行发送。物理层PHY负责将数据电子化并通过物理介质（如电缆、光纤等）发送出去。</li>
+</ul>
+</li>
+<li><strong>等待确认（ACK）</strong>：
+<ul>
+<li><strong>确认过程</strong>：每当一个或多个数据包被发送后，发送方将暂停发送新的数据包，等待接收方的确认消息。这个确认消息通常是一个称为ACK（Acknowledgment）的信号，表明数据已成功接收。</li>
+</ul>
+</li>
+<li><strong>处理失败消息</strong>：
+<ul>
+<li><strong>错误类型</strong>：如果接收到的是失败消息，这可能是因为序列号错误、CRC校验失败或物理层发生的其他错误。</li>
+<li><strong>重发机制</strong>：在收到失败消息时，发送方会从Retry Buffer中取出之前保存的数据包，并重新发送它们。这确保了即使在传输错误发生的情况下，数据也能最终被正确传送至接收方。</li>
+</ul>
+</li>
+</ol>
+<h3 id="数据接收">数据接收</h3>
+<p>对于数据链路层的接收方来说，其处理接收到的数据包的流程确实与发送方相反，主要包括检查数据包的序列号和CRC校验码，以及相应地发送确认消息（Ack）或否认消息（Nak）。</p>
+<ol>
+<li><strong>接收数据包</strong>：
+<ul>
+<li><strong>初步处理</strong>：接收方首先从物理层接收到数据包，并进行初步的解封装，例如去除物理层可能添加的任何标记或头部信息。</li>
+</ul>
+</li>
+<li><strong>检查序列号</strong>：
+<ul>
+<li><strong>序列号验证</strong>：接收方检查数据包的序列号是否符合预期。每个接收方都会跟踪下一个期望接收的序列号（NEXT_RCV_SEQ）。如果接收到的数据包序列号与此不匹配，说明包的顺序出现了问题，可能是丢包或者包顺序错乱。</li>
+</ul>
+</li>
+<li><strong>进行CRC校验</strong>：
+<ul>
+<li><strong>完整性验证</strong>：接收方计算接收到的数据包（包括数据和序列号）的CRC，并与包中附带的LCRC（Link CRC）进行比对。CRC校验用来确保数据在传输过程中未被损坏或篡改。</li>
+</ul>
+</li>
+<li><strong>发送响应消息</strong>：
+<ul>
+<li><strong>Nak消息</strong>：如果序列号不正确或CRC校验失败，接收方会发送一个Nak消息给发送方。Nak消息表明接收到的数据包有误，需要发送方重新发送。</li>
+<li><strong>Ack消息</strong>：如果序列号和CRC校验都正确，接收方则发送一个Ack消息，表示数据包已成功接收。</li>
+</ul>
+</li>
+<li><strong>发送方处理响应</strong>：
+<ul>
+<li><strong>移除Retry Buffer中的数据包</strong>：一旦发送方收到Ack消息，它会从其Retry Buffer中移除相应的数据包，因为这意味着数据包已经被成功接收且不再需要重发。</li>
+<li><strong>重传请求</strong>：如果发送方收到Nak消息，它则需要从Retry Buffer中找到相应的数据包并进行重传。</li>
+</ul>
+</li>
+</ol>
+<p>更加具体的数据接收处理流程：</p>
+<p><img src="/2024/04/14/PCIe-3/pcie-data-link-layer-tlp-receive.png" alt="pcie-data-link-layer-tlp-receive"></p>
+<h2 id="控制消息-DLLP">控制消息 DLLP</h2>
+<p>Data Link Layer Packet</p>
+<p><img src="/2024/04/14/PCIe-3/pcie-data-link-layer-dllp.png" alt="pcie-data-link-layer-dllp"></p>
+<p>DLLP中DLLP Type用来指定包的类型，最后16位的CRC用来做校验，其主要分为以下几种类型：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>Type</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ack</td>
+<td>00000000b</td>
+<td>用于确认接收到的TLP数据包</td>
+</tr>
+<tr>
+<td>Nak</td>
+<td>00010000</td>
+<td>用于拒绝接收到的TLP数据包</td>
+</tr>
+<tr>
+<td>&lt;InitFC1/InitFC2/UpdateFC&gt;-&lt;P/NP/Cpl&gt;</td>
+<td>(Type较多，后面说)</td>
+<td>用于流量控制, P/NP/Cpl表示流量控制类型</td>
+</tr>
+<tr>
+<td>MRInitFC1/MRInitFC2/MRUpdateFC</td>
+<td>&lt;0111/1111/1011&gt;0xxxb</td>
+<td>用于流量控制, P/NP/Cpl表示流量控制类型</td>
+</tr>
+<tr>
+<td>PM_*</td>
+<td>00100xxxb</td>
+<td>用于电源管理, 全和或抽样型的电源状态</td>
+</tr>
+<tr>
+<td>NOP</td>
+<td>00110001b</td>
+<td>用于保持链路活跃, 防止链路超时关闭</td>
+</tr>
+<tr>
+<td>Data_Link_Feature</td>
+<td>00000010b</td>
+<td>用于告知对端当前链路的特性, 如支持Scaled Flow Control</td>
+</tr>
+<tr>
+<td>Vendor-specific</td>
+<td>00110000b</td>
+<td>用于支持厂商自定义的DLLP, 实现厂商特有功能</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Ack-Nak">Ack/Nak</h3>
 
     </div>
 
