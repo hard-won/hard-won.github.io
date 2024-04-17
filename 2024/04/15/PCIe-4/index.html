@@ -38,8 +38,9 @@
 <meta property="og:image" content="https://hard-won.github.io/2024/04/15/PCIe-4/pcie-phy-lfsr-galois.gif">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/15/PCIe-4/hardwon/Desktop/hard-won_pages/Hexo_post/source/_posts/PCIe-4/Logic_S.png">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/15/PCIe-4/Logic_R.png">
+<meta property="og:image" content="https://hard-won.github.io/2024/04/15/PCIe-4/pcie-physical-layer-arch.png">
 <meta property="article:published_time" content="2024-04-16T04:08:30.000Z">
-<meta property="article:modified_time" content="2024-04-17T19:28:10.470Z">
+<meta property="article:modified_time" content="2024-04-17T21:47:23.837Z">
 <meta property="article:author" content="Shaun Wei">
 <meta property="article:tag" content="芯片工程师">
 <meta name="twitter:card" content="summary">
@@ -199,7 +200,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-04-17 12:28:10" itemprop="dateModified" datetime="2024-04-17T12:28:10-07:00">2024-04-17</time>
+                <time title="修改时间：2024-04-17 14:47:23" itemprop="dateModified" datetime="2024-04-17T14:47:23-07:00">2024-04-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -464,14 +465,94 @@ $$<br>
 f(x) = x^{23} + x^{21} + x^{16} + x^{8} + x^{5} + x^{2} + 1<br>
 $$</p>
 <p>LFSR 写一个新博客详细解释</p>
-<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1kA411f76v/?vd_source=480dd1a439e1115a7b44c747b41734f4">https://www.bilibili.com/video/BV1kA411f76v/?vd_source=480dd1a439e1115a7b44c747b41734f4</a></p>
+<p>视频解释：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1kA411f76v/?vd_source=480dd1a439e1115a7b44c747b41734f4">https://www.bilibili.com/video/BV1kA411f76v/?vd_source=480dd1a439e1115a7b44c747b41734f4</a></p>
 <p>其计算方法用动画表示如下：</p>
 <p><img src="/2024/04/15/PCIe-4/pcie-phy-lfsr-galois.gif" alt="pcie-phy-lfsr-galois"></p>
 <p>这样，每一次时钟，LFSR就会产生一个伪随机的bit，然后我们用这个bit和数据再进行一次XOR运算，就可以达到数据加扰的目的了。</p>
-<p>发射端：</p>
+<p>另外，PCIe1.0和2.0中，数据加扰用的LFSR的初始值（Seed）都是0xFFFF，但是在PCIe3.0之后，为了避免不同的Lane上出现相似的数据，每条Lane上的LFSR的初始值（Seed）都不一样（大于等于8的Lane ID需要对8取模）：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"><strong>Lane</strong></th>
+<th style="text-align:center"><strong>Seed</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">0</td>
+<td style="text-align:center">1DBFBCh</td>
+</tr>
+<tr>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0607BBh</td>
+</tr>
+<tr>
+<td style="text-align:center">2</td>
+<td style="text-align:center">1EC760h</td>
+</tr>
+<tr>
+<td style="text-align:center">3</td>
+<td style="text-align:center">18C0DBh</td>
+</tr>
+<tr>
+<td style="text-align:center">4</td>
+<td style="text-align:center">010F12h</td>
+</tr>
+<tr>
+<td style="text-align:center">5</td>
+<td style="text-align:center">19CFC9h</td>
+</tr>
+<tr>
+<td style="text-align:center">6</td>
+<td style="text-align:center">0277CEh</td>
+</tr>
+<tr>
+<td style="text-align:center">7</td>
+<td style="text-align:center">1BB807h</td>
+</tr>
+</tbody>
+</table>
+<p>这个方法聪明的地方在于，通过XOR产生的伪随机数是可以恢复的！因为只要操作数一样，两次XOR操作的效果会被抵消，所以只要发送方和接收方的Seed一样，那么接收方就可以通过执行完全一样的LFSR操作，来恢复出原始的数据。</p>
+<p>最后，为了方便我们用示波器调试，数据加扰是可以被关闭的。</p>
+<h2 id="Encoding">Encoding</h2>
+<p>打乱数据后，就是要对数据进行Encoding了。</p>
+<p>在数字通信中，编码（Encoding）是一个关键步骤，其主要目的是为了确保数据在传输过程中的可靠性和效率。在讨论PCIe（Peripheral Component Interconnect Express）的编码方法之前，先来解释一下为什么需要进行编码以及编码的基本目的。</p>
+<p><strong>DC平衡（DC Balance）</strong></p>
+<p>DC平衡指的是在数据信号中保持0和1的比例大致相等，这有助于减少信号的直流偏移。直流偏移是由于信号中0和1的长时间不平衡导致的累积效应，这可能会影响接收设备正确解读信号。通过编码来保持DC平衡，可以确保信号的完整性，并减少电源和信号的干扰。</p>
+<p><strong>时钟恢复（Clock Recovery）</strong></p>
+<p>在没有单独的时钟信号线的传输系统中，接收设备需要从数据信号本身恢复出时钟信号。这要求数据流中必须有足够的边缘（即0到1或1到0的转变），以便从中提取时钟信息。通过适当的编码策略，可以在数据中引入这些必要的边缘，使时钟恢复变得可行。</p>
+<p><strong>PCIe的编码方法</strong></p>
+<p>PCIe使用了几种不同的编码方法来满足其高速数据传输的需求：</p>
+<ol>
+<li>
+<p><strong>8b/10b编码</strong>：这种编码方式每8位原始数据转换为10位传输数据。它通过增加额外的两位，有效地嵌入了足够的转换来支持时钟恢复，并尝试维持DC平衡。</p>
+</li>
+<li>
+<p><strong>128b/130b编码</strong>：此编码技术在PCIe的更高版本中使用，它每128位原始数据转换成130位传输数据。与8b/10b相比，128b/130b编码在提高数据传输效率的同时，减少了开销（由原来的25%降到了1.6%左右）。</p>
+</li>
+<li>
+<p><strong>242B/256B FLIT编码</strong>：这是在PCIe 6.0中引入的一种新编码方式，它主要用于支持更高的数据传输率和更复杂的通信需求。每242位原始数据转换为256位传输数据，同样提供高效的时钟恢复和DC平衡。</p>
+</li>
+</ol>
+<p><strong>计算传输速率</strong></p>
+<p>了解了PCIe的编码方式和总线时钟频率后，可以计算每条Lane（通道）的传输速率。传输速率的计算基于以下公式：</p>
+<p>用PCIe 1.0 8b/10b来举例子，这个代表8bit的数据会被编码为10b的数据进行传输，所以，最后每条Lane的传输速率就是：<br>
+$$<br>
+\text{Throughput} =  \frac{\text{Transfer Rate} \times \text{Effective Payload Percentage}}{8 \text{ bits}} =  \frac{2.5 \text{ GT/s} \times \frac{8}{10}}{8} = \frac{2.5 \times 10^9 \text{ transfers/s} \times 0.8}{8} = 250 \times 10^6 \text{ B/s} = 250 \text{ MB/s}<br>
+$$<br>
+这里的计算考虑了通过PCIe传输的实际数据量，扣除了编码引入的额外比特。250 MB/s是PCIe 1.0标准下，每个Lane的有效数据传输速率。</p>
+<p><strong>GT/s</strong> 是指每秒的传输操作（Transfer）次数，每次传输操作可能包含多个比特。在某些接口中，如PCIe，一个传输操作可能包含一个或多个数据比特，取决于编码方案。</p>
+<p>在8b/10b编码中，每10个传输bit才包含8个实际数据bit。因此，如果你有2.5 GT/s的传输速率，实际的数据传输速率会低于25 Gbps，因为每10个比特中有2个是为了编码而使用的额外比特。</p>
+<h3 id="？b-？b-Encoding-方式">？b / ？b Encoding 方式</h3>
+<p>Reference: <a target="_blank" rel="noopener" href="http://blog.chinaaet.com/justlxy/p/5100052814">http://blog.chinaaet.com/justlxy/p/5100052814</a></p>
+<p>单独写了一篇，导航：</p>
+<p>电气层单独开一篇。</p>
+<p><strong>发射端：</strong></p>
 <p><img src="/2024/04/15/PCIe-4/hardwon/Desktop/hard-won_pages/Hexo_post/source/_posts/PCIe-4/Logic_S.png" alt="Logic_S"></p>
-<p>接收端：</p>
+<p><strong>接收端：</strong></p>
 <p><img src="/2024/04/15/PCIe-4/Logic_R.png" alt="Logic_R"></p>
+<p><strong>整体架构：</strong></p>
+<p><img src="/2024/04/15/PCIe-4/pcie-physical-layer-arch.png" alt="pcie-physical-layer-arch"></p>
 
     </div>
 
