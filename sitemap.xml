@@ -4,7 +4,7 @@
   <url>
     <loc>https://hard-won.github.io/2024/04/15/PCIe-4/</loc>
     
-    <lastmod>2024-04-16</lastmod>
+    <lastmod>2024-04-17</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -112,7 +112,7 @@
 
   <url>
     <loc>https://hard-won.github.io/</loc>
-    <lastmod>2024-04-16</lastmod>
+    <lastmod>2024-04-17</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -120,21 +120,21 @@
   
   <url>
     <loc>https://hard-won.github.io/tags/hexo/</loc>
-    <lastmod>2024-04-16</lastmod>
+    <lastmod>2024-04-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://hard-won.github.io/tags/NexT/</loc>
-    <lastmod>2024-04-16</lastmod>
+    <lastmod>2024-04-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://hard-won.github.io/tags/github/</loc>
-    <lastmod>2024-04-16</lastmod>
+    <lastmod>2024-04-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -143,63 +143,63 @@
   
   <url>
     <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/</loc>
-    <lastmod>2024-04-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/</loc>
-    <lastmod>2024-04-16</lastmod>
+    <lastmod>2024-04-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E8%AF%BE/</loc>
-    <lastmod>2024-04-16</lastmod>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/</loc>
+    <lastmod>2024-04-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/Resources/</loc>
-    <lastmod>2024-04-16</lastmod>
+    <lastmod>2024-04-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://hard-won.github.io/categories/%E9%98%85%E8%AF%BB/</loc>
-    <lastmod>2024-04-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/%E9%AB%98%E9%80%9FIO/</loc>
-    <lastmod>2024-04-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/Synthesis/</loc>
-    <lastmod>2024-04-16</lastmod>
+    <lastmod>2024-04-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E8%AF%BE/Advanced-Computer-Architecture/</loc>
-    <lastmod>2024-04-16</lastmod>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/Synthesis/</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/%E9%AB%98%E9%80%9FIO/</loc>
+    <lastmod>2024-04-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E8%AF%BE/DSP-Architecture-Design/</loc>
-    <lastmod>2024-04-16</lastmod>
+    <lastmod>2024-04-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
