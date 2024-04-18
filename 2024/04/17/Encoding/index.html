@@ -38,7 +38,7 @@
 <meta property="og:image" content="https://hard-won.github.io/2024/04/17/Encoding/LUT3.png">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/17/Encoding/8b:10b_structure.png">
 <meta property="article:published_time" content="2024-04-17T22:37:11.000Z">
-<meta property="article:modified_time" content="2024-04-18T22:39:21.794Z">
+<meta property="article:modified_time" content="2024-04-18T23:03:46.598Z">
 <meta property="article:author" content="Shaun Wei">
 <meta property="article:tag" content="芯片工程师">
 <meta name="twitter:card" content="summary">
@@ -198,7 +198,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-04-18 15:39:21" itemprop="dateModified" datetime="2024-04-18T15:39:21-07:00">2024-04-18</time>
+                <time title="修改时间：2024-04-18 16:03:46" itemprop="dateModified" datetime="2024-04-18T16:03:46-07:00">2024-04-18</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -343,6 +343,27 @@
 <p>根据当前的RD和即将发送的数据比特序列，发送端可以从查找表中找到合适的编码序列，确保数据的正确传输并维持信号的电气平衡。</p>
 <h3 id="编码映射表">编码映射表</h3>
 <p>将低5位EDCBA按其十进制数值记为x，将高3位按其十进制数值记为y，将原始8bit数据记为D.x.y，依次查表得到相应的转换结果。</p>
+<p>在8B/10B编码系统中，D.x.7、D.x.P7、D.x.A7和K.x.7这些符号都有特定的用途和规则，用以确保数据流的完整性和可靠性。下面我会解释这些符号的具体用途和它们如何帮助避免编码错误。</p>
+<h4 id="8B-10B编码中的特殊码组">8B/10B编码中的特殊码组</h4>
+<ul>
+<li><strong>D.x.7</strong>: 这表示一种数据编码，其中&quot;x&quot;代表8位数据的十进制值，&quot;7&quot;代表这是10位编码中的一种形式。</li>
+<li><strong>D.x.P7</strong> 和 <strong>D.x.A7</strong>: 这些是D.x.7的变种，用来解决特定的编码问题。具体来说，当原始编码可能导致连续出现五个相同的位（0或1）时，会采用这些变种编码来避免此问题。连续的相同位会影响数据的物理层传输效果，例如信号的时钟恢复。</li>
+</ul>
+<h4 id="使用逗号码进行校准">使用逗号码进行校准</h4>
+<ul>
+<li><strong>逗号码（comma codes）</strong>：如K.28.1、K.28.5、K.28.7，这些是预设的控制字符，用于数据流的同步和校准。逗号码的设计确保它们在数据流中的表现形式是唯一的，不会与数据负载中的任何正常数据序列混淆。</li>
+</ul>
+<h4 id="编码决策和限制">编码决策和限制</h4>
+<ul>
+<li><strong>D.x.A7的选择</strong>：依据RD（Running Disparity，运行不一致性）的当前值选择D.x.A7的形式。例如，当RD为-1时，在某些特定的&quot;x&quot;值（如17, 18, 20）下使用D.x.A7，而当RD为+1时，在另外一些&quot;x&quot;值（如11, 13, 14）下使用。这样的选择帮助维持电气平衡，防止信号劣化。</li>
+<li><strong>避免冲突</strong>：在某些情况下，使用D.x.A7可能会与预定义的逗号序列产生冲突，从而导致错误的数据解释。在这些情况下（如&quot;x&quot;为23, 27, 29, 30），会改用K.x.7进行编码。</li>
+</ul>
+<blockquote>
+<p><strong>†</strong> ：在控制代码中，K.28.1 K.28.5 K.28.7 是逗号序列，逗号序列是用来校准用的，如果K.28.7没有被使用，序列0011111 或者 1100000 是不会出现在任何编码中的。</p>
+</blockquote>
+<blockquote>
+<p><strong>‡</strong> ：在实际编码中如果K.28.7可以被使用，一种更复杂的校准规范需要 <strong>†</strong> 被使用，它们能组合成各种“原语”，在任何情况下多个K.28.7序列不允许被同时使用，它将导致不可探测的逗号序列。</p>
+</blockquote>
 <p><img src="/2024/04/17/Encoding/LUT1.png" alt="LUT1"></p>
 <p><img src="/2024/04/17/Encoding/LUT2.png" alt="LUT2"></p>
 <p><img src="/2024/04/17/Encoding/LUT3.png" alt="LUT3"></p>
