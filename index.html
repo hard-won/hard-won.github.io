@@ -243,6 +243,136 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://hard-won.github.io/2024/04/17/Encoding/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Shaun Wei">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="肖恩 Wei's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/04/17/Encoding/" class="post-title-link" itemprop="url">高速串行通信编码 Encoding</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-04-17 15:37:11" itemprop="dateCreated datePublished" datetime="2024-04-17T15:37:11-07:00">2024-04-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-04-18 12:28:01" itemprop="dateModified" datetime="2024-04-18T12:28:01-07:00">2024-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/" itemprop="url" rel="index"><span itemprop="name">数字IC</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/%E9%AB%98%E9%80%9FIO/" itemprop="url" rel="index"><span itemprop="name">高速IO</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1>8B/10B编码</h1>
+<p>Reference：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/560350350">https://zhuanlan.zhihu.com/p/560350350</a></p>
+<h2 id="编码的目的">编码的目的</h2>
+<h3 id="目的一：在数据里嵌入时钟">目的一：在数据里嵌入时钟</h3>
+<p>你提到的内容集中在8b/10b编码如何通过数据流中的边沿来嵌入时钟信号，并且探讨了这种方式在高速串行传输中的优势及潜在的限制。我会依据你的描述进行更具体的解释。</p>
+<h4 id="8b-10b编码与时钟恢复">8b/10b编码与时钟恢复</h4>
+<p>8b/10b编码是一种数据编码方法，用于将8位数据编码为10位代码。这种编码确保了数据流中具有足够的信号变化（或称边沿），这些边沿对于接收端正确恢复发送端的时钟信号至关重要。通常，发送端的时钟信号用于控制数据何时被发送，而接收端必须能准确地同步这个时钟以正确读取数据。通过8b/10b编码，接收端可以从连续接收的数据中恢复出这一时钟，而不需要单独的时钟线，这称为“自恢复时钟”或“嵌入式时钟”。</p>
+<h4 id="串行通信的优势">串行通信的优势</h4>
+<p>使用8b/10b编码的串行通信技术，可以克服并行通信中常见的几个问题：</p>
+<ul>
+<li><strong>飞行时间限制和时钟偏斜</strong>：并行总线在高速传输时，不同的数据线长度和质量可能导致数据到达的时间不同，即时钟偏斜。这在串行传输中基本不是问题，因为数据是连续通过单一通道发送。</li>
+<li><strong>电磁干扰（EMI）和布线问题</strong>：高频时钟在并行总线中可能导致严重的电磁干扰，同时并行总线需要多条线同时布线，这在物理设计上是一个挑战。串行通信通过减少所需的物理连接，降低了EMI的风险，简化了布线需求。</li>
+</ul>
+<p>这里请注意，串行总线是当前高速接口的主流方案，但并不意味着串行方案能完全避免例如“<strong>Skew</strong>”问题的影响，如果传输都是一个lane那当然没影响，但为了提高带宽，一般都不会是一个lane。比如PCIe中的X1，X4，X16，X32这些各个lane仍然会存在偏斜的问题，但收发器本身会处理这些偏斜，当然这不在本文讨论范围。</p>
+<h5 id="Parallel-Communication-并行通信">Parallel Communication 并行通信</h5>
+<p>下图的<strong>并行通信</strong> <strong>Parallel Communication</strong>做对比：</p>
+<p><img src="/2024/04/17/Encoding/parallel_communication.png" alt="parallel_communication"></p>
+<p>提到的通用时钟（common clock）、时钟偏斜（clock skew）、数据偏斜（data skew）、飞行时间（flight time）、电磁干扰（EMI, Electromagnetic Interference）、以及时钟布线问题，都是并行传输中需要解决的关键技术点。下面我会逐一简单解释这些概念及其带来的挑战：</p>
+<h6 id="通用时钟与时钟偏斜">通用时钟与时钟偏斜</h6>
+<p>在并行传输系统中，所有的数据线通常都由一个通用时钟控制，以确保数据的同步发送和接收。时钟偏斜指的是由于布线长度不一、环境影响或其他物理特性差异导致的时钟信号在不同数据线上到达接收端的时间不同。这种Skew会导致数据同步问题，从而影响整个系统的性能和可靠性。</p>
+<h6 id="数据偏斜">数据偏斜</h6>
+<p>数据偏斜类似于时钟偏斜，但它指的是数据本身在不同的线路上到达时间的差异。即使时钟完全同步，数据线之间的物理或电气差异也可能导致数据偏斜，同样影响数据的正确接收。</p>
+<h6 id="飞行时间">飞行时间</h6>
+<p>飞行时间是指信号从发送端到接收端所需要的时间。随着通用时钟频率的增加，要求每一次钟周期内信号必须被正确接收和处理。如果飞行时间超过了一个时钟周期，那么信号将不会在正确的时钟边沿到达接收端，导致数据错误或丢失。</p>
+<h6 id="EMI与时钟布线问题">EMI与时钟布线问题</h6>
+<p>高频时钟信号容易产生电磁干扰，这不仅影响并行传输线路本身，还可能影响到周围的电子设备。此外，高速 Parallel 传输需要大量的布线以支持多个数据线和时钟线，这在Physical Design上是一个挑战，尤其是在空间受限或布线密度高的设备中更为复杂。</p>
+<h6 id="应对策略">应对策略</h6>
+<p>为了解决这些问题，设计师可能采用多种策略：</p>
+<ul>
+<li><strong>使用差分信号</strong>：通过差分信号技术减少EMI并提高信号的抗干扰能力。</li>
+<li><strong>优化布线设计</strong>：通过精心设计布线来尽量减少时钟偏斜和数据偏斜。</li>
+<li><strong>采用更高级的时钟技术</strong>：如使用源同步时钟（source synchronous clocking）或采用嵌入式时钟恢复技术，如上文提到的8b/10b编码。</li>
+</ul>
+<h3 id="目的二：保持DC平衡">目的二：保持DC平衡</h3>
+<p>这里结合PCIe（Peripheral Component Interconnect Express）的例子来详细解释：</p>
+<h4 id="DC-平衡-DC-Balance-的重要性">DC 平衡 DC Balance 的重要性</h4>
+<p>在高速数据传输中，保持DC平衡指的是在传输的数据流中，“0”和“1”的数量保持大致相等。这一平衡有助于：</p>
+<ol>
+<li><strong>减少电磁干扰（EMI）</strong>：因为频繁的电平变换可以抑制信号长时间在高或低状态，降低干扰。</li>
+<li><strong>便于信号的AC耦合</strong>：在使用AC耦合的通信系统中（比如PCI Express），如果信号中的“0”和“1”长时间不平衡（即没有DC平衡），那么信号会逐渐向一个电平偏移，造成累积的直流成分。信号可能因直流成分过大而不能通过AC耦合电容，导致信号失真或丢失。</li>
+</ol>
+<h4 id="编码方式">编码方式</h4>
+<p>为了实现DC平衡，常用的一种方法是采用特殊的编码方式，如8b/10b编码，该编码规则确保了数据中“0”和“1”的平衡，并限制了连续相同数字的长度。在这种编码中，每5个连续的“1”或“0”后必须插入一位相反的数字，从而防止信号在一个电平上持续太久，导致链路上的直流偏移 DC Offset。</p>
+<h4 id="AC耦合-AC-Coupling-和频率的影响">AC耦合 AC Coupling 和频率的影响</h4>
+<p>在传输高速信号时，AC耦合通过使用电容来连接信号路径，这样做的目的是只允许交变信号（AC，即变化的信号部分）通过，而阻挡直流成分（DC，即恒定的信号部分）。AC耦合的主要优点是能够消除直流偏移（DC Offset）。直流偏移是指信号平均电平的偏离，这种偏移可能会对电子系统的性能产生负面影响，比如使放大器饱和或者使信号处理更加复杂。通过电容连接，任何的直流偏移都被电容阻挡，因此不会影响到接收端的电路。</p>
+<p>在AC耦合系统中，当信号频率变化时，通过耦合电容的阻抗也会变化。频率越高，电容的阻抗越低，信号更容易通过；频率越低，电容的阻抗越高，信号传输就更困难。因此，如果数据流中出现<strong>长序列的连续“0”或“1”</strong>，相当于<strong>降低了信号的频率</strong>，可能导致信号无法有效传输。</p>
+<h4 id="极性偏差-Polarity-Disparity-的控制">极性偏差 Polarity Disparity 的控制</h4>
+<p>极性偏差是指在编码的数据中“1”的数量与“0”的数量的差异。如你所述，正极性偏差表示“1”多于“0”，副极性偏差则相反。通过控制这种偏差，可以进一步保证编码后的数据既保持DC平衡，又避免长时间的电平连续性。例如，在10位数据中，通过确保“0”和“1”的数量差不超过2，可以有效地维持信号完整性 Signal Integrity 和防止偏差过大。</p>
+<h3 id="目的三：加强错误检测">目的三：加强错误检测</h3>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://hard-won.github.io/2024/04/15/PCIe-4/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -274,7 +404,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-04-17 14:56:56" itemprop="dateModified" datetime="2024-04-17T14:56:56-07:00">2024-04-17</time>
+                <time title="修改时间：2024-04-17 15:33:57" itemprop="dateModified" datetime="2024-04-17T15:33:57-07:00">2024-04-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1028,7 +1158,7 @@
       <nav class="site-state">
           <div class="site-state-item site-state-posts">
               <a href="/archives">
-              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-count">10</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
