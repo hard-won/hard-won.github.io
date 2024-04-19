@@ -21,12 +21,12 @@
     var CONFIG = {"hostname":"hard-won.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="PHY层就有点痛了。 Reference: https:&#x2F;&#x2F;r12f.com&#x2F;posts&#x2F;pcie-4-phy&#x2F; PHY层 在PCIe Spec中，物理层是被分为两个部分单独介绍的，分别是物理层逻辑子层和物理层电气子层，其中后者一般都是基于SerDes来实现的。">
+  <meta name="description" content="PHY层就有点痛了。 Reference: https:&#x2F;&#x2F;r12f.com&#x2F;posts&#x2F;pcie-4-phy&#x2F;，http:&#x2F;&#x2F;blog.chinaaet.com&#x2F;justlxy&#x2F;p&#x2F;5100053476 PHY层 在PCIe Spec中，物理层是被分为两个部分单独介绍的，分别是物理层逻辑子层和物理层电气子层，其中后者一般都是基于SerDes来实现的。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="高速接口PCIe无痛入门（四）物理层">
+<meta property="og:title" content="高速接口PCIe无痛入门（四）物理层（1）">
 <meta property="og:url" content="https://hard-won.github.io/2024/04/15/PCIe-4/index.html">
 <meta property="og:site_name" content="肖恩 Wei&#39;s Blog">
-<meta property="og:description" content="PHY层就有点痛了。 Reference: https:&#x2F;&#x2F;r12f.com&#x2F;posts&#x2F;pcie-4-phy&#x2F; PHY层 在PCIe Spec中，物理层是被分为两个部分单独介绍的，分别是物理层逻辑子层和物理层电气子层，其中后者一般都是基于SerDes来实现的。">
+<meta property="og:description" content="PHY层就有点痛了。 Reference: https:&#x2F;&#x2F;r12f.com&#x2F;posts&#x2F;pcie-4-phy&#x2F;，http:&#x2F;&#x2F;blog.chinaaet.com&#x2F;justlxy&#x2F;p&#x2F;5100053476 PHY层 在PCIe Spec中，物理层是被分为两个部分单独介绍的，分别是物理层逻辑子层和物理层电气子层，其中后者一般都是基于SerDes来实现的。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/15/PCIe-4/PHYP.png">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/15/PCIe-4/pcie-phy-blocks.png">
@@ -40,7 +40,7 @@
 <meta property="og:image" content="https://hard-won.github.io/2024/04/15/PCIe-4/Logic_R.png">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/15/PCIe-4/pcie-physical-layer-arch.png">
 <meta property="article:published_time" content="2024-04-16T04:08:30.000Z">
-<meta property="article:modified_time" content="2024-04-18T22:42:27.675Z">
+<meta property="article:modified_time" content="2024-04-19T04:01:57.339Z">
 <meta property="article:author" content="Shaun Wei">
 <meta property="article:tag" content="芯片工程师">
 <meta name="twitter:card" content="summary">
@@ -59,7 +59,7 @@
   };
 </script>
 
-  <title>高速接口PCIe无痛入门（四）物理层 | 肖恩 Wei's Blog</title>
+  <title>高速接口PCIe无痛入门（四）物理层（1） | 肖恩 Wei's Blog</title>
   
 
 
@@ -183,7 +183,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          高速接口PCIe无痛入门（四）物理层
+          高速接口PCIe无痛入门（四）物理层（1）
         </h1>
 
         <div class="post-meta">
@@ -200,7 +200,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-04-18 15:42:27" itemprop="dateModified" datetime="2024-04-18T15:42:27-07:00">2024-04-18</time>
+                <time title="修改时间：2024-04-18 21:01:57" itemprop="dateModified" datetime="2024-04-18T21:01:57-07:00">2024-04-18</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -232,7 +232,7 @@
 
       
         <p>PHY层就有点痛了。</p>
-<p>Reference: <a target="_blank" rel="noopener" href="https://r12f.com/posts/pcie-4-phy/">https://r12f.com/posts/pcie-4-phy/</a></p>
+<p>Reference: <a target="_blank" rel="noopener" href="https://r12f.com/posts/pcie-4-phy/%EF%BC%8Chttp://blog.chinaaet.com/justlxy/p/5100053476">https://r12f.com/posts/pcie-4-phy/，http://blog.chinaaet.com/justlxy/p/5100053476</a></p>
 <h1>PHY层</h1>
 <p>在PCIe Spec中，物理层是被分为两个部分单独介绍的，分别是物理层逻辑子层和物理层电气子层，其中后者一般都是基于SerDes来实现的。</p>
 <span id="more"></span>
@@ -550,8 +550,13 @@ $$<br>
 <p>电气层单独开一篇。</p>
 <p><strong>发射端：</strong></p>
 <p><img src="/2024/04/15/PCIe-4/Logic_S.png" alt="Logic_S"></p>
+<p>在进行8b/10b编码之前，Mux会对来自数据链路层的数据中插入一些内容，如用于标记包边界或者Ordered Sets的控制字符和数据字符。为了区分这些字符，Mux为其对应上一个D/K#位（Data or Kontrol）。</p>
+<p>**注：**图中还包含了Gen3的一些实现，不过这里只介绍Gen1 &amp; Gen2，并不会介绍Gen3。如果大家感兴趣的，可以去阅读Mindshare的书籍或者参考PCIe Gen3的Spec。</p>
+<p>Byte Striping将来自Mux的并行数据按照一定的规则（后面会详细地说）分配到各个Lane上去。随后进行扰码（Scrambler）、8b/10b编码、串行化（Serializer），然后是差分发送对。</p>
+<p>其中扰码器（Scrambler）是基于伪随机码（Pesudo-Random）的异或逻辑（XOR），由于是伪随机码，所以只要发送端和接收端采用相同的算法和种子，接收端便可以轻松地恢复出数据。但是，如果发送端和接收端由于某些原因导致其节拍不一致了，此时便会产生错误，因此Gen1和Gen2的扰码器（Scrambler）会周期性地被复位。</p>
 <p><strong>接收端：</strong></p>
 <p><img src="/2024/04/15/PCIe-4/Logic_R.png" alt="Logic_R"></p>
+<p>由于PCIe采用的是一种Embeded Clock（借助8b/10b）机制，因此接收端在接收到数据流时，首先要从中恢复出时钟信号，这正是通过CDR逻辑来实现的。如上图所示，接收端的逻辑基本上都是与发送端相对应的相反的操作。这里就不在详细地介绍了。</p>
 <p><strong>整体架构：</strong></p>
 <p><img src="/2024/04/15/PCIe-4/pcie-physical-layer-arch.png" alt="pcie-physical-layer-arch"></p>
 
@@ -666,7 +671,7 @@ $$<br>
       <nav class="site-state">
           <div class="site-state-item site-state-posts">
               <a href="/archives">
-              <span class="site-state-item-count">10</span>
+              <span class="site-state-item-count">11</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
