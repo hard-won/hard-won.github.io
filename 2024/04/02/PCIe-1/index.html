@@ -21,12 +21,12 @@
     var CONFIG = {"hostname":"hard-won.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"display":"always","position":"left","home":false,"post":true,"archive":false,"tag":false,"category":false,"padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="Reference: http:&#x2F;&#x2F;blog.chinaaet.com&#x2F;justlxy&#x2F;p&#x2F;5100053251 PCIe简介不讲历史了，总之就是迭代了好几代。 PCIe就是PCI的express版本，是个高速串行总线而不是传统的并行总线。串行传输里，数据都是以packet传输的。 PCIe插槽是电脑主板上的一部分，它们是物理上的固体插槽。这些插槽是用硬塑料制成的，并且具有金属接触点，用来插入相应">
+  <meta name="description" content="Reference: http:&#x2F;&#x2F;blog.chinaaet.com&#x2F;justlxy&#x2F;p&#x2F;5100053251 PCIe简介 不讲历史了，总之就是迭代了好几代。 PCIe就是PCI的express版本，是个高速串行总线而不是传统的并行总线。串行传输里，数据都是以packet传输的。 PCIe插槽是电脑主板上的一部分，它们是物理上的固体插槽。这些插槽是用硬塑料制成的，并且具有金属接触点，用来插入相">
 <meta property="og:type" content="article">
 <meta property="og:title" content="高速接口PCIe无痛入门（一）总体架构">
 <meta property="og:url" content="https://hard-won.github.io/2024/04/02/PCIe-1/index.html">
 <meta property="og:site_name" content="肖恩 Wei&#39;s Blog">
-<meta property="og:description" content="Reference: http:&#x2F;&#x2F;blog.chinaaet.com&#x2F;justlxy&#x2F;p&#x2F;5100053251 PCIe简介不讲历史了，总之就是迭代了好几代。 PCIe就是PCI的express版本，是个高速串行总线而不是传统的并行总线。串行传输里，数据都是以packet传输的。 PCIe插槽是电脑主板上的一部分，它们是物理上的固体插槽。这些插槽是用硬塑料制成的，并且具有金属接触点，用来插入相应">
+<meta property="og:description" content="Reference: http:&#x2F;&#x2F;blog.chinaaet.com&#x2F;justlxy&#x2F;p&#x2F;5100053251 PCIe简介 不讲历史了，总之就是迭代了好几代。 PCIe就是PCI的express版本，是个高速串行总线而不是传统的并行总线。串行传输里，数据都是以packet传输的。 PCIe插槽是电脑主板上的一部分，它们是物理上的固体插槽。这些插槽是用硬塑料制成的，并且具有金属接触点，用来插入相">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/02/PCIe-1/p1.png">
 <meta property="og:image" content="https://hard-won.github.io/2024/04/02/PCIe-1/p2.png">
@@ -225,7 +225,7 @@
     
       <div class="toc">
         <div class="toc-content">
-          <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PCIe%E7%AE%80%E4%BB%8B"><span class="toc-number">1.</span> <span class="toc-text">PCIe简介</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#PCIe-%E5%9F%BA%E6%9C%AC%E5%8D%8F%E8%AE%AE%E6%A6%82%E5%BF%B5"><span class="toc-number">2.</span> <span class="toc-text">PCIe 基本协议概念</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E4%BD%93%E7%BB%93%E6%9E%84"><span class="toc-number">2.1.</span> <span class="toc-text">总体结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8B%E7%89%A9%E5%B1%82"><span class="toc-number">2.2.</span> <span class="toc-text">事物层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82"><span class="toc-number">2.3.</span> <span class="toc-text">数据链路层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E5%B1%82"><span class="toc-number">2.4.</span> <span class="toc-text">物理层</span></a></li></ol></li></ol>
+          <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">1.</span> <span class="toc-text">PCIe简介</span></a></li><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">2.</span> <span class="toc-text">PCIe 基本协议概念</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E4%BD%93%E7%BB%93%E6%9E%84"><span class="toc-number">2.1.</span> <span class="toc-text">总体结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8B%E7%89%A9%E5%B1%82"><span class="toc-number">2.2.</span> <span class="toc-text">事物层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82"><span class="toc-number">2.3.</span> <span class="toc-text">数据链路层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E5%B1%82"><span class="toc-number">2.4.</span> <span class="toc-text">物理层</span></a></li></ol></li></ol>
         </div>
       </div>
     
@@ -233,29 +233,35 @@
 
       
         <p>Reference: <a target="_blank" rel="noopener" href="http://blog.chinaaet.com/justlxy/p/5100053251">http://blog.chinaaet.com/justlxy/p/5100053251</a></p>
-<h1 id="PCIe简介"><a href="#PCIe简介" class="headerlink" title="PCIe简介"></a>PCIe简介</h1><p>不讲历史了，总之就是迭代了好几代。</p>
+<h1>PCIe简介</h1>
+<p>不讲历史了，总之就是迭代了好几代。</p>
 <p>PCIe就是PCI的express版本，是个高速串行总线而不是传统的并行总线。串行传输里，数据都是以packet传输的。</p>
 <p>PCIe插槽是电脑主板上的一部分，它们是物理上的固体插槽。这些插槽是用硬塑料制成的，并且具有金属接触点，用来插入相应的扩展卡。PCIe插槽有不同的尺寸和配置，如x1、x4、x8、x16等，以适应不同带宽需求的扩展卡。这些数字代表插槽提供的数据传输通道数，通道数越多，可传输的数据就越多，从而支持更高性能的扩展卡。</p>
 <p><img src="/2024/04/02/PCIe-1/p1.png" alt="p1"></p>
 <span id="more"></span>
 <p><img src="/2024/04/02/PCIe-1/p2.png" alt="p2"></p>
-<h1 id="PCIe-基本协议概念"><a href="#PCIe-基本协议概念" class="headerlink" title="PCIe 基本协议概念"></a>PCIe 基本协议概念</h1><h2 id="总体结构"><a href="#总体结构" class="headerlink" title="总体结构"></a>总体结构</h2><p><img src="/2024/04/02/PCIe-1/p3.png" alt="p3"></p>
+<h1>PCIe 基本协议概念</h1>
+<h2 id="总体结构">总体结构</h2>
+<p><img src="/2024/04/02/PCIe-1/p3.png" alt="p3"></p>
 <p>两个device要通过好几层进行连接。application layer，transaction layer，data link layer，PHY。application layer完全是由客户决定的，这一层决定了PCIe设备的类型和基础功能，可以由硬件（如FPGA）或者软硬件协同实现。比如如果该设备为Switch，则应用层需要实现包路由（Packet Routing）等相关逻辑。如果该设备为Root，则应用层需要实现虚拟的PCIe总线0（Virtual PCIe Bus 0），并代表整个PCIe总线系统与CPU通信。</p>
-<h2 id="事物层"><a href="#事物层" class="headerlink" title="事物层"></a>事物层</h2><p>事务层是负责管理数据包（Transaction Layer Packet，TLP）的创建、解码和校验的部分。简单来说，它就像是一个<strong>邮局</strong>，负责正确包装（创建）你的信件（数据包），确保信件的地址和内容格式正确（解码与校检），以及当信件到达目的地时，能够被正确理解和接收。</p>
+<h2 id="事物层">事物层</h2>
+<p>事务层是负责管理数据包（Transaction Layer Packet，TLP）的创建、解码和校验的部分。简单来说，它就像是一个<strong>邮局</strong>，负责正确包装（创建）你的信件（数据包），确保信件的地址和内容格式正确（解码与校检），以及当信件到达目的地时，能够被正确理解和接收。</p>
 <ul>
 <li><strong>发送端</strong>：就像你寄信前准备信件，确保地址和邮资正确。在事务层，它创建TLP，这包括确定数据将如何被发送、需要发送什么数据，以及这些数据如何被打包。</li>
 <li><strong>接收端</strong>：就像收信人打开信件，检查信件是否为他们所寄，并阅读内容。在事务层，它负责解码接收到的TLP，并进行校验，以确保数据未被篡改且完整无误。</li>
 <li><strong>附加功能</strong>：事务层还包含了一些高级功能，如QoS（服务质量，确保数据传输的优先级和速度）、流量控制（避免数据传输过载）、以及Transaction Ordering（事务排序，确保数据包的发送和接收顺序）。</li>
 </ul>
-<h2 id="数据链路层"><a href="#数据链路层" class="headerlink" title="数据链路层"></a>数据链路层</h2><p>数据链路层类似于<strong>邮局的内部操作</strong>，确保数据包（在这里是Data Link Layer Packet，DLLP）的正确传输和确认收到的信息。</p>
+<h2 id="数据链路层">数据链路层</h2>
+<p>数据链路层类似于<strong>邮局的内部操作</strong>，确保数据包（在这里是Data Link Layer Packet，DLLP）的正确传输和确认收到的信息。</p>
 <ul>
 <li><strong>创建、解码和校检DLLP</strong>：它负责处理特定于链路层的数据包，这些数据包帮助管理和保护数据传输过程。</li>
 <li><strong>Ack/Nak应答机制</strong>：这是一个反馈系统，用于确认数据包是否已成功接收（Ack，确认）或是否需要重传（Nak，否认），类似于收信后给寄信人的回复，确保他们知道你是否收到了信件。</li>
 </ul>
-<h2 id="物理层"><a href="#物理层" class="headerlink" title="物理层"></a>物理层</h2><p>物理层就是数据传输的基础，负责实际的数据包（TLPs、DLLPs和Ordered-Sets）发送和接收。你可以将其看作是<strong>邮局的运输网络</strong>，包括邮递员和邮车，负责实体地传递你的信件。</p>
+<h2 id="物理层">物理层</h2>
+<p>物理层就是数据传输的基础，负责实际的数据包（TLPs、DLLPs和Ordered-Sets）发送和接收。你可以将其看作是<strong>邮局的运输网络</strong>，包括邮递员和邮车，负责实体地传递你的信件。</p>
 <ul>
 <li><strong>处理</strong>：在发送数据之前，物理层会对数据进行一系列处理（如Byte Striping分条处理、Scramble扰码和Encoder编码），以优化传输过程并减少错误。接收端则进行相反的处理，以还原数据。</li>
-<li><strong>链路训练与初始化</strong>：在数据传输开始之前，发送端和接收端需要”协商”，确保它们以相同的方式发送和接收数据。这通过一个过程，称为链路训练和初始化来完成，通常是由一个状态机（LTSSM）来管理的，可以看作是两个邮局之间确定如何交换信件的协议。</li>
+<li><strong>链路训练与初始化</strong>：在数据传输开始之前，发送端和接收端需要&quot;协商&quot;，确保它们以相同的方式发送和接收数据。这通过一个过程，称为链路训练和初始化来完成，通常是由一个状态机（LTSSM）来管理的，可以看作是两个邮局之间确定如何交换信件的协议。</li>
 </ul>
 <p>在PCIe体系结构中，事务层，数据链路层 和 物理层 存在于每一个端口（Port）中，也就是说Switch中必然存在一个以上的这样的结构。</p>
 <p><img src="/2024/04/02/PCIe-1/p4.png" alt="p4"></p>
@@ -349,11 +355,11 @@
 <aside class="sidebar">
   <div class="sidebar-inner">
       <div class="widget-wrap">
-
+        <h3 class="widget-title">post.toc</h3>
         <div class="widget">
           <div id="toc" class="toc">
             <div class="toc-content">
-              <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PCIe%E7%AE%80%E4%BB%8B"><span class="toc-number">1.</span> <span class="toc-text">PCIe简介</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#PCIe-%E5%9F%BA%E6%9C%AC%E5%8D%8F%E8%AE%AE%E6%A6%82%E5%BF%B5"><span class="toc-number">2.</span> <span class="toc-text">PCIe 基本协议概念</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E4%BD%93%E7%BB%93%E6%9E%84"><span class="toc-number">2.1.</span> <span class="toc-text">总体结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8B%E7%89%A9%E5%B1%82"><span class="toc-number">2.2.</span> <span class="toc-text">事物层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82"><span class="toc-number">2.3.</span> <span class="toc-text">数据链路层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E5%B1%82"><span class="toc-number">2.4.</span> <span class="toc-text">物理层</span></a></li></ol></li></ol>
+              <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">1.</span> <span class="toc-text">PCIe简介</span></a></li><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">2.</span> <span class="toc-text">PCIe 基本协议概念</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E4%BD%93%E7%BB%93%E6%9E%84"><span class="toc-number">2.1.</span> <span class="toc-text">总体结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8B%E7%89%A9%E5%B1%82"><span class="toc-number">2.2.</span> <span class="toc-text">事物层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82"><span class="toc-number">2.3.</span> <span class="toc-text">数据链路层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E5%B1%82"><span class="toc-number">2.4.</span> <span class="toc-text">物理层</span></a></li></ol></li></ol>
             </div>
           </div>
         </div>

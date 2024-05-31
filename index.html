@@ -216,7 +216,8 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="ASIC-Synthesis前言"><a href="#ASIC-Synthesis前言" class="headerlink" title="ASIC Synthesis前言"></a>ASIC Synthesis前言</h1><p>后面要找工作，上完课没事干就多看看书吧。这个系列是为了速读ASIC Synthesis的整体流程，完整的ASIC设计流程。从概念到芯片的tapout。并且也基于Design Compiler提供了各种真实工作会用到的实践而非理论。书一共六章。纸上得来终觉浅，hands on很宝贵。</p>
+          <h1>ASIC Synthesis前言</h1>
+<p>后面要找工作，上完课没事干就多看看书吧。这个系列是为了速读ASIC Synthesis的整体流程，完整的ASIC设计流程。从概念到芯片的tapout。并且也基于Design Compiler提供了各种真实工作会用到的实践而非理论。书一共六章。纸上得来终觉浅，hands on很宝贵。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2022/01/01/ASIC_Syn_1/#more" rel="contents">
@@ -301,7 +302,7 @@
     
       <div class="toc">
         <div class="toc-content">
-          <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%AA%E4%BA%BA%E7%AE%97%E6%B3%95"><span class="toc-number">1.</span> <span class="toc-text">个人算法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E4%B8%AA%E4%BA%BA%E7%AE%97%E6%B3%95%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">什么是个人算法？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Bryan-Johnson%E7%9A%84%E5%81%A5%E5%BA%B7%E7%AE%97%E6%B3%95"><span class="toc-number">1.1.1.</span> <span class="toc-text">Bryan Johnson的健康算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BE%E4%BE%8B%E8%AF%B4%E6%98%8E"><span class="toc-number">1.1.2.</span> <span class="toc-text">举例说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%B3%E7%AD%96%E7%BC%BA%E9%99%B7"><span class="toc-number">1.2.</span> <span class="toc-text">决策缺陷</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AA%E4%BA%BA%E7%AE%97%E6%B3%95%E7%9A%84%E6%BD%9C%E5%8A%9B"><span class="toc-number">1.3.</span> <span class="toc-text">个人算法的潜力</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%B5%A2%E5%AE%B6%E9%80%9A%E5%90%83"><span class="toc-number">2.</span> <span class="toc-text">赢家通吃</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B5%A2%E5%AE%B6%E6%95%88%E5%BA%94"><span class="toc-number">2.1.</span> <span class="toc-text">赢家效应</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%8D%E6%9D%82%E6%B4%BB%E5%8A%A8%E4%B8%8E%E8%83%BD%E5%8A%9B%E5%B7%AE%E5%BC%82"><span class="toc-number">2.2.</span> <span class="toc-text">复杂活动与能力差异</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9D%A0%E6%9D%86%E6%95%88%E5%BA%94%E4%B8%8E%E6%B4%BB%E5%8A%A8%E5%A4%8D%E6%9D%82%E6%80%A7"><span class="toc-number">2.3.</span> <span class="toc-text">杠杆效应与活动复杂性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E4%BC%98%E7%A7%80%E8%80%85%E4%B8%8E%E4%B8%AD%E7%AD%89%E8%80%85%E7%9A%84%E5%B7%AE%E8%B7%9D"><span class="toc-number">2.4.</span> <span class="toc-text">最优秀者与中等者的差距</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AC%E5%B9%B3%E4%B8%8E%E4%B8%8D%E5%85%AC%E5%B9%B3%E7%9A%84%E6%9C%BA%E4%BC%9A"><span class="toc-number">2.5.</span> <span class="toc-text">公平与不公平的机会</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%8F%E6%B5%8E%E4%B8%8E%E8%B4%A2%E5%AF%8C%E5%88%86%E9%85%8D"><span class="toc-number">2.6.</span> <span class="toc-text">经济与财富分配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B5%A2%E5%AE%B6%E9%80%9A%E5%90%83%E7%9A%84%E6%9C%AA%E6%9D%A5"><span class="toc-number">2.7.</span> <span class="toc-text">赢家通吃的未来</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%A8%E6%B0%91%E5%9F%BA%E6%9C%AC%E6%94%B6%E5%85%A5%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-number">2.8.</span> <span class="toc-text">全民基本收入的必要性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%91%E7%8E%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="toc-number">2.9.</span> <span class="toc-text">发现自己的优势</span></a></li></ol></li></ol>
+          <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">1.</span> <span class="toc-text">个人算法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E4%B8%AA%E4%BA%BA%E7%AE%97%E6%B3%95%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">什么是个人算法？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Bryan-Johnson%E7%9A%84%E5%81%A5%E5%BA%B7%E7%AE%97%E6%B3%95"><span class="toc-number">1.1.1.</span> <span class="toc-text">Bryan Johnson的健康算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BE%E4%BE%8B%E8%AF%B4%E6%98%8E"><span class="toc-number">1.1.2.</span> <span class="toc-text">举例说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%B3%E7%AD%96%E7%BC%BA%E9%99%B7"><span class="toc-number">1.2.</span> <span class="toc-text">决策缺陷</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AA%E4%BA%BA%E7%AE%97%E6%B3%95%E7%9A%84%E6%BD%9C%E5%8A%9B"><span class="toc-number">1.3.</span> <span class="toc-text">个人算法的潜力</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">2.</span> <span class="toc-text">赢家通吃</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B5%A2%E5%AE%B6%E6%95%88%E5%BA%94"><span class="toc-number">2.1.</span> <span class="toc-text">赢家效应</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%8D%E6%9D%82%E6%B4%BB%E5%8A%A8%E4%B8%8E%E8%83%BD%E5%8A%9B%E5%B7%AE%E5%BC%82"><span class="toc-number">2.2.</span> <span class="toc-text">复杂活动与能力差异</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9D%A0%E6%9D%86%E6%95%88%E5%BA%94%E4%B8%8E%E6%B4%BB%E5%8A%A8%E5%A4%8D%E6%9D%82%E6%80%A7"><span class="toc-number">2.3.</span> <span class="toc-text">杠杆效应与活动复杂性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E4%BC%98%E7%A7%80%E8%80%85%E4%B8%8E%E4%B8%AD%E7%AD%89%E8%80%85%E7%9A%84%E5%B7%AE%E8%B7%9D"><span class="toc-number">2.4.</span> <span class="toc-text">最优秀者与中等者的差距</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AC%E5%B9%B3%E4%B8%8E%E4%B8%8D%E5%85%AC%E5%B9%B3%E7%9A%84%E6%9C%BA%E4%BC%9A"><span class="toc-number">2.5.</span> <span class="toc-text">公平与不公平的机会</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%8F%E6%B5%8E%E4%B8%8E%E8%B4%A2%E5%AF%8C%E5%88%86%E9%85%8D"><span class="toc-number">2.6.</span> <span class="toc-text">经济与财富分配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B5%A2%E5%AE%B6%E9%80%9A%E5%90%83%E7%9A%84%E6%9C%AA%E6%9D%A5"><span class="toc-number">2.7.</span> <span class="toc-text">赢家通吃的未来</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%A8%E6%B0%91%E5%9F%BA%E6%9C%AC%E6%94%B6%E5%85%A5%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-number">2.8.</span> <span class="toc-text">全民基本收入的必要性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%91%E7%8E%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="toc-number">2.9.</span> <span class="toc-text">发现自己的优势</span></a></li></ol></li></ol>
         </div>
       </div>
     
@@ -309,7 +310,8 @@
 
       
           <p>从别人处取来观点，进行总结。</p>
-<h1 id="个人算法"><a href="#个人算法" class="headerlink" title="个人算法"></a>个人算法</h1><p>个人算法（Personal Algorithms）是一个有趣的概念，通过算法来简化和优化我们的生活决策。Bryan Johnson的Blueprint项目是这方面的一个典型案例，他通过健康算法来管理自己的健康和长寿。他放弃了自己在健康决策上的自主权，把这些决策交给了他和团队开发的健康算法。</p>
+<h1>个人算法</h1>
+<p>个人算法（Personal Algorithms）是一个有趣的概念，通过算法来简化和优化我们的生活决策。Bryan Johnson的Blueprint项目是这方面的一个典型案例，他通过健康算法来管理自己的健康和长寿。他放弃了自己在健康决策上的自主权，把这些决策交给了他和团队开发的健康算法。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2024/05/29/LifeManual/#more" rel="contents">
@@ -395,7 +397,7 @@
       
           <p>代码风格很重要，让别人读懂，增加效率。</p>
 <p>下面是简单的代码书写风格</p>
-<h1 id="RTL代码书写风格"><a href="#RTL代码书写风格" class="headerlink" title="RTL代码书写风格"></a>RTL代码书写风格</h1>
+<h1>RTL代码书写风格</h1>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2024/05/23/RTL-style/#more" rel="contents">
@@ -563,8 +565,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="8B-10B编码"><a href="#8B-10B编码" class="headerlink" title="8B/10B编码"></a>8B/10B编码</h1><p>Reference：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/560350350">https://zhuanlan.zhihu.com/p/560350350</a></p>
-<h2 id="编码的目的"><a href="#编码的目的" class="headerlink" title="编码的目的"></a>编码的目的</h2><h3 id="目的一：在数据里嵌入时钟"><a href="#目的一：在数据里嵌入时钟" class="headerlink" title="目的一：在数据里嵌入时钟"></a>目的一：在数据里嵌入时钟</h3><p>你提到的内容集中在8b/10b编码如何通过数据流中的边沿来嵌入时钟信号，并且探讨了这种方式在高速串行传输中的优势及潜在的限制。我会依据你的描述进行更具体的解释。</p>
+          <h1>8B/10B编码</h1>
+<p>Reference：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/560350350">https://zhuanlan.zhihu.com/p/560350350</a></p>
+<h2 id="编码的目的">编码的目的</h2>
+<h3 id="目的一：在数据里嵌入时钟">目的一：在数据里嵌入时钟</h3>
+<p>你提到的内容集中在8b/10b编码如何通过数据流中的边沿来嵌入时钟信号，并且探讨了这种方式在高速串行传输中的优势及潜在的限制。我会依据你的描述进行更具体的解释。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2024/04/17/Encoding/#more" rel="contents">
@@ -655,8 +660,9 @@
 
       
           <p>PHY层就有点痛了。</p>
-<p>Reference: <a target="_blank" rel="noopener" href="https://r12f.com/posts/pcie-4-phy/，http://blog.chinaaet.com/justlxy/p/5100053476">https://r12f.com/posts/pcie-4-phy/，http://blog.chinaaet.com/justlxy/p/5100053476</a></p>
-<h1 id="PHY层"><a href="#PHY层" class="headerlink" title="PHY层"></a>PHY层</h1><p>在PCIe Spec中，物理层是被分为两个部分单独介绍的，分别是物理层逻辑子层和物理层电气子层，其中后者一般都是基于SerDes来实现的。</p>
+<p>Reference: <a target="_blank" rel="noopener" href="https://r12f.com/posts/pcie-4-phy/%EF%BC%8Chttp://blog.chinaaet.com/justlxy/p/5100053476">https://r12f.com/posts/pcie-4-phy/，http://blog.chinaaet.com/justlxy/p/5100053476</a></p>
+<h1>PHY层</h1>
+<p>在PCIe Spec中，物理层是被分为两个部分单独介绍的，分别是物理层逻辑子层和物理层电气子层，其中后者一般都是基于SerDes来实现的。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2024/04/15/PCIe-4/#more" rel="contents">
@@ -746,7 +752,8 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="数据链路层-Data-Link-Layer"><a href="#数据链路层-Data-Link-Layer" class="headerlink" title="数据链路层 Data Link Layer"></a>数据链路层 Data Link Layer</h1><p>数据链路层负责：<strong>保证transaction消息能够正确传输到目的地</strong>。</p>
+          <h1>数据链路层 Data Link Layer</h1>
+<p>数据链路层负责：<strong>保证transaction消息能够正确传输到目的地</strong>。</p>
 <p>在数据链路层（Data Link Layer）的传输过程中，包（Packet）分为两大类：事务层包（Transaction Layer Packet, <strong>TLP</strong>）和数据链路层包（Data Link Layer Packet, <strong>DLLP</strong>）。这两种包各自承担不同的职责，并通过物理层PHY的标记来区分。</p>
           <!--noindex-->
             <div class="post-button">
@@ -839,9 +846,10 @@
       
           <p>Reference：<a target="_blank" rel="noopener" href="https://r12f.com/posts/pcie-3-tl-dll/">https://r12f.com/posts/pcie-3-tl-dll/</a></p>
 <p>上篇主要是总体的大致架构，这节开始每一层详细。</p>
-<h1 id="PCIe总线通信机制"><a href="#PCIe总线通信机制" class="headerlink" title="PCIe总线通信机制"></a>PCIe总线通信机制</h1><p>假设进行read操作，首先Requester给Completer发送一个Request，然后Completer通过Completion Packet返回要read的data或error info。</p>
+<h1>PCIe总线通信机制</h1>
+<p>假设进行read操作，首先Requester给Completer发送一个Request，然后Completer通过Completion Packet返回要read的data或error info。</p>
 <p>在PCIe的Spec里规定了四种Request：<strong>Memory</strong>，<strong>IO</strong>，<strong>Configuration</strong>，<strong>Message</strong>。前三种是从PCI/PCI-X继承过来的，第四种Message是PCIe新增的类型。</p>
-<p><img src="/2024/04/14/PCIe-2/PCIe_Request.png" alt="PCIe_Request" style="zoom:75%;"></p>
+<img src="/2024/04/14/PCIe-2/PCIe_Request.png" alt="PCIe_Request" style="zoom:75%;">
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2024/04/14/PCIe-2/#more" rel="contents">
@@ -1023,7 +1031,8 @@
           <p>竞赛内容：<a target="_blank" rel="noopener" href="https://docs.google.com/document/d/1wGhjB8iqROP4Ovs78SrmGrZcxDbrATPX9CFyKd7pTxo/edit">https://docs.google.com/document/d/1wGhjB8iqROP4Ovs78SrmGrZcxDbrATPX9CFyKd7pTxo/edit</a></p>
 <p>Branch Predictor汇总：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/arthurzyc/p/16895277.html">https://www.cnblogs.com/arthurzyc/p/16895277.html</a></p>
 <p>汇总：<a target="_blank" rel="noopener" href="https://blog.csdn.net/edonlii/article/details/8754724">https://blog.csdn.net/edonlii/article/details/8754724</a></p>
-<h1 id="例子解释"><a href="#例子解释" class="headerlink" title="例子解释"></a>例子解释</h1><p><img src="/2024/04/12/Advanced-Architecture-CA1/G-share.png" alt="G-share" style="zoom:50%;"></p>
+<h1>例子解释</h1>
+<img src="/2024/04/12/Advanced-Architecture-CA1/G-share.png" alt="G-share" style="zoom:50%;">
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2024/04/12/Advanced-Architecture-CA1/#more" rel="contents">
