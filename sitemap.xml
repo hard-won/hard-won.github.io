@@ -176,6 +176,13 @@
   </url>
   
   <url>
+    <loc>https://hard-won.github.io/categories/%E9%98%85%E8%AF%BB/</loc>
+    <lastmod>2024-05-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/</loc>
     <lastmod>2024-05-31</lastmod>
     <changefreq>weekly</changefreq>
@@ -190,35 +197,7 @@
   </url>
   
   <url>
-    <loc>https://hard-won.github.io/categories/%E9%98%85%E8%AF%BB/</loc>
-    <lastmod>2024-05-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/%E9%AB%98%E9%80%9FIO/</loc>
-    <lastmod>2024-05-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/%E5%A6%82%E4%BD%95%E6%88%90%E4%B8%BARTL%E5%B7%A5%E7%A8%8B%E5%B8%88/</loc>
-    <lastmod>2024-05-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/Resources/</loc>
-    <lastmod>2024-05-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E8%AF%BE/Advanced-Computer-Architecture/</loc>
     <lastmod>2024-05-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -233,6 +212,27 @@
   
   <url>
     <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/Synthesis/</loc>
+    <lastmod>2024-05-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/%E9%AB%98%E9%80%9FIO/</loc>
+    <lastmod>2024-05-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E8%AF%BE/Advanced-Computer-Architecture/</loc>
+    <lastmod>2024-05-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/%E5%A6%82%E4%BD%95%E6%88%90%E4%B8%BARTL%E5%B7%A5%E7%A8%8B%E5%B8%88/</loc>
     <lastmod>2024-05-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
