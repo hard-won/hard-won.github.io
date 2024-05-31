@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="iYL9tkwv4TxFVf_3Ge-4SRYl7Vf376N_yQZxc_9eD3w">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"hard-won.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="ASIC Synthesis前言 后面要找工作，上完课没事干就多看看书吧。这个系列是为了速读ASIC Synthesis的整体流程，完整的ASIC设计流程。从概念到芯片的tapout。并且也基于Design Compiler提供了各种真实工作会用到的实践而非理论。书一共六章。纸上得来终觉浅，hands on很宝贵。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="速读ASIC综合（一）">
+<meta property="og:url" content="https://hard-won.github.io/2022/01/01/ASIC_Syn_1/index.html">
+<meta property="og:site_name" content="肖恩 Wei&#39;s Blog">
+<meta property="og:description" content="ASIC Synthesis前言 后面要找工作，上完课没事干就多看看书吧。这个系列是为了速读ASIC Synthesis的整体流程，完整的ASIC设计流程。从概念到芯片的tapout。并且也基于Design Compiler提供了各种真实工作会用到的实践而非理论。书一共六章。纸上得来终觉浅，hands on很宝贵。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://hard-won.github.io/2022/01/01/ASIC_Syn_1/image-20240325220534218.png">
+<meta property="article:published_time" content="2022-01-01T08:00:00.000Z">
+<meta property="article:modified_time" content="2024-03-26T10:01:45.527Z">
+<meta property="article:author" content="Shaun Wei">
+<meta property="article:tag" content="芯片工程师">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hard-won.github.io/2022/01/01/ASIC_Syn_1/image-20240325220534218.png">
+
+<link rel="canonical" href="https://hard-won.github.io/2022/01/01/ASIC_Syn_1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>速读ASIC综合（一） | 肖恩 Wei's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">肖恩 Wei's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">数字芯片工程师</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://hard-won.github.io/2022/01/01/ASIC_Syn_1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Shaun Wei">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="肖恩 Wei's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          速读ASIC综合（一）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-01-01 00:00:00" itemprop="dateCreated datePublished" datetime="2022-01-01T00:00:00-08:00">2022-01-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-03-26 03:01:45" itemprop="dateModified" datetime="2024-03-26T03:01:45-07:00">2024-03-26</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/" itemprop="url" rel="index"><span itemprop="name">数字IC</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/Synthesis/" itemprop="url" rel="index"><span itemprop="name">Synthesis</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    
+      <div id="toc" class="toc">
+        <div class="toc-title">post.toc</div>
+        <div class="toc-content">
+          <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">1.</span> <span class="toc-text">ASIC Synthesis前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">2.</span> <span class="toc-text">第一章 你该怎么设计一款ASIC</span></a></li></ol>
+        </div>
+      </div>
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1>ASIC Synthesis前言</h1>
+<p>后面要找工作，上完课没事干就多看看书吧。这个系列是为了速读ASIC Synthesis的整体流程，完整的ASIC设计流程。从概念到芯片的tapout。并且也基于Design Compiler提供了各种真实工作会用到的实践而非理论。书一共六章。纸上得来终觉浅，hands on很宝贵。</p>
+<span id="more"></span>
+<h1>第一章 你该怎么设计一款ASIC</h1>
+ <img src="/2022/01/01/ASIC_Syn_1/image-20240325220534218.png" alt="image-20240325220534218" style="zoom: 25%;">
+<ol>
+<li>写规范和结构，architect的任务</li>
+<li>RTL编码</li>
+<li>有些设计有memory，需要插入DFT memory BIST</li>
+<li>verification</li>
+<li>工艺库等环境设置</li>
+<li>用Design Compiler对具有扫描插入（和可选择的JTAG）设计进行约束和综合设计</li>
+<li>用DC进行module level的STA</li>
+<li>formal verification，对比RTL和Netlist</li>
+<li>用PrimeTime进行system level的STA</li>
+<li>对layout工具进行时序约束前的标注</li>
+<li>全局布线的初始layout划分</li>
+<li>时钟树转Netlist</li>
+<li>用DC做设计的layout optimization</li>
+<li>在Netlist和clk tree插入的Netlist之间用Formality进行formal verification</li>
+<li>全局布线后（第11步）从layout提取估计的delay</li>
+<li>得到estimated delay 反标注到PrimeTime</li>
+<li>使用estimated delay进行STA</li>
+<li>design的详细布局</li>
+<li>extract 详细布局设计的实际delay</li>
+<li>实际delay反标注到PrimeTime</li>
+<li>使用真实的delay进行STA</li>
+<li>gate level 的功能仿真（optional）</li>
+<li>LVS和DRC之后就tape out了</li>
+</ol>
+<p>设计就是三种：behavioral，RTL，structural。行为级就是想实现什么就写什么。RTL是会转换成Netlist，所以写RTL不如说是在画logic module的连接图，心里一定要有数字设计图。</p>
+<p>然后就是动态simulation，检查设计的功能。现在的simulator都能仿真behavioral和RTL的了，有时也会仿真映射后gate level的设计。RTL的仿真不考虑元件或门的时序，所以为了最小化RTL仿真和综合后gate level的仿真之间的差异，通常在具有时序单元的RTL coding时就加入delay。</p>
+<p>以前人们都是手工将HDL画成逻辑电路图，现在都是用synthesis工具。Synthesis是一个反复迭代的过程，先为设计中每个模块定义时序constraint（规定了每个信号和特定module的clk input的联系）。除了constraint，还要定义synthesis环境的文件，这个文件说明了工艺library和DC在使用中的相关信息。</p>
+<p>DC应用时序constraint读取RTL code后，synthesis到structural level，从而产生一个映射后的gate level netlist。一般小模块的设计，DC有内置的STA工具。如果不满足再需要继续优化。</p>
+<p>目前设计都会结合DFT的逻辑，以便测试。可测性设计。</p>
+<p>formal verification是用数学方法来确认一个设计，不考虑工艺因素（时序或物理效应）。用来跟设计对比来检查逻辑。与simulation不同，formal是要证明两个设计的结构和功能是逻辑等价的；simulation是只能检查敏感路径，所以不可能找到其他出现的问题。formal verification很快很快，相比simulation。</p>
+<p>formal verification就是验证RTL和RTL，netlist和RTL之间的关系。可能会增加附加性能，要经常修改设计，当特性增加到RTL上时，可能会改变正确的逻辑功能。还有在RTL和有扫描插入的门级之间，为了保证门级也有一样的功能。如果用simulation，太久（数天数星期），formal verification只需要几小时。还有门级和门级的，也就是layout输入和输出的，中间后插入clk tree的netlist，也是一种修改，所以要验证逻辑是否等价。</p>
+<p>STA可以详细分析报告所有critical path也包含fanout或每个线网的容性负载。对layout前后的gate level netlist进行STA。layout前，用PrimeTime由工艺library指定的线载模型estimate线网delay，这个过程中先前输入到DC的时序constraint也输入到PrimeTime中并详细说明input output和clk的关系。如果对于所有critical path是可接受的，则可以得到一个constraint文件（.SDF），预标注到layout工具，这个文件详细描述了layout工具使用的每个逻辑组之间的时序。</p>
+<p>layout后，实际extract的delay被反标注到PrimeTime用来提供真实的delay计算，这些delay都是连线电容和互连RC的delay。</p>
+<p>STA也是一个反复迭代的过程，和placement和routing联系很紧密，需要搞很多次，累。</p>
+<p>floorplan和layout质量比实际的布线更重要。好的floorplan，不但能加速最终的布线，而且也能更好的满足timing constraint并且减少blocking。constraint文件用来进行时序驱动布局。时序驱动布局方法可以让layout工具根据unit之间的timing关键程度放置unit。</p>
+<p>在unit layout后，clk tree通过layout工具插入设计。CT的插入是可以选择的，依赖于设计需求和用户偏爱。用户可以选择传统的方法比如，为了减少总时间delay和clk skew使用fishbone/spine结构的clk网络。当工艺尺寸缩小，互连线电阻的增加（RC delay增加），spine方法实现变得困难。我把重点放在clk tree synthesis方法。</p>
+<hr>
+<hr>
+<hr>
+<hr>
+<hr>
+<hr>
+<hr>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>我的微信（请添加自我介绍）</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/images/wechat.png">
+            <span class="icon">
+              <i class="fab fa-weixin"></i>
+            </span>
+
+            <span class="label">WeChat</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/09/02/hello-world/" rel="prev" title="Hello World">
+      <i class="fa fa-chevron-left"></i> Hello World
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/04/02/PCIe-1/" rel="next" title="高速接口PCIe无痛入门（一）总体架构">
+      高速接口PCIe无痛入门（一）总体架构 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+<div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+</div>
+
+<aside class="sidebar">
+  <div class="sidebar-inner">
+
+    
+    
+      <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+      <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+      <div class="widget-wrap">
+        <h3 class="widget-title">Tag Cloud</h3>
+        <div id="myCanvasContainer" class="widget tagcloud">
+          <canvas width="250" height="250" id="resCanvas" style="width:100%">
+            <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/NexT/" rel="tag">NexT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/" rel="tag">hexo</a><span class="tag-list-count">1</span></li></ul>
+          </canvas>
+        </div>
+      </div>
+    
+
+    <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <img class="site-author-image" itemprop="image" alt="Shaun Wei"
+          src="/images/avatar.gif">
+      <p class="site-author-name" itemprop="name">Shaun Wei</p>
+      <div class="site-description" itemprop="description"></div>
+    </div>
+    <div class="site-state-wrap motion-element">
+      <nav class="site-state">
+          <div class="site-state-item site-state-posts">
+              <a href="/archives">
+              <span class="site-state-item-count">12</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+          <div class="site-state-item site-state-categories">
+                <a href="/categories/">
+              
+            <span class="site-state-item-count">10</span>
+            <span class="site-state-item-name">分类</span></a>
+          </div>
+          <div class="site-state-item site-state-tags">
+            <span class="site-state-item-count">3</span>
+            <span class="site-state-item-name">标签</span>
+          </div>
+      </nav>
+    </div>
+      <div class="links-of-author motion-element">
+          <span class="links-of-author-item">
+            <a href="https://github.com/hard-won" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;hard-won" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+          </span>
+          <span class="links-of-author-item">
+            <a href="mailto:hardtowon@gmail.com" title="E-Mail → mailto:hardtowon@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+          </span>
+      </div>
+
+    
+      <div class="links-of-blogroll motion-element">
+        <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+          Linkedin
+        </div>
+        <ul class="links-of-blogroll-list">
+            <li class="links-of-blogroll-item">
+              <a href="https://www.linkedin.com/in/shengyi-wei/" title="https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;shengyi-wei&#x2F;" rel="noopener" target="_blank">DM me by Linkedin</a>
+            </li>
+        </ul>
+      </div>
+
+
+
+
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2015 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Shaun Wei</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
