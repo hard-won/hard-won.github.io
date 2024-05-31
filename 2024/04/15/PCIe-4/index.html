@@ -646,17 +646,8 @@ $$<br>
 
 <aside class="sidebar">
   <div class="sidebar-inner">
-      <div class="widget-wrap">
 
-        <div class="widget">
-          <div id="toc" class="toc">
-            <div class="toc-content">
-              <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">1.</span> <span class="toc-text">PHY层</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%93%BE%E8%B7%AF%EF%BC%88Link%EF%BC%89%E5%92%8C%E9%80%9A%E9%81%93%EF%BC%88Lane%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">链路（Link）和通道（Lane）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E9%80%9A%E9%81%93%EF%BC%88Lane%EF%BC%89%E4%B8%8E%E5%8D%95%E9%93%BE%E8%B7%AF%EF%BC%88Link%EF%BC%89"><span class="toc-number">1.1.1.</span> <span class="toc-text">多通道（Lane）与单链路（Link）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%92%E6%A7%BD%E5%85%BC%E5%AE%B9%E6%80%A7%E4%B8%8EMechanical-Key"><span class="toc-number">1.1.2.</span> <span class="toc-text">插槽兼容性与Mechanical Key</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%AC%E5%85%B1%E9%83%A8%E5%88%86"><span class="toc-number">1.1.3.</span> <span class="toc-text">公共部分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%80%9A%E9%81%93"><span class="toc-number">1.1.4.</span> <span class="toc-text">数据通道</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%E7%9A%84%E2%80%9C%E9%AD%94%E6%B3%95%E2%80%9D"><span class="toc-number">1.1.5.</span> <span class="toc-text">扩展的“魔法”</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%BB%E8%BE%91%E5%AD%90%E5%9D%97"><span class="toc-number">1.2.</span> <span class="toc-text">逻辑子块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%93%BE%E8%B7%AF%E4%B8%B2%E8%A1%8C%E5%8C%96-Link-Serializer"><span class="toc-number">1.3.</span> <span class="toc-text">链路串行化 Link Serializer</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%9C%A8%E9%93%BE%E8%B7%AF%E4%B8%8A%E7%9A%84%E5%88%86%E9%85%8D"><span class="toc-number">1.3.1.</span> <span class="toc-text">数据在链路上的分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%9C%A8%E6%8E%A5%E6%94%B6%E6%96%B9%E7%9A%84%E5%90%88%E5%B9%B6"><span class="toc-number">1.3.2.</span> <span class="toc-text">数据在接收方的合并</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%8A%A0%E6%89%B0-Data-Scrambling"><span class="toc-number">1.4.</span> <span class="toc-text">数据加扰 Data Scrambling</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E6%89%B0%E7%9A%84%E7%9B%AE%E7%9A%84%E5%92%8C%E5%8E%9F%E7%90%86"><span class="toc-number">1.4.1.</span> <span class="toc-text">加扰的目的和原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E6%89%B0%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.4.2.</span> <span class="toc-text">加扰的实现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Encoding"><span class="toc-number">1.5.</span> <span class="toc-text">Encoding</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Encoding%E7%9A%84%E7%9B%AE%E7%9A%84"><span class="toc-number">1.5.1.</span> <span class="toc-text">Encoding的目的</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#DC%E5%B9%B3%E8%A1%A1%EF%BC%88DC-Balance%EF%BC%89"><span class="toc-number">1.5.1.1.</span> <span class="toc-text">DC平衡（DC Balance）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%97%B6%E9%92%9F%E6%81%A2%E5%A4%8D%EF%BC%88Clock-Recovery%EF%BC%89"><span class="toc-number">1.5.1.2.</span> <span class="toc-text">时钟恢复（Clock Recovery）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#PCIe%E7%9A%84%E7%BC%96%E7%A0%81%E6%96%B9%E6%B3%95"><span class="toc-number">1.5.2.</span> <span class="toc-text">PCIe的编码方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E4%BC%A0%E8%BE%93%E9%80%9F%E7%8E%87"><span class="toc-number">1.5.3.</span> <span class="toc-text">计算传输速率</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%9Fb-%EF%BC%9Fb-Encoding-%E6%96%B9%E5%BC%8F"><span class="toc-number">1.5.4.</span> <span class="toc-text">？b &#x2F; ？b Encoding 方式</span></a></li></ol></li></ol></li></ol>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    
     
       <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
       <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
@@ -670,7 +661,6 @@ $$<br>
       </div>
     
 
-    <!-- 其他侧边栏内容 -->
     <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
         <img class="site-author-image" itemprop="image" alt="Shaun Wei"
           src="/images/avatar.gif">
@@ -717,9 +707,11 @@ $$<br>
             </li>
         </ul>
       </div>
-  </div>
+
+
+
+
   <div id="sidebar-dimmer"></div>
-</aside>
 
 
       </div>
