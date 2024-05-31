@@ -231,7 +231,335 @@
     
       <div class="toc">
         <div class="toc-content">
-          <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">1.</span> <span class="toc-text">PHY层</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%93%BE%E8%B7%AF%EF%BC%88Link%EF%BC%89%E5%92%8C%E9%80%9A%E9%81%93%EF%BC%88Lane%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">链路（Link）和通道（Lane）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E9%80%9A%E9%81%93%EF%BC%88Lane%EF%BC%89%E4%B8%8E%E5%8D%95%E9%93%BE%E8%B7%AF%EF%BC%88Link%EF%BC%89"><span class="toc-number">1.1.1.</span> <span class="toc-text">多通道（Lane）与单链路（Link）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%92%E6%A7%BD%E5%85%BC%E5%AE%B9%E6%80%A7%E4%B8%8EMechanical-Key"><span class="toc-number">1.1.2.</span> <span class="toc-text">插槽兼容性与Mechanical Key</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%AC%E5%85%B1%E9%83%A8%E5%88%86"><span class="toc-number">1.1.3.</span> <span class="toc-text">公共部分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%80%9A%E9%81%93"><span class="toc-number">1.1.4.</span> <span class="toc-text">数据通道</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%E7%9A%84%E2%80%9C%E9%AD%94%E6%B3%95%E2%80%9D"><span class="toc-number">1.1.5.</span> <span class="toc-text">扩展的“魔法”</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%BB%E8%BE%91%E5%AD%90%E5%9D%97"><span class="toc-number">1.2.</span> <span class="toc-text">逻辑子块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%93%BE%E8%B7%AF%E4%B8%B2%E8%A1%8C%E5%8C%96-Link-Serializer"><span class="toc-number">1.3.</span> <span class="toc-text">链路串行化 Link Serializer</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%9C%A8%E9%93%BE%E8%B7%AF%E4%B8%8A%E7%9A%84%E5%88%86%E9%85%8D"><span class="toc-number">1.3.1.</span> <span class="toc-text">数据在链路上的分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%9C%A8%E6%8E%A5%E6%94%B6%E6%96%B9%E7%9A%84%E5%90%88%E5%B9%B6"><span class="toc-number">1.3.2.</span> <span class="toc-text">数据在接收方的合并</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%8A%A0%E6%89%B0-Data-Scrambling"><span class="toc-number">1.4.</span> <span class="toc-text">数据加扰 Data Scrambling</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E6%89%B0%E7%9A%84%E7%9B%AE%E7%9A%84%E5%92%8C%E5%8E%9F%E7%90%86"><span class="toc-number">1.4.1.</span> <span class="toc-text">加扰的目的和原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E6%89%B0%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.4.2.</span> <span class="toc-text">加扰的实现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Encoding"><span class="toc-number">1.5.</span> <span class="toc-text">Encoding</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Encoding%E7%9A%84%E7%9B%AE%E7%9A%84"><span class="toc-number">1.5.1.</span> <span class="toc-text">Encoding的目的</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#DC%E5%B9%B3%E8%A1%A1%EF%BC%88DC-Balance%EF%BC%89"><span class="toc-number">1.5.1.1.</span> <span class="toc-text">DC平衡（DC Balance）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%97%B6%E9%92%9F%E6%81%A2%E5%A4%8D%EF%BC%88Clock-Recovery%EF%BC%89"><span class="toc-number">1.5.1.2.</span> <span class="toc-text">时钟恢复（Clock Recovery）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#PCIe%E7%9A%84%E7%BC%96%E7%A0%81%E6%96%B9%E6%B3%95"><span class="toc-number">1.5.2.</span> <span class="toc-text">PCIe的编码方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E4%BC%A0%E8%BE%93%E9%80%9F%E7%8E%87"><span class="toc-number">1.5.3.</span> <span class="toc-text">计算传输速率</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%9Fb-%EF%BC%9Fb-Encoding-%E6%96%B9%E5%BC%8F"><span class="toc-number">1.5.4.</span> <span class="toc-text">？b &#x2F; ？b Encoding 方式</span></a></li></ol></li></ol></li></ol>
+          <p>PHY层就有点痛了。</p>
+<p>Reference: <a target="_blank" rel="noopener" href="https://r12f.com/posts/pcie-4-phy/%EF%BC%8Chttp://blog.chinaaet.com/justlxy/p/5100053476">https://r12f.com/posts/pcie-4-phy/，http://blog.chinaaet.com/justlxy/p/5100053476</a></p>
+<h1>PHY层</h1>
+<p>在PCIe Spec中，物理层是被分为两个部分单独介绍的，分别是物理层逻辑子层和物理层电气子层，其中后者一般都是基于SerDes来实现的。</p>
+<span id="more"></span>
+<p>PHY处于PCIe体系结构中的最底层，所以无论是TLP还是DLLP都必须通过PHY完成收发操作。来自数据链路层的TLP和DLLP都会被临时放入物理层的Buffer中，并被加上起始字符（Start &amp; End Characters），这些起始字符有的时候也被称为帧字符（Frame Characters）。</p>
+<p>这里所说的TLP和DLLP指的是包的原始发送者发的包，即TLP表示这个包的原始发送者为事务层，而DLLP则为数据链路层。但是TLP仍然会被数据链路层转发，并添加Sequence和LCRC。</p>
+<p><img src="/2024/04/15/PCIe-4/PHYP.png" alt="PHYP"></p>
+<p><img src="/2024/04/15/PCIe-4/pcie-phy-blocks.png" alt="pcie-phy-blocks"></p>
+<p>PCIe PHY层主要分为两个子块：</p>
+<ol>
+<li><strong>逻辑子块（Logical Sub-Block）</strong>
+<ul>
+<li><strong>数据编码和解码</strong>：
+<ul>
+<li><strong>数据完整性</strong>：逻辑子块通过先进的编码技术（如8b/10b编码或128b/130b编码）来增强数据传输的完整性。这种编码帮助在接收端正确地检测和校正可能的错误，是高速数据传输中不可或缺的部分。</li>
+<li><strong>带宽优化</strong>：适当的编码可以减少所需的信号带宽，通过降低比特错误率来优化整体系统性能。</li>
+</ul>
+</li>
+<li><strong>时钟恢复和数据同步</strong>：
+<ul>
+<li><strong>时钟管理</strong>：在没有独立时钟线的情况下，逻辑子块必须从传入的数据信号中恢复时钟，这是高速串行通信的一个技术挑战。时钟恢复确保数据在正确的时间点被采样，从而减少时序错误。</li>
+<li><strong>数据流对齐和同步</strong>：逻辑子块还负责数据流的对齐，确保数据包在链路层的正确处理。这涉及到处理任何可能的位移错或数据流中的时序偏差，是保证数据准确性和一致性的关键环节。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>电气子块（Electrical Sub-Block）</strong>
+<ul>
+<li><strong>数据传输</strong>：电气子块将逻辑子块编码后的数据转换为电信号，通过物理媒介（如电缆或电路板的导线）传输。这涉及到将数字信号转换为模拟信号的过程，确保信号在物理层上传输的可靠性。</li>
+<li><strong>信号接收和转换</strong>：在数据接收端，电气子块负责将从物理媒介收到的电信号转换回数字编码数据，然后传送给逻辑子块进行解码处理。</li>
+<li><strong>处理电气特性</strong>：电气子块还需要处理诸如电平调整（使信号保持在适当的电压范围内）、差分信号传输（使用两个相反电平的信号以减少噪音干扰）等物理链路的电气特性相关的任务。</li>
+</ul>
+</li>
+</ol>
+<p><img src="/2024/04/15/PCIe-4/PHY.png" alt="PHY"></p>
+<p>如上图所示，PCIe物理层实现了一对收发差分对，因此可以实现全双工的通信方式。需要注意的是，PCIe Spec只是规定了物理层需要实现的功能、性能与参数等，至于如何实现这些却并没有明确的说明。也就是说，厂商可以根据自己的需要和实际情况，来设计PCIe的物理层。下面将以<strong>Mindshare</strong>书中的例子来简要的介绍PCIe的物理层逻辑部分，可能会与其他的厂商的设备的物理层实现方式有所差异，但是设计的目标和最终的功能是基本一致的。</p>
+<p>PCIe的信号特点是：高频和短距，而这些事情都是为了帮助我们稳定的传输这样的信号而设计的，其设计目标主要有：</p>
+<ol>
+<li><strong>DC均衡（DC-Balanced）</strong></li>
+</ol>
+<ul>
+<li><strong>定义与目的</strong>：DC均衡是确保在传输数据中，逻辑&quot;0&quot;和&quot;1&quot;的数量大致相等。这一设计减少了信号的直流偏置，有助于维持电路中的电压平衡，避免信号电平的长时间偏移。</li>
+<li><strong>实现方式</strong>：通过使用特定的编码方案，如8b/10b或128b/130b编码，可以实现DC均衡。这些编码方案不仅确保了数据比特之间的平衡，还增加了额外的控制位来帮助监控和维护信号的整体质量。</li>
+</ul>
+<ol start="2">
+<li><strong>稳定的高频传输</strong></li>
+</ol>
+<ul>
+<li>
+<p><strong>目的</strong></p>
+<p>：在高频环境下稳定传输数据，需要解决多个潜在问题：</p>
+<ul>
+<li><strong>信号变形</strong>：在高频传输时，如果电平的上升和下降速度不足，可能导致信号形状变形，影响数据的准确解读。</li>
+<li><strong>信号抖动（Jitter）</strong>：信号在传输线上的时间变化不一致，可能由线路质量或外部干扰引起，影响信号的时序精度。</li>
+<li><strong>滤波器问题</strong>：连续相同的bit序列可能导致信号无法正常通过接收端的滤波器，这需要特定的编码技术来避免长串相同bit的出现。</li>
+</ul>
+</li>
+<li>
+<p><strong>实现方式</strong>：采用差分信号传输（如PCIe的主要物理接口采用的是差分对），通过在两条线路上传输互为反相的信号，大大减少了外部噪声的影响并提高了信号的完整性。</p>
+</li>
+</ul>
+<ol start="3">
+<li><strong>最小化EMI（Electromagnetic Interference）</strong></li>
+</ol>
+<ul>
+<li><strong>目的</strong>：在高频操作中，重复的数据模式容易产生电磁干扰，影响周边设备的正常工作。同时，PCIe设备也需要抵抗来自其他设备的电磁干扰。</li>
+<li><strong>实现方式</strong>：采用屏蔽技术和设计布局优化，减少EMI的产生和影响。编码技术（如上述的DC均衡编码）也有助于打乱可能形成重复模式的数据序列，减少了EMI的风险。</li>
+</ul>
+<p>逐个的看看物理层的设计吧！</p>
+<blockquote>
+<p>物理层还会负责一些其他的工作，比如：链路（Link）初始化，传输速率协商（Data Rate Negotiation）等等等等。这些内容由于和我们的主线 —— 数据传输的关系不大，所以就不在这里展开了，可以自行查阅相关资料。</p>
+</blockquote>
+<h2 id="链路（Link）和通道（Lane）">链路（Link）和通道（Lane）</h2>
+<p>这里对设计来说不重要，是物理插口。</p>
+<p>在了解物理层的具体内容之前，我们先来看看PCIe物理上到底长什么样子，还有它链路（Link）和通道（Lane）的概念。</p>
+<p>PCIe的插槽，在主板上都见过，最短的是PCIe x1，很少用到，最长的是PCIe x16，可以用来插显卡，另外其实还有x32的插槽，但是仅仅在大型服务器上才会使用。如下图：<a target="_blank" rel="noopener" href="https://www.ccboot.com/correct-pcie-slot.htm">https://www.ccboot.com/correct-pcie-slot.htm</a></p>
+<p><img src="/2024/04/15/PCIe-4/pcie-phy-slots.jpg" alt="pcie-phy-slots"></p>
+<h3 id="多通道（Lane）与单链路（Link）">多通道（Lane）与单链路（Link）</h3>
+<ol>
+<li><strong>通道（Lane）</strong>：
+<ul>
+<li>在PCIe架构中，一个通道由两对差分信号组成，分别用于发送和接收数据。每对差分信号包括两条线路：一条用于正信号，一条用于负信号。这种设计有助于减少噪声和提高信号完整性。</li>
+<li>在16通道（x16）的PCIe设备中，实际上有16对这样的差分信号对，即32条物理线路。</li>
+</ul>
+</li>
+<li><strong>链路（Link）</strong>：
+<ul>
+<li>链路是多个通道的集合，用于在两个PCIe设备之间建立连接。尽管一个x16链路拥有16个通道，这些通道共同作用于同一数据传输任务，为一个单一的设备提供服务。</li>
+<li>数据在链路上的传输是通过并行方式在多个通道上同时进行的，但在每个通道内部，数据是串行传输的。这意味着数据被拆分成多个部分，每部分通过一个通道串行发送，从而大幅提高了总体数据传输速率。</li>
+</ul>
+</li>
+<li><strong>数据汇总</strong>：
+<ul>
+<li>在接收端，来自所有通道的数据会被重新组合或汇总，以恢复成原始的数据流。这个过程确保了高数据传输效率的同时，还能保证数据的完整性和顺序。</li>
+</ul>
+</li>
+</ol>
+<h3 id="插槽兼容性与Mechanical-Key">插槽兼容性与Mechanical Key</h3>
+<ul>
+<li><strong>插槽设计</strong>：
+<ul>
+<li>PCIe插槽的设计允许不同长度的卡适配进相应长度的插槽。例如，一个具有更少通道的短卡（如x1、x4或x8卡）可以插入到一个x16插槽中，这得益于PCIe的灵活和向下兼容的设计。</li>
+<li>插槽中的Pin被分为两部分：公共部分和专门用于数据传输的通道部分。公共部分包含电源、地线和一些必要的控制信号。</li>
+</ul>
+</li>
+<li><strong>Mechanical Key</strong>：
+<ul>
+<li>Mechanical Key是插槽中的一个物理特征，它通过一个小挡板的形式出现，用于防止错误类型的卡插入不兼容的插槽。这个设计不仅确保物理兼容性，还避免了潜在的电气错误。</li>
+<li>Key的位置和形状根据插槽的类型（如x1、x4、x8、x16）有所不同，帮助用户区分并正确安装PCIe卡。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2024/04/15/PCIe-4/pcie-phy-pinout.png" alt="pcie-phy-pinout"></p>
+<p>PCI Express (PCIe) 插槽的设计包含了精心分配的引脚排列，这使得PCIe插槽能够支持从x1到x16等不同配置的卡，同时保持高兼容性和灵活性。这里我们将详细解释PCIe插槽中的“公共部分”和“数据通道”，以及它们如何支持不同设备的工作和互操作性。</p>
+<h3 id="公共部分">公共部分</h3>
+<p>公共部分位于PCIe插槽的前部，不论插槽的大小（x1、x4、x8、x16等），这一部分的引脚配置都是相同的。公共部分包括以下主要功能：</p>
+<ol>
+<li>
+<p><strong>电源供应</strong>：</p>
+<ul>
+<li>提供大量的12V和3.3V电压输入和接地。这样的设计帮助分散单个接触点的电流负载，从而避免电流过载，确保设备稳定运行。</li>
+</ul>
+</li>
+<li>
+<p><strong>JTAG调试接口</strong>：</p>
+<ul>
+<li>JTAG接口用于测试、监控和调试电路板。它是工程师在设计和生产过程中用于查找问题、验证设计和测试硬件性能的重要工具。</li>
+</ul>
+</li>
+<li>
+<p><strong>SMBus（System Management Bus）</strong>：</p>
+<ul>
+<li>SMBus用于传输设备信息，例如传感器数据等。这允许系统读取温度、电压等关键性能参数，用于监控和管理硬件。</li>
+</ul>
+</li>
+<li>
+<p><strong>WAKE# 和 PREST# 引脚</strong>：</p>
+<ul>
+<li>WAKE# 用于从低功耗状态唤醒设备。</li>
+<li>PREST# 用于硬件重置，这在系统需要快速重启或恢复正常工作状态时非常有用。</li>
+</ul>
+</li>
+</ol>
+<h3 id="数据通道">数据通道</h3>
+<p>数据通道位于插槽的后部，由Mechanical Key（机械钥匙，一个物理分隔块）隔开。这部分引脚的数量和配置根据PCIe插槽的类型（x1、x4、x8、x16）而变化。数据通道包括：</p>
+<ol>
+<li>
+<p><strong>地线</strong>：</p>
+<ul>
+<li>每个功能引脚的两侧都配有接地引脚，这有助于维持信号的清晰度，减少信号间的干扰和电磁干扰（EMI）。</li>
+</ul>
+</li>
+<li>
+<p><strong>时钟线</strong>：</p>
+<ul>
+<li>提供时钟信号，用于同步数据传输。</li>
+</ul>
+</li>
+<li>
+<p><strong>发送和接收通道</strong>：</p>
+<ul>
+<li>这些通道分别负责数据的发送和接收。在x16配置中，这些通道的数量是x1配置的16倍，提供了更高的数据传输率。</li>
+</ul>
+</li>
+<li>
+<p><strong>热插拔检测引脚</strong>：</p>
+<ul>
+<li>用于检测卡的插入和移除，确保设备可以安全地热插拔，即在不关闭电源的情况下插入或拔出设备。</li>
+</ul>
+</li>
+</ol>
+<h3 id="扩展的“魔法”">扩展的“魔法”</h3>
+<p>PCIe的设计允许物理层通过检测使用的通道数来适配不同大小的卡。例如，一个x1卡可以插入任何大小的插槽（x1, x4, x8, x16），因为所有这些插槽都有相同的公共部分和至少一个完整的数据通道集。这种设计极大地提高了PCIe设备的互操作性和系统的灵活性。</p>
+<p>通过这种方式，PCIe技术不仅确保了硬件间的高效数据传输，还提供了系统设计的高度兼容性和扩展性，使得用户和系统设计者可以根据需要灵活地升级或更换硬件。</p>
+<h2 id="逻辑子块">逻辑子块</h2>
+<p>当数据链路层将打包好的数据传下来之后，首先到达的就是逻辑子块（Logical Sub-Block）了，在这里，我们会对数据进行一些处理，比如：打乱（Scrambling），编码（Encoding），以及插入控制字符（Control Character）等等。</p>
+<h2 id="链路串行化-Link-Serializer">链路串行化 Link Serializer</h2>
+<p>我们可以看到一个PCI Express (PCIe) 的数据包在x4链路上的分布。这张图展示了一个事务层数据包（TLP，Transaction Layer Packet）是如何在多个通道上进行分割和传输的。下面详细解释这个过程：</p>
+<p><img src="/2024/04/15/PCIe-4/pcie-phy-link-serializer.png" alt="pcie-phy-link-serializer"></p>
+<h3 id="数据在链路上的分配">数据在链路上的分配</h3>
+<ol>
+<li><strong>数据包的组成</strong>：
+<ul>
+<li>TLP：这是在事务层的数据包，它包含实际要传输的数据或命令。</li>
+<li>序列号/LCRC（Sequence Number/LCRC）：数据链路层会为每个TLP添加一个序列号，用于确保数据包的完整性和正确的顺序。LCRC（Link CRC）是一个检错码，用于检测在传输过程中数据是否出现错误。</li>
+<li>STP/END（Start of Packet/End of Packet）：这是物理层的帧定界符号，标记数据包的开始和结束。</li>
+</ul>
+</li>
+<li><strong>数据在通道上的分配</strong>：
+<ul>
+<li>在发送方，数据链路层将一个较大的数据包（如TLP）拆分成多个较小的片段。</li>
+<li>这些片段根据链路上通道的数量（在这个例子中是4个通道），均匀地分配到各个通道上。</li>
+<li>物理层随后会将这些数据片段序列化，即将它们转换为串行的比特流以在通道上发送。</li>
+</ul>
+</li>
+</ol>
+<h3 id="数据在接收方的合并">数据在接收方的合并</h3>
+<ol>
+<li><strong>数据接收</strong>：
+<ul>
+<li>在接收方，物理层首先将各个通道上串行的比特流反序列化，恢复成数据片段。</li>
+<li>然后根据片段中的序列号和LCRC，数据链路层会检测数据的完整性并重新组装这些片段，恢复成原始的TLP。</li>
+</ul>
+</li>
+<li><strong>数据处理</strong>：
+<ul>
+<li>一旦TLP被完整地重组，它会被传送到更高层次进行进一步处理。例如，读写请求会被送到相应的目标，而接收到的数据可能会被送到处理器或存储器。</li>
+</ul>
+</li>
+</ol>
+<p>这个过程确保了PCIe可以在一个x4链路上高效地利用所有通道来传输数据，有效地提高了带宽和数据吞吐量。每个通道上的串行传输使得信号能够在高速上准确无误地传输，而多通道的并行工作则大大提升了整体传输性能。通过这样的设计，PCIe可以支持从x1到x16不等的不同配置，为各种应用和需求提供了强大的灵活性和扩展性。</p>
+<h2 id="数据加扰-Data-Scrambling">数据加扰 Data Scrambling</h2>
+<p>加扰（Scrambling）是通信系统中常用的一种技术，它的目的是打乱原有的数据顺序，将其变为看似随机的序列，以此来改善传输信号的频谱特性。这个过程类似于伪随机数生成器（pseudo-random number generator），因为它将规整的数据流转变成随机数一样的形式。通过这样的技术手段，通信系统能够提高传输质量，减少干扰，同时优化频谱的使用效率。加扰不仅是改善传输效果的一种方法，同时也是满足特定通信标准和要求的必要过程。</p>
+<h3 id="加扰的目的和原理">加扰的目的和原理</h3>
+<ol>
+<li><strong>避免能量集中</strong>：在数字通信中，若连续传输的数据具有一定的规律性或重复性（如连续的0或1），这会导致信号的频谱在某些特定频率上有能量集中现象。能量集中会增强电磁干扰（EMI，Electro-Magnetic Interference），这对通信系统是不利的。</li>
+<li><strong>频谱扁平化</strong>：加扰能打破数据的规律性，使得转换后的信号在频谱上更为均匀分布。当数据以更加随机的形式存在时，其通过傅里叶变换（Fourier Transform）得到的频谱会更加均匀，从而降低了在特定频率上的能量峰值。</li>
+<li><strong>改善信道利用效率</strong>：通过使信号频谱更加均匀，加扰有助于通信系统更有效地利用信道，因为它减少了由于频谱集中而可能引起的信道非线性效应，如干扰和信号失真。</li>
+</ol>
+<h3 id="加扰的实现">加扰的实现</h3>
+<p>在实际的数字通信系统中，加扰通常通过一个线性反馈移位寄存器（LFSR, Linear Feedback Shift Register）实现，该寄存器生成看似随机的序列，并与原始数据进行异或（XOR）操作，从而产生加扰后的数据。这种加扰后的数据在传输过程中减少了周期性和规律性，使得信号在整个传输频带上更加均匀。</p>
+<p><img src="/2024/04/15/PCIe-4/pcie-phy-lfsr.png" alt="pcie-phy-lfsr"></p>
+<p>PCIe 1.0和2.0的16位LFSR公式</p>
+<p>如果PCIe 1.0和2.0使用的是16位的LFSR，多项式通常会是这样表示的（假设为一种常见的多项式）：<br>
+$$<br>
+f(x) = x^{16} + x^5 + x^4 + x^3 + 1<br>
+$$<br>
+PCIe 3.0及以后版本的23位LFSR公式</p>
+<p>对于PCIe 3.0以及之后的版本，如果使用了更长的23位LFSR，多项式可能会这样表示（假设为一种常见的多项式）：<br>
+$$<br>
+f(x) = x^{23} + x^{21} + x^{16} + x^{8} + x^{5} + x^{2} + 1<br>
+$$</p>
+<p>LFSR 写一个新博客详细解释</p>
+<p>视频解释：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1kA411f76v/?vd_source=480dd1a439e1115a7b44c747b41734f4">https://www.bilibili.com/video/BV1kA411f76v/?vd_source=480dd1a439e1115a7b44c747b41734f4</a></p>
+<p>其计算方法用动画表示如下：</p>
+<p><img src="/2024/04/15/PCIe-4/pcie-phy-lfsr-galois.gif" alt="pcie-phy-lfsr-galois"></p>
+<p>这样，每一次时钟，LFSR就会产生一个伪随机的bit，然后我们用这个bit和数据再进行一次XOR运算，就可以达到数据加扰的目的了。</p>
+<p>另外，PCIe1.0和2.0中，数据加扰用的LFSR的初始值（Seed）都是0xFFFF，但是在PCIe3.0之后，为了避免不同的Lane上出现相似的数据，每条Lane上的LFSR的初始值（Seed）都不一样（大于等于8的Lane ID需要对8取模）：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"><strong>Lane</strong></th>
+<th style="text-align:center"><strong>Seed</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">0</td>
+<td style="text-align:center">1DBFBCh</td>
+</tr>
+<tr>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0607BBh</td>
+</tr>
+<tr>
+<td style="text-align:center">2</td>
+<td style="text-align:center">1EC760h</td>
+</tr>
+<tr>
+<td style="text-align:center">3</td>
+<td style="text-align:center">18C0DBh</td>
+</tr>
+<tr>
+<td style="text-align:center">4</td>
+<td style="text-align:center">010F12h</td>
+</tr>
+<tr>
+<td style="text-align:center">5</td>
+<td style="text-align:center">19CFC9h</td>
+</tr>
+<tr>
+<td style="text-align:center">6</td>
+<td style="text-align:center">0277CEh</td>
+</tr>
+<tr>
+<td style="text-align:center">7</td>
+<td style="text-align:center">1BB807h</td>
+</tr>
+</tbody>
+</table>
+<p>这个方法聪明的地方在于，通过XOR产生的伪随机数是可以恢复的！因为只要操作数一样，两次XOR操作的效果会被抵消，所以只要发送方和接收方的Seed一样，那么接收方就可以通过执行完全一样的LFSR操作，来恢复出原始的数据。</p>
+<p>最后，为了方便我们用示波器调试，数据加扰是可以被关闭的。</p>
+<h2 id="Encoding">Encoding</h2>
+<p>打乱数据后，就是要对数据进行Encoding了。</p>
+<p>在数字通信中，编码（Encoding）是一个关键步骤，其主要目的是为了确保数据在传输过程中的可靠性和效率。在讨论PCIe（Peripheral Component Interconnect Express）的编码方法之前，先来解释一下为什么需要进行编码以及<strong>编码的目的</strong>。</p>
+<h3 id="Encoding的目的">Encoding的目的</h3>
+<h4 id="DC平衡（DC-Balance）"><strong>DC平衡（DC Balance）</strong></h4>
+<p>DC平衡指的是在数据信号中保持0和1的比例大致相等，这有助于减少信号的直流偏移。直流偏移是由于信号中0和1的长时间不平衡导致的累积效应，这可能会影响接收设备正确解读信号。通过编码来保持DC平衡，可以确保信号的完整性，并减少电源和信号的干扰。</p>
+<h4 id="时钟恢复（Clock-Recovery）"><strong>时钟恢复（Clock Recovery）</strong></h4>
+<p>在没有单独的时钟信号线的传输系统中，接收设备需要从数据信号本身恢复出时钟信号。这要求数据流中必须有足够的边缘（即0到1或1到0的转变），以便从中提取时钟信息。通过适当的编码策略，可以在数据中引入这些必要的边缘，使时钟恢复变得可行。</p>
+<h3 id="PCIe的编码方法"><strong>PCIe的编码方法</strong></h3>
+<p>PCIe使用了几种不同的编码方法来满足其高速数据传输的需求：</p>
+<ol>
+<li>
+<p><strong>8b/10b编码</strong>：这种编码方式每8位原始数据转换为10位传输数据。它通过增加额外的两位，有效地嵌入了足够的转换来支持时钟恢复，并尝试维持DC平衡。</p>
+</li>
+<li>
+<p><strong>128b/130b编码</strong>：此编码技术在PCIe的更高版本中使用，它每128位原始数据转换成130位传输数据。与8b/10b相比，128b/130b编码在提高数据传输效率的同时，减少了开销（由原来的25%降到了1.6%左右）。</p>
+</li>
+<li>
+<p><strong>242B/256B FLIT编码</strong>：这是在PCIe 6.0中引入的一种新编码方式，它主要用于支持更高的数据传输率和更复杂的通信需求。每242位原始数据转换为256位传输数据，同样提供高效的时钟恢复和DC平衡。</p>
+</li>
+</ol>
+<h3 id="计算传输速率"><strong>计算传输速率</strong></h3>
+<p>了解了PCIe的编码方式和总线时钟频率后，可以计算每条Lane（通道）的传输速率。传输速率的计算基于以下公式：</p>
+<p>用PCIe 1.0 8b/10b来举例子，这个代表8bit的数据会被编码为10b的数据进行传输，所以，最后每条Lane的传输速率就是：<br>
+$$<br>
+\text{Throughput} =  \frac{\text{Transfer Rate} \times \text{Effective Payload Percentage}}{8 \text{ bits}} =  \frac{2.5 \text{ GT/s} \times \frac{8}{10}}{8} = \frac{2.5 \times 10^9 \text{ transfers/s} \times 0.8}{8} = 250 \times 10^6 \text{ B/s} = 250 \text{ MB/s}<br>
+$$<br>
+这里的计算考虑了通过PCIe传输的实际数据量，扣除了编码引入的额外比特。250 MB/s是PCIe 1.0标准下，每个Lane的有效数据传输速率。</p>
+<p><strong>GT/s</strong> 是指每秒的传输操作（Transfer）次数，每次传输操作可能包含多个比特。在某些接口中，如PCIe，一个传输操作可能包含一个或多个数据比特，取决于编码方案。</p>
+<p>在8b/10b编码中，每10个传输bit才包含8个实际数据bit。因此，如果你有2.5 GT/s的传输速率，实际的数据传输速率会低于25 Gbps，因为每10个比特中有2个是为了编码而使用的额外比特。</p>
+<h3 id="？b-？b-Encoding-方式">？b / ？b Encoding 方式</h3>
+<p>Reference: <a target="_blank" rel="noopener" href="http://blog.chinaaet.com/justlxy/p/5100052814%EF%BC%8Chttps://www.usbzh.com/article/detail-233.html">http://blog.chinaaet.com/justlxy/p/5100052814，https://www.usbzh.com/article/detail-233.html</a></p>
+<p>单独写了一篇，导航：<a href="https://hard-won.github.io/2024/04/17/Encoding/">https://hard-won.github.io/2024/04/17/Encoding/</a></p>
+<p>电气层单独开一篇。</p>
+<p><strong>发射端：</strong></p>
+<p><img src="/2024/04/15/PCIe-4/Logic_S.png" alt="Logic_S"></p>
+<p>在进行8b/10b编码之前，Mux会对来自数据链路层的数据中插入一些内容，如用于标记包边界或者Ordered Sets的控制字符和数据字符。为了区分这些字符，Mux为其对应上一个D/K#位（Data or Kontrol）。</p>
+<p>**注：**图中还包含了Gen3的一些实现，不过这里只介绍Gen1 &amp; Gen2，并不会介绍Gen3。如果大家感兴趣的，可以去阅读Mindshare的书籍或者参考PCIe Gen3的Spec。</p>
+<p>Byte Striping将来自Mux的并行数据按照一定的规则（后面会详细地说）分配到各个Lane上去。随后进行扰码（Scrambler）、8b/10b编码、串行化（Serializer），然后是差分发送对。</p>
+<p>其中扰码器（Scrambler）是基于伪随机码（Pesudo-Random）的异或逻辑（XOR），由于是伪随机码，所以只要发送端和接收端采用相同的算法和种子，接收端便可以轻松地恢复出数据。但是，如果发送端和接收端由于某些原因导致其节拍不一致了，此时便会产生错误，因此Gen1和Gen2的扰码器（Scrambler）会周期性地被复位。</p>
+<p><strong>接收端：</strong></p>
+<p><img src="/2024/04/15/PCIe-4/Logic_R.png" alt="Logic_R"></p>
+<p>由于PCIe采用的是一种Embeded Clock（借助8b/10b）机制，因此接收端在接收到数据流时，首先要从中恢复出时钟信号，这正是通过CDR逻辑来实现的。如上图所示，接收端的逻辑基本上都是与发送端相对应的相反的操作。这里就不在详细地介绍了。</p>
+<p><strong>整体架构：</strong></p>
+<p><img src="/2024/04/15/PCIe-4/pcie-physical-layer-arch.png" alt="pcie-physical-layer-arch"></p>
+
         </div>
       </div>
     
