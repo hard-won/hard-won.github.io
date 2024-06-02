@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://hard-won.github.io/2024/06/02/TechQA/</loc>
+    
+    <lastmod>2024-06-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://hard-won.github.io/2024/05/29/LifeManual/</loc>
     
     <lastmod>2024-06-02</lastmod>
@@ -205,6 +214,13 @@
   
   <url>
     <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/Resources/</loc>
+    <lastmod>2024-06-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://hard-won.github.io/categories/%E6%8A%80%E6%9C%AF/Soft-Skill/</loc>
     <lastmod>2024-06-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
