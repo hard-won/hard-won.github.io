@@ -298,6 +298,97 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://hard-won.github.io/2024/06/03/GPU2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Shaun Wei">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="肖恩 Wei's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/06/03/GPU2/" class="post-title-link" itemprop="url">手搓GPU（二）</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-06-03 23:03:29" itemprop="dateCreated datePublished" datetime="2024-06-03T23:03:29-07:00">2024-06-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-06-04 18:13:14" itemprop="dateModified" datetime="2024-06-04T18:13:14-07:00">2024-06-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/" itemprop="url" rel="index"><span itemprop="name">数字IC</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/GPU/" itemprop="url" rel="index"><span itemprop="name">GPU</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>上篇介绍了GPU的架构和顶层设计。还有整个simulation的workflow。下面介绍各个部分。</p>
+<h1>Device Control Register</h1>
+<p>用来控制要在kernel里跑哪个thread。</p>
+<p>就是在内部产生的control信号加上一个DFF再输出到kernel</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/06/03/GPU2/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://hard-won.github.io/2024/06/03/GPU1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -370,195 +461,6 @@
             </div>
           <!--/noindex-->
         
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-    
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://hard-won.github.io/2024/06/03/GPU2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Shaun Wei">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="肖恩 Wei's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/06/03/GPU2/" class="post-title-link" itemprop="url">手搓GPU（二）</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-06-03 23:03:29" itemprop="dateCreated datePublished" datetime="2024-06-03T23:03:29-07:00">2024-06-03</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-06-04 18:12:26" itemprop="dateModified" datetime="2024-06-04T18:12:26-07:00">2024-06-04</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/" itemprop="url" rel="index"><span itemprop="name">数字IC</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/GPU/" itemprop="url" rel="index"><span itemprop="name">GPU</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>上篇介绍了GPU的架构和顶层设计。还有整个simulation的workflow。下面介绍各个部分。</p>
-<h1>Device Control Register</h1>
-<p>用来控制要在kernel里跑哪个thread。</p>
-<p>就是在内部产生的control信号加上一个DFF再输出到kernel</p>
-<h1>Dispatcher</h1>
-<p>先看IO</p>
-<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Kernel Metadata</span></span><br><span class="line"><span class="keyword">input</span> <span class="keyword">wire</span> [<span class="number">7</span>:<span class="number">0</span>] thread_count,</span><br><span class="line"></span><br><span class="line"><span class="comment">// Core States</span></span><br><span class="line"><span class="keyword">input</span> <span class="keyword">reg</span> [NUM_CORES-<span class="number">1</span>:<span class="number">0</span>] core_done,</span><br><span class="line"><span class="keyword">output</span> <span class="keyword">reg</span> [NUM_CORES-<span class="number">1</span>:<span class="number">0</span>] core_start,</span><br><span class="line"><span class="keyword">output</span> <span class="keyword">reg</span> [NUM_CORES-<span class="number">1</span>:<span class="number">0</span>] core_reset,</span><br><span class="line"><span class="keyword">output</span> <span class="keyword">reg</span> [<span class="number">7</span>:<span class="number">0</span>] core_block_id [NUM_CORES-<span class="number">1</span>:<span class="number">0</span>],</span><br><span class="line"><span class="keyword">output</span> <span class="keyword">reg</span> [<span class="built_in">$clog2</span>(THREADS_PER_BLOCK):<span class="number">0</span>] core_thread_count [NUM_CORES-<span class="number">1</span>:<span class="number">0</span>],</span><br><span class="line"></span><br><span class="line"><span class="comment">// Kernel Execution</span></span><br><span class="line"><span class="keyword">output</span> <span class="keyword">reg</span> done</span><br></pre></td></tr></table></figure>
-<p>输入信号：</p>
-<ul>
-<li><code>thread_count</code>：要执行的线程总数。</li>
-<li><code>core_done</code>：每个核心完成当前块的状态信号。</li>
-</ul>
-<p>输出信号：</p>
-<ul>
-<li><code>core_start</code>：启动每个core的信号。</li>
-<li><code>core_reset</code>：重置每个core的信号。</li>
-<li><code>core_block_id</code>：每个core正在处理的block ID。</li>
-<li><code>core_thread_count</code>：每个core正在处理的thread数量。</li>
-<li><code>done</code>：kernel执行完成信号。</li>
-</ul>
-<p>Block Dispatch 这个模块的主要功能是在接收到开始信号后，按照每block固定的thread数，将线程分派给各个core进行处理，并在所有block处理完后发出done信号。每个核心的状态由 <code>core_done</code> 信号指示，当核心完成其当前block的处理后，模块将其reset并派发新的 block（如果还有剩余block需要处理）。</p>
-<p>在GPU里，将任务分成多个block后，可以将这些block分配给多个计算核心（cores）同时处理，从而实现并行计算。例如，如果有1000个thread，分成每block 100个thread，10个block，并行处理这些块会比串行处理1000个thread要快得多。</p>
-<p>🤔想象 一个core是一个work station，thread是每个工人，block就是把全部工人分成几个小work group。然后分配给不同的core。</p>
-<hr>
-<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">assign</span> total_blocks = (thread_count + THREADS_PER_BLOCK - <span class="number">1</span>) / THREADS_PER_BLOCK;</span><br></pre></td></tr></table></figure>
-<p>这里需要特别解释。这里是计算出需要多少个块（blocks）来处理给定数量的线程（threads）。</p>
-<p><code>thread_count + THREADS_PER_BLOCK - 1</code>这个步骤的目的是为了在计算需要多少个块时避免舍入错误。我们用一个示例来说明：</p>
-<ul>
-<li><strong>thread_count</strong>：表示要处理的线程总数（总线程数）。</li>
-<li><strong>THREADS_PER_BLOCK</strong>：表示每个块中的线程数（每块线程数）。</li>
-</ul>
-<p>这行代码计算了需要多少个块（<code>total_blocks</code>）来处理所有线程，具体步骤如下：</p>
-<ol>
-<li><strong>thread_count + THREADS_PER_BLOCK - 1</strong>：先将总线程数加上每块线程数再减去1。</li>
-<li><strong>(thread_count + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK</strong>：再将上述结果除以每块线程数，得到需要的块数。</li>
-</ol>
-<p>当我们想要将一个数分成尽量多的块，并且每块的大小相等时，需要考虑上取整的情况。假设我们有 <code>N</code> 个项目（threads），每个块包含 <code>k</code> 个项目（threads per block）。</p>
-<p>$$<br>
-\text{blocks_needed} = \left\lceil \frac{N}{k} \right\rceil<br>
-$$<br>
-其中，<br>
-$$<br>
-\left\lceil \cdot \right\rceil<br>
-$$<br>
-表示<strong>上取整</strong>。上取整的目的是确保即使最后一个块没有满，也需要一个完整的块来包含剩余的项目。</p>
-<p>通过 <code>(thread_count + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK</code> 这个公式，可以实现上取整的效果。数学上，可以理解为：</p>
-<p>$$<br>
-\left\lceil \frac{N}{k} \right\rceil = \frac{N + k - 1}{k}<br>
-$$</p>
-<h3 id="例子">例子</h3>
-<p>我们用几个具体的例子来验证这个公式：</p>
-<ol>
-<li>
-<p>如果 <code>thread_count</code> 为 250，<code>THREADS_PER_BLOCK</code> 为 100：<br>
-$$<br>
-\frac{250 + 100 - 1}{100} = \frac{349}{100} = 3.49 \rightarrow 3<br>
-$$<br>
-这表示需要3个块，每个块100个线程，最后一个块包含50个线程。</p>
-</li>
-<li>
-<p>如果 <code>thread_count</code> 为 301，<code>THREADS_PER_BLOCK</code> 为 100：<br>
-$$<br>
-\frac{301 + 100 - 1}{100} = \frac{400}{100} = 4<br>
-$$<br>
-这表示需要4个块，每个块100个线程，最后一个块包含1个线程。</p>
-</li>
-</ol>
-<p>这个技巧广泛用于需要将一组项目分成尽量多的块且每块大小相等的情况中。</p>
-<p><a target="_blank" rel="noopener" href="http://dispatch.sv">dispatch.sv</a> 的代码逻辑：</p>
-<ol>
-<li><strong>复位处理</strong>：复位时，清除所有状态寄存器，重置核心状态。</li>
-<li><strong>启动逻辑</strong>：如果收到 <code>start</code> 信号，初始化执行，并复位所有核心。</li>
-<li><strong>块派发</strong>：根据核心的复位状态和派发的块数，决定是否向核心派发新的块。</li>
-<li><strong>核心完成处理</strong>：如果核心完成当前块，更新完成块数，并复位核心。</li>
-</ol>
-<p>有部分代码需要详细讲解一下：</p>
-<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">end</span> <span class="keyword">else</span> <span class="keyword">if</span> (start) <span class="keyword">begin</span>    </span><br><span class="line">    <span class="comment">// EDA: Indirect way to get @(posedge start) without driving from 2 different clocks</span></span><br><span class="line">    <span class="keyword">if</span> (!start_execution) <span class="keyword">begin</span> </span><br><span class="line">        start_execution &lt;= <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; NUM_CORES; i++) <span class="keyword">begin</span></span><br><span class="line">            core_reset[i] &lt;= <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// If the last block has finished processing, mark this kernel as done executing</span></span><br><span class="line">    <span class="keyword">if</span> (blocks_done == total_blocks) <span class="keyword">begin</span> </span><br><span class="line">        done &lt;= <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; NUM_CORES; i++) <span class="keyword">begin</span> </span><br><span class="line">        <span class="keyword">if</span> (core_reset[i]) <span class="keyword">begin</span> </span><br><span class="line">            core_reset[i] &lt;= <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// If this core was just reset, check if there are more blocks to be dispatched</span></span><br><span class="line">            <span class="keyword">if</span> (blocks_dispatched &lt; total_blocks) <span class="keyword">begin</span> </span><br><span class="line">                core_start[i] &lt;= <span class="number">1</span>;</span><br><span class="line">                core_block_id[i] &lt;= blocks_dispatched;</span><br><span class="line">                core_thread_count[i] &lt;= (blocks_dispatched == total_blocks - <span class="number">1</span>) </span><br><span class="line">                    ? thread_count - (blocks_dispatched * THREADS_PER_BLOCK)</span><br><span class="line">                    : THREADS_PER_BLOCK;</span><br><span class="line"></span><br><span class="line">                blocks_dispatched = blocks_dispatched + <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">end</span></span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; NUM_CORES; i++) <span class="keyword">begin</span></span><br><span class="line">        <span class="keyword">if</span> (core_start[i] &amp;&amp; core_done[i]) <span class="keyword">begin</span></span><br><span class="line">            <span class="comment">// If a core just finished executing it&#x27;s current block, reset it</span></span><br><span class="line">            core_reset[i] &lt;= <span class="number">1</span>;</span><br><span class="line">            core_start[i] &lt;= <span class="number">0</span>;</span><br><span class="line">            blocks_done = blocks_done + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
-<p>其中</p>
-<p>初始化和开始执行</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">if (!start_execution) begin</span><br><span class="line">    start_execution &lt;= 1;</span><br><span class="line">    for (int i = 0; i &lt; NUM_CORES; i++) begin</span><br><span class="line">        core_reset[i] &lt;= 1;</span><br><span class="line">    end</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
-<p>当收到 <code>start</code> 信号时，首先检查 <code>start_execution</code> 标志。如果这是第一次开始执行，则将 <code>start_execution</code> 设为1，并reset所有核心。这个标志确保在整个过程中只进行一次初始化。</p>
-<p>然后检查所有块是否已完成处理</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if (blocks_done == total_blocks) begin</span><br><span class="line">    done &lt;= 1;</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
-<p>每个时钟周期检查 <code>blocks_done</code> 是否等于 <code>total_blocks</code>。如果所有块都已处理完毕，则将 <code>done</code> 信号设为1，表示任务完成。</p>
-<p>重点是这个dispatch派发逻辑：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">for (int i = 0; i &lt; NUM_CORES; i++) begin</span><br><span class="line">    if (core_reset[i]) begin</span><br><span class="line">        core_reset[i] &lt;= 0;</span><br><span class="line"></span><br><span class="line">        if (blocks_dispatched &lt; total_blocks) begin</span><br><span class="line">            core_start[i] &lt;= 1;</span><br><span class="line">            core_block_id[i] &lt;= blocks_dispatched;</span><br><span class="line">            core_thread_count[i] &lt;= (blocks_dispatched == total_blocks - 1)</span><br><span class="line">                ? thread_count - (blocks_dispatched * THREADS_PER_BLOCK)</span><br><span class="line">                : THREADS_PER_BLOCK;</span><br><span class="line"></span><br><span class="line">            blocks_dispatched = blocks_dispatched + 1;</span><br><span class="line">        end</span><br><span class="line">    end</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
-<p>遍历所有核心，如果某个核心处于重置状态（<code>core_reset[i]</code> 为1），则将其复位标志清除（<code>core_reset[i] &lt;= 0</code>）。然后检查是否还有未分配的块（<code>blocks_dispatched &lt; total_blocks</code>）。如果有未分配的块，则将该块分配给当前核心，并更新相关信号：</p>
-<ul>
-<li>
-<p><code>core_start[i]</code>：启动当前核心。</p>
-</li>
-<li>
-<p><code>core_block_id[i]</code>：分配当前块的ID。</p>
-</li>
-<li>
-<p><code>core_thread_count[i]</code>：设置当前核心处理的线程数。如果这是最后一个块，thread数量可能放不满block。</p>
-</li>
-<li>
-<p><code>blocks_dispatched</code>：递增已分配块的计数。</p>
-<pre><code>      core_thread_count[i] &lt;= (blocks_dispatched == total_blocks - 1)
-          ? thread_count - (blocks_dispatched * THREADS_PER_BLOCK)
-          : THREADS_PER_BLOCK;
-</code></pre>
-</li>
-</ul>
-<p>core_thread_count[i] 是第i个core（当前core）正在处理的thread数量。</p>
-<p><code>THREADS_PER_BLOCK</code>一个block放满的thread数量</p>
-<p><code>thread_count</code>是thread的总数，<code>blocks_dispatched * THREADS_PER_BLOCK</code>是目前已经分配过的thread数。</p>
-<p>所以这里的逻辑是：如果dispatch到block到了最后一个block，就把剩下的（不足一个满block）thread放进最后一个block里。如果不是最后一个block，那就用thread放满block。</p>
-
       
     </div>
 
