@@ -153,6 +153,189 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://hard-won.github.io/2024/04/14/PCIe-3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Shaun Wei">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="肖恩 Wei's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/04/14/PCIe-3/" class="post-title-link" itemprop="url">高速接口PCIe无痛入门（三）数据链路层</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-04-14 19:20:18" itemprop="dateCreated datePublished" datetime="2024-04-14T19:20:18-07:00">2024-04-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-04-15 21:57:47" itemprop="dateModified" datetime="2024-04-15T21:57:47-07:00">2024-04-15</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/" itemprop="url" rel="index"><span itemprop="name">数字IC</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/%E9%AB%98%E9%80%9FIO/" itemprop="url" rel="index"><span itemprop="name">高速IO</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1>数据链路层 Data Link Layer</h1>
+<p>数据链路层负责：<strong>保证transaction消息能够正确传输到目的地</strong>。</p>
+<p>在数据链路层（Data Link Layer）的传输过程中，包（Packet）分为两大类：事务层包（Transaction Layer Packet, <strong>TLP</strong>）和数据链路层包（Data Link Layer Packet, <strong>DLLP</strong>）。这两种包各自承担不同的职责，并通过物理层PHY的标记来区分。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/04/14/PCIe-3/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://hard-won.github.io/2024/04/14/PCIe-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Shaun Wei">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="肖恩 Wei's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/04/14/PCIe-2/" class="post-title-link" itemprop="url">高速接口PCIe无痛入门（二）事务层</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-04-14 12:42:40" itemprop="dateCreated datePublished" datetime="2024-04-14T12:42:40-07:00">2024-04-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-04-15 09:10:34" itemprop="dateModified" datetime="2024-04-15T09:10:34-07:00">2024-04-15</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/" itemprop="url" rel="index"><span itemprop="name">数字IC</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/%E6%95%B0%E5%AD%97IC/%E9%AB%98%E9%80%9FIO/" itemprop="url" rel="index"><span itemprop="name">高速IO</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Reference：<a target="_blank" rel="noopener" href="https://r12f.com/posts/pcie-3-tl-dll/">https://r12f.com/posts/pcie-3-tl-dll/</a></p>
+<p>上篇主要是总体的大致架构，这节开始每一层详细。</p>
+<h1>PCIe总线通信机制</h1>
+<p>假设进行read操作，首先Requester给Completer发送一个Request，然后Completer通过Completion Packet返回要read的data或error info。</p>
+<p>在PCIe的Spec里规定了四种Request：<strong>Memory</strong>，<strong>IO</strong>，<strong>Configuration</strong>，<strong>Message</strong>。前三种是从PCI/PCI-X继承过来的，第四种Message是PCIe新增的类型。</p>
+<img src="/2024/04/14/PCIe-2/PCIe_Request.png" alt="PCIe_Request" style="zoom:75%;">
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/04/14/PCIe-2/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://hard-won.github.io/2024/04/14/Resources/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -576,7 +759,7 @@
       <nav class="site-state">
           <div class="site-state-item site-state-posts">
               <a href="/archives">
-              <span class="site-state-item-count">14</span>
+              <span class="site-state-item-count">16</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
