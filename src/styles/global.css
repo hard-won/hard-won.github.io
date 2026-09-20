@@ -1,64 +1,69 @@
 /* ---------------------------------------------------------------------------
-   Tokens
-   Light is the default. Dark comes from prefers-color-scheme, and an explicit
+   Tokens — datasheet palette
+   Dark is the default. Light comes from prefers-color-scheme, and an explicit
    [data-theme] on <html> overrides both (set by the toggle in BaseLayout).
-   Contrast: every text/background pair below is >= 4.5:1.
+
+   Contrast, measured (see the report): every text colour below clears 4.5:1
+   against --bg, --bg-raised and --bg-code in its own theme. The muted value in
+   light is a solid hex rather than 0.55 alpha because 0.55 alpha measures
+   4.03:1 on paper and fails. Hairlines stay alpha: they are not text.
 --------------------------------------------------------------------------- */
 
 :root {
   --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
     "Noto Sans", "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB",
     "Microsoft YaHei", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    "Liberation Mono", monospace;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+    Consolas, "Liberation Mono", monospace;
+  --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
 
-  --bg: #fbfbfa;
-  --bg-raised: #ffffff;
-  --bg-code: #f2f2f0;
-  /* Measured against the darkest background each is used on (--bg-code). */
-  --fg: #16181c;          /* 15.9:1 */
-  --fg-muted: #55595f;    /* 6.3:1  */
-  --fg-faint: #686d73;    /* 4.7:1  */
-  --accent: #1d4ed8;      /* 6.0:1  */
-  --accent-hover: #14329e;
-  --rule: #dcdcd8;
-  --rule-strong: #b9b9b3;
-  --focus: #1d4ed8;
+  /* Dark (default) */
+  --bg: #0a0a0b;
+  --bg-raised: #131315;
+  --bg-code: #121214;
+  --fg: #e8e8e6;                        /* 16.1:1 */
+  --fg-muted: rgba(232, 232, 230, 0.55); /* resolves #848483 — 5.3:1 */
+  --fg-faint: #828280;                  /* 4.8:1  */
+  --accent: #e0a33e;                    /* 8.9:1  */
+  --accent-hover: #f0bc63;              /* 11.4:1 */
+  --rule: rgba(232, 232, 230, 0.14);
+  --rule-strong: rgba(232, 232, 230, 0.28);
+  --focus: #e0a33e;
 
-  --measure: 68ch;
+  --measure: 60ch;
   --page: 46rem;
   --gap: 1rem;
-  --radius: 4px;
+  --radius: 2px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #101215;
-    --bg-raised: #171a1e;
-    --bg-code: #1b1f24;
-    --fg: #e7e9ec;         /* 13.6:1 */
-    --fg-muted: #a8aeb6;   /* 7.4:1  */
-    --fg-faint: #8b929b;   /* 5.3:1  */
-    --accent: #8ab4ff;     /* 7.9:1  */
-    --accent-hover: #b6cfff;
-    --rule: #2a2f36;
-    --rule-strong: #3d444d;
-    --focus: #8ab4ff;
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #fbfbf9;
+    --bg-raised: #ffffff;
+    --bg-code: #f2f2ef;
+    --fg: #141416;        /* 17.8:1 */
+    --fg-muted: #5c5c5e;  /* 6.4:1  */
+    --fg-faint: #6b6b6d;  /* 4.7:1  */
+    --accent: #8f5e0a;    /* 5.4:1  */
+    --accent-hover: #6e4700; /* 7.9:1 */
+    --rule: rgba(20, 20, 22, 0.14);
+    --rule-strong: rgba(20, 20, 22, 0.3);
+    --focus: #8f5e0a;
   }
 }
 
-:root[data-theme="dark"] {
-  --bg: #101215;
-  --bg-raised: #171a1e;
-  --bg-code: #1b1f24;
-  --fg: #e7e9ec;
-  --fg-muted: #a8aeb6;
-  --fg-faint: #8b929b;
-  --accent: #8ab4ff;
-  --accent-hover: #b6cfff;
-  --rule: #2a2f36;
-  --rule-strong: #3d444d;
-  --focus: #8ab4ff;
+:root[data-theme="light"] {
+  --bg: #fbfbf9;
+  --bg-raised: #ffffff;
+  --bg-code: #f2f2ef;
+  --fg: #141416;
+  --fg-muted: #5c5c5e;
+  --fg-faint: #6b6b6d;
+  --accent: #8f5e0a;
+  --accent-hover: #6e4700;
+  --rule: rgba(20, 20, 22, 0.14);
+  --rule-strong: rgba(20, 20, 22, 0.3);
+  --focus: #8f5e0a;
 }
 
 /* ---------------------------------------------------------------------------
@@ -94,14 +99,16 @@ body {
 }
 
 a {
-  color: var(--accent);
+  color: var(--fg);
   text-decoration: underline;
+  text-decoration-color: var(--accent);
   text-underline-offset: 0.18em;
   text-decoration-thickness: 1px;
 }
 
 a:hover {
-  color: var(--accent-hover);
+  text-decoration-color: var(--accent-hover);
+  text-decoration-thickness: 2px;
 }
 
 :focus-visible {
@@ -155,15 +162,15 @@ pre code {
 }
 
 /* Shiki dual themes with defaultColor: false. Each token carries both
-   palettes as custom properties; pick the light one by default and the dark
-   one wherever the site is dark. */
+   palettes as custom properties; pick the dark one by default (the site is
+   dark by default) and the light one wherever the site is light. */
 .astro-code,
 .astro-code span {
-  color: var(--shiki-light);
+  color: var(--shiki-dark);
   background-color: transparent;
-  font-style: var(--shiki-light-font-style);
-  font-weight: var(--shiki-light-font-weight);
-  text-decoration: var(--shiki-light-text-decoration);
+  font-style: var(--shiki-dark-font-style);
+  font-weight: var(--shiki-dark-font-weight);
+  text-decoration: var(--shiki-dark-text-decoration);
 }
 
 /* Highlighted blocks sit on --bg-raised, not --bg-code: the extra contrast is
@@ -172,22 +179,22 @@ pre.astro-code {
   background-color: var(--bg-raised);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .astro-code,
-  :root:not([data-theme="light"]) .astro-code span {
-    color: var(--shiki-dark);
-    font-style: var(--shiki-dark-font-style);
-    font-weight: var(--shiki-dark-font-weight);
-    text-decoration: var(--shiki-dark-text-decoration);
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .astro-code,
+  :root:not([data-theme="dark"]) .astro-code span {
+    color: var(--shiki-light);
+    font-style: var(--shiki-light-font-style);
+    font-weight: var(--shiki-light-font-weight);
+    text-decoration: var(--shiki-light-text-decoration);
   }
 }
 
-:root[data-theme="dark"] .astro-code,
-:root[data-theme="dark"] .astro-code span {
-  color: var(--shiki-dark);
-  font-style: var(--shiki-dark-font-style);
-  font-weight: var(--shiki-dark-font-weight);
-  text-decoration: var(--shiki-dark-text-decoration);
+:root[data-theme="light"] .astro-code,
+:root[data-theme="light"] .astro-code span {
+  color: var(--shiki-light);
+  font-style: var(--shiki-light-font-style);
+  font-weight: var(--shiki-light-font-weight);
+  text-decoration: var(--shiki-light-text-decoration);
 }
 
 blockquote {
@@ -249,61 +256,101 @@ th {
   }
 }
 
+/* The running head of a spec sheet: a full-width hairline with tiny mono
+   labels sitting on it, and the nav in the same band. */
 .site-header {
   border-bottom: 1px solid var(--rule);
-  padding: 1.25rem 0;
-  margin-bottom: 2.5rem;
+  padding: 1.1rem 0 0.7rem;
+  margin-bottom: 3.5rem;
 }
 
-.site-header > .shell {
+.doc-head {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.doc-head__line {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.75rem 1.25rem;
+  justify-content: space-between;
+  gap: 0.35rem 1.25rem;
+  min-width: 0;
 }
 
-.site-header .brand {
-  font-weight: 600;
+.doc-head__name,
+.doc-head__role {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  min-width: 0;
+}
+
+.doc-head__name {
   color: var(--fg);
   text-decoration: none;
-  letter-spacing: -0.01em;
+  font-weight: 500;
+}
+
+.doc-head__name:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 0.35em;
+}
+
+.doc-head__role {
+  color: var(--fg-faint);
 }
 
 .site-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem 1rem;
-  margin-left: auto;
-  font-size: 0.9375rem;
+  align-items: baseline;
+  gap: 0.35rem 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
 }
 
 .site-nav a {
   color: var(--fg-muted);
   text-decoration: none;
+  padding-bottom: 1px;
+  border-bottom: 1px solid transparent;
 }
 
 .site-nav a:hover,
 .site-nav a[aria-current="page"] {
   color: var(--fg);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
+  border-bottom-color: var(--accent);
 }
 
 .theme-toggle {
-  font: inherit;
-  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
   color: var(--fg-muted);
   background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  padding: 0.15rem 0.55rem;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  padding: 0 0 1px;
+  margin-left: auto;
   cursor: pointer;
-  line-height: 1.5;
+  line-height: inherit;
 }
 
 .theme-toggle:hover {
   color: var(--fg);
-  border-color: var(--rule-strong);
+  border-bottom-color: var(--accent);
+}
+
+@media (max-width: 30rem) {
+  .doc-head__name,
+  .doc-head__role {
+    letter-spacing: 0.08em;
+  }
 }
 
 main {
@@ -312,14 +359,31 @@ main {
 
 .site-footer {
   border-top: 1px solid var(--rule);
-  margin-top: 4rem;
-  padding: 1.5rem 0 2.5rem;
+  margin-top: 6rem;
+  padding: 1rem 0 3rem;
   color: var(--fg-faint);
-  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+.foot-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.5rem;
+  margin: 0;
 }
 
 .site-footer a {
   color: var(--fg-muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 1px;
+}
+
+.site-footer a:hover {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
 }
 
 /* ---------------------------------------------------------------------------
@@ -659,4 +723,276 @@ h3 {
   margin: 0 0 0.25rem;
   padding-bottom: 0.3rem;
   border-bottom: 1px solid var(--rule);
+}
+
+/* ---------------------------------------------------------------------------
+   Homepage — datasheet
+   Everything below is scoped to homepage classes so the rest of the site keeps
+   its existing typography.
+--------------------------------------------------------------------------- */
+
+.masthead {
+  margin: 0 0 4.5rem;
+}
+
+.masthead__name {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(3rem, 11vw, 7.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-align: left;
+}
+
+.masthead__kicker {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  line-height: 1.7;
+  color: var(--fg-muted);
+  margin: 1.25rem 0 0;
+  max-width: 44ch;
+}
+
+.framing {
+  max-width: var(--measure);
+  font-size: 1.0625rem;
+  margin: 0 0 4.5rem;
+}
+
+/* --- FIG. 01 — the link ---------------------------------------------------- */
+
+.fig {
+  margin: 0 0 4.5rem;
+}
+
+.fig__frame {
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 1.25rem 0;
+}
+
+.fig svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.fig__caption {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  color: var(--fg-faint);
+  margin-top: 0.75rem;
+}
+
+.fig-wire {
+  fill: none;
+  stroke: var(--rule-strong);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.fig-tick {
+  stroke: var(--rule);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.fig-label {
+  fill: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+}
+
+.fig-flit rect {
+  fill: var(--accent);
+}
+
+/* Flits travel left to right. Two cadences: a clean pass, and one that stalls
+   at the middle node before being released. Negative delays start the channel
+   mid-flight so it is never empty on first paint. */
+.fig-flit {
+  opacity: 0;
+  animation-name: flit-pass;
+  animation-duration: 11s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.fig-flit--queued {
+  animation-name: flit-queue;
+  animation-duration: 14s;
+}
+
+@keyframes flit-pass {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  94% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(556px);
+    opacity: 0;
+  }
+}
+
+@keyframes flit-queue {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  34% {
+    transform: translateX(var(--hold));
+  }
+  54% {
+    transform: translateX(var(--hold));
+  }
+  94% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(556px);
+    opacity: 0;
+  }
+}
+
+/* Narrow screens carry fewer flits; the drawing itself just scales. */
+@media (max-width: 30rem) {
+  .fig-flit--thin {
+    display: none;
+  }
+}
+
+/* Static and fully legible: every flit is drawn, parked at its own --x, with
+   two sitting in the queue node. */
+@media (prefers-reduced-motion: reduce) {
+  .fig-flit {
+    animation: none;
+    transform: translateX(var(--x));
+    opacity: 1;
+  }
+}
+
+/* --- pull quote ------------------------------------------------------------ */
+
+.pullquote {
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  margin: 0 0 5rem;
+  padding: 3.5rem 0;
+}
+
+.pullquote p {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0;
+  max-width: 22ch;
+}
+
+/* --- writing index --------------------------------------------------------- */
+
+.index-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  font-weight: 500;
+  color: var(--fg-faint);
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--rule-strong);
+  margin: 0;
+}
+
+.index {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.index__row {
+  display: grid;
+  grid-template-columns: 0.9rem 6.5rem 1fr;
+  align-items: baseline;
+  gap: 0 0.5rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--fg);
+}
+
+.index__row:hover {
+  text-decoration: none;
+  box-shadow: inset 0 -1px 0 0 var(--accent);
+}
+
+.index__tick {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: transparent;
+}
+
+.index__row:hover .index__tick,
+.index__row:focus-visible .index__tick {
+  color: var(--accent);
+}
+
+.index__date {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--fg-faint);
+  white-space: nowrap;
+}
+
+.index__title {
+  line-height: 1.45;
+}
+
+.index__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+  margin: 1.25rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+.index__foot a {
+  color: var(--fg-muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 1px;
+}
+
+.index__foot a:hover {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+}
+
+@media (max-width: 30rem) {
+  .index__row {
+    grid-template-columns: 0.8rem 5.6rem 1fr;
+  }
+
+  .index__date {
+    font-size: 0.625rem;
+  }
 }
