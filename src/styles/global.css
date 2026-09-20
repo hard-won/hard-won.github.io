@@ -239,6 +239,17 @@ th {
   color: var(--fg-faint);
 }
 
+/* The mono micro-label is a Latin idiom: CJK set at 11px and letter-spaced is
+   not readable. Archived Chinese tables keep the body face at body size. */
+html[lang="zh-CN"] th {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--fg);
+}
+
 /* ---------------------------------------------------------------------------
    Layout
 --------------------------------------------------------------------------- */
