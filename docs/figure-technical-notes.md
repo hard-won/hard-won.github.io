@@ -63,7 +63,7 @@ figure encodes only claim 6's mechanism.
 | # | Claim | Source |
 |---|---|---|
 | 14 | **Every operator of the decode stage is memory-bound.** The figure encodes this with two bars drawn in the same grammar: four channel bars that never leave the top of their range, and one `TILES` bar that spends the step near the bottom of its. | [1] §4: "in the decode stage, all computations are memory-bound, resulting in performance significantly below the computational capacity of the GPU's computation units." Table 1 labels all nine decode rows "memory". |
-| 15 | The gap between decode arithmetic intensity and the hardware ridge point is about **two orders of magnitude**. | [1] Table 1 — Llama-2-7b, **batch 1, sequence 2048, FP16, NVIDIA A6000**: arithmetic intensity **1 OP/byte** for all six projections, 0.99 for `qk_matmul` and `sv_matmul`, 1.25 softmax, 1.75 norm, 0.25 add. The ridge point is not printed; it follows from the same table — the compute ceiling is 155 T OPS and AI = 1 yields 768 G OPS, so bandwidth is 768 GB/s and the ridge is **155e12 / 768e9 ≈ 202 OP/byte**, matching the turning point drawn near 200 in Fig. 5. |
+| 15 | The gap between decode arithmetic intensity and the hardware ridge point is about **two orders of magnitude**. | [1] Table 1 — Llama-2-7b, **batch 1, sequence 2048, FP16, NVIDIA A6000**: arithmetic intensity **1 OP/byte** for all six projections, 0.99 for `qk_matmul` and `sv_matmul`, 1.25 softmax, 1.75 norm, 0.25 add. The ridge point is not printed in the table. It is computed from the part's published specification, not back-inferred from the table: the RTX A6000 datasheet gives **768 GB/s** memory bandwidth and **309.7 TFLOPS** Tensor performance *with sparsity*, i.e. **≈ 154.85 TFLOPS dense**, so the ridge is **154.85e12 / 768e9 ≈ 202 OP/byte** [16]. That matches both the 155 T OPS ceiling the table uses and the turning point drawn near 200 in Fig. 5, which is the corroboration rather than the source. |
 | 16 | The same gap on current hardware. | NVIDIA H100 **SXM** [14]: BFLOAT16 tensor-core peak 1,979 TFLOPS *with sparsity*, i.e. **≈ 989.5 TFLOPS dense**; memory bandwidth **3.35 TB/s**. Ridge ≈ 989.5e12 / 3.35e12 ≈ **295 FLOP/byte**. H100 NVL/PCIe differs materially (≈ 836 TFLOPS dense over 3.9 TB/s ≈ 214 FLOP/byte), so the part must be named. |
 | 17 | At batch size one **every weight is read from HBM once per token**, and the compute core is largely idle while it happens. | Pope et al. §2: these tensors "need to be transferred from HBM to the compute cores of the chip once per forward pass (prefill or decode step)"; §2.1: the KV cache is loaded from off-chip memory "once for every token generated during which the computational core of the chip is essentially idle." [15] |
 
@@ -227,6 +227,9 @@ Everything absent, so nothing here is mistaken for a model.
     <https://www.nvidia.com/en-us/data-center/h100/>
 15. R. Pope et al., "Efficiently Scaling Transformer Inference." §2, §2.1.
     <https://arxiv.org/abs/2211.05102>
+16. NVIDIA, "NVIDIA RTX A6000 datasheet" — 48 GB GDDR6, 384-bit interface,
+    768 GB/s memory bandwidth, 309.7 TFLOPS Tensor performance with sparsity.
+    <https://www.nvidia.com/en-us/design-visualization/rtx-a6000/>
 
 ### Sources deliberately not cited
 

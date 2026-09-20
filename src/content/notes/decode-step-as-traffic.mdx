@@ -69,9 +69,12 @@ value: `T` positions, `n_kv` heads, `d_h` elements, twice over for K and V.
 Across `L` layers:
 
 ```
-KV bytes read per step   =  2 · L · T · n_kv · d_h · b_kv
-KV bytes written per step =  2 · L · n_kv · d_h · b_kv
+KV bytes read per step         =  2 · L · T · n_kv · d_h · b_kv
+KV bytes written back per step =  2 · L · n_kv · d_h · b_kv
 ```
+
+The write goes the other way. This token's key and value come out of the QKV
+projection on the compute side and are written back to the cache in memory.
 
 The write is the read with `T` set to one, which is the cleanest way to see the
 asymmetry. A step appends one position and reads all of them.
@@ -95,7 +98,9 @@ One layer's query projection holds `d²` = 16.8M weights, so 34M bytes read and
 One layer's attention reads `T · n_kv · d_h · b_kv` = 2048 × 32 × 128 × 2, or
 17M bytes of keys, and the same again of values. The QK product does two FLOP
 per stored key element per query head, 2 × 2048 × 32 × 128 = 17M FLOP. The
-table's `qk_matmul` row reads 17M, 17M, intensity 0.99.
+table's `qk_matmul` row reads 17M, 17M, intensity 0.99. It is 0.99 rather than 1
+because the query vector itself is also read, and it sits in the denominator
+beside the keys.
 
 The MLP's gate projection holds 4096 × 11008 = 45M weights, so 90M bytes and
 90M FLOP. The table's `gate_proj` row reads 90M, 90M, intensity 1.
