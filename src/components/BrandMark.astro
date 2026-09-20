@@ -1,0 +1,24 @@
+---
+/**
+ * One inline brand mark, 24x24, filled with `currentColor` so a single CSS
+ * colour rule themes it in both palettes. Path data lives in data/marks.ts.
+ *
+ * Decorative by design: the mark carries `aria-hidden`, and the anchor around
+ * it supplies the accessible name.
+ */
+import { MARKS } from '../data/marks';
+
+interface Props {
+  name: string;
+}
+
+const path = MARKS[Astro.props.name.trim().toLowerCase()];
+---
+
+{
+  path && (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d={path} />
+    </svg>
+  )
+}

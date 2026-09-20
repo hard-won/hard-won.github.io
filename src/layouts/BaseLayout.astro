@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
 import { SITE } from '../data/site';
+import { hasMark } from '../data/marks';
+import BrandMark from '../components/BrandMark.astro';
 
 interface Props {
   title: string;
@@ -19,6 +21,17 @@ const fullTitle = title === SITE.name ? `${SITE.name} — ${SITE.role}` : `${tit
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const isCurrent = (href: string) =>
   (href === '/' ? path === '/' : path === href || path.startsWith(href + '/')) ? 'page' : undefined;
+
+/**
+ * Footer contacts. Every value comes from SITE; nothing is written inline.
+ * `mark` names an inline glyph in data/marks.ts, and a label with no glyph
+ * renders as mono text instead of an empty hit area.
+ */
+const contacts = [
+  { mark: 'mail', label: 'Email', href: `mailto:${SITE.email}` },
+  { mark: 'github', label: 'GitHub', href: SITE.github },
+  ...SITE.links.map((link) => ({ mark: link.label, label: link.label, href: link.href })),
+];
 ---
 
 <!doctype html>
@@ -101,11 +114,22 @@ const isCurrent = (href: string) =>
 
     <footer class="site-footer">
       <div class="shell">
-        <p class="foot-row">
-          <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
-          <a href={SITE.github}>GitHub</a>
-          {SITE.links.map((link) => <a href={link.href}>{link.label}</a>)}
-        </p>
+        <div class="foot-row">
+          <span class="foot-row__id">{SITE.name}</span>
+          <div class="foot-marks">
+            {contacts.map((contact) =>
+              hasMark(contact.mark) ? (
+                <a class="foot-mark" href={contact.href} aria-label={contact.label}>
+                  <BrandMark name={contact.mark} />
+                </a>
+              ) : (
+                <a class="foot-mark foot-mark--text" href={contact.href}>
+                  {contact.label}
+                </a>
+              ),
+            )}
+          </div>
+        </div>
       </div>
     </footer>
 
