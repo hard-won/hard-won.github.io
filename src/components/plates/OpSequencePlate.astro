@@ -1,0 +1,272 @@
+---
+/**
+ * FIG. 01 — ONE DECODE STEP, ONE LAYER.
+ *
+ * A static plate. The operator column in document order, with two annotation
+ * columns: which operators read weights, and which touch the KV cache. The
+ * point of the layout is that weights and KV are *columns*, not rows — they
+ * are operand traffic attached to an operator, never an operator themselves.
+ *
+ * Two drawings, swapped by one media query. A viewBox cannot reflow, and an
+ * 8px label does not survive being scaled to 0.5, so the narrow plate is drawn
+ * at its own size rather than squeezed. Both keep their labels at or above
+ * 10px across the whole width range the prose column can take.
+ *
+ * Pure SVG. No JavaScript, no animation. Only the global design tokens are
+ * borrowed; everything else is scoped here.
+ */
+
+/** Wide and narrow carry the same ten rows with different tag spellings. */
+const ROWS: { op: string; w: boolean; kv: '' | 'write' | 'read' }[] = [
+  { op: 'RMSNORM', w: false, kv: '' },
+  { op: 'QKV PROJECTION', w: true, kv: '' },
+  { op: 'ROPE', w: false, kv: '' },
+  { op: 'KV APPEND', w: false, kv: 'write' },
+  { op: 'ATTENTION', w: false, kv: 'read' },
+  { op: 'O PROJECTION', w: true, kv: '' },
+  { op: 'RESIDUAL ADD', w: false, kv: '' },
+  { op: 'RMSNORM', w: false, kv: '' },
+  { op: 'MLP', w: true, kv: '' },
+  { op: 'RESIDUAL ADD', w: false, kv: '' },
+];
+
+interface Spec {
+  id: 'wide' | 'narrow';
+  w: number;
+  h: number;
+  /** x of the step index, the spine, the operator name, and the two tags. */
+  ix: number;
+  spine: number;
+  opx: number;
+  wx: number;
+  kvx: number;
+  node: number;
+  /** Column headers and the row of tags they sit over. */
+  head: { op: string; w: string; kv: string };
+  tag: { read: string; write: string; kvread: string };
+  row0: number;
+  pitch: number;
+  foot: string[];
+}
+
+const wide: Spec = {
+  id: 'wide',
+  w: 560,
+  h: 302,
+  ix: 0,
+  spine: 26,
+  opx: 42,
+  wx: 330,
+  kvx: 430,
+  node: 7,
+  head: { op: 'OPERATOR', w: 'WEIGHTS', kv: 'KV CACHE' },
+  tag: { read: 'READ', write: 'WRITE', kvread: 'READ · ALL T' },
+  row0: 46,
+  pitch: 24,
+  foot: ['WEIGHT AND KV BYTES ARE OPERAND TRAFFIC, NOT OPERATORS'],
+};
+
+const narrow: Spec = {
+  id: 'narrow',
+  w: 300,
+  h: 300,
+  ix: 0,
+  spine: 20,
+  opx: 30,
+  wx: 196,
+  kvx: 222,
+  node: 6,
+  head: { op: 'OPERATOR', w: 'W', kv: 'KV' },
+  tag: { read: 'RD', write: 'WR', kvread: 'RD ALL T' },
+  row0: 44,
+  pitch: 24,
+  foot: ['OPERAND TRAFFIC, NOT OPERATORS'],
+};
+
+const CAPTION = 'FIG. 01 — ONE DECODE STEP, ONE LAYER · WHAT EACH OPERATOR READS';
+
+const LABEL =
+  'Table of the ten operators in one decode step of one transformer layer, in order: RMSNorm, QKV projection, RoPE, KV append, attention, O projection, residual add, RMSNorm, MLP, residual add. Two annotation columns mark operand traffic. The QKV projection, the O projection and the MLP read weights. The KV append writes one position into the KV cache and attention reads all T stored positions. Weight and KV traffic are columns on the table, not rows: they are operand traffic belonging to an operator, not operators in their own right.';
+
+const plates = [wide, narrow];
+---
+
+<figure class="plate">
+  <div class="plate__frame">
+    {
+      plates.map((s) => (
+        <svg
+          class:list={['plate__svg', `plate__svg--${s.id}`]}
+          viewBox={`0 0 ${s.w} ${s.h}`}
+          role="img"
+          aria-label={LABEL}
+        >
+          <title>{LABEL}</title>
+
+          <g aria-hidden="true">
+            <text class="hdr" x={s.opx} y={13}>
+              {s.head.op}
+            </text>
+            <text class="hdr" x={s.wx} y={13}>
+              {s.head.w}
+            </text>
+            <text class="hdr" x={s.kvx} y={13}>
+              {s.head.kv}
+            </text>
+            <line class="ln" x1="0" y1="20" x2={s.w - 4} y2="20" />
+
+            {/* the spine: document order, top to bottom */}
+            <line
+              class="ln"
+              x1={s.spine}
+              y1={s.row0 - 10}
+              x2={s.spine}
+              y2={s.row0 + (ROWS.length - 1) * s.pitch + 10}
+            />
+
+            {ROWS.map((r, i) => {
+              const y = s.row0 + i * s.pitch;
+              const hot = r.w || r.kv !== '';
+              return (
+                <>
+                  <text class="idx" x={s.ix} y={y + 3}>
+                    {String(i + 1).padStart(2, '0')}
+                  </text>
+                  <rect
+                    class:list={['node', hot && 'node--on']}
+                    x={s.spine - s.node / 2}
+                    y={y - s.node / 2}
+                    width={s.node}
+                    height={s.node}
+                  />
+                  <text class="op" x={s.opx} y={y + 3}>
+                    {r.op}
+                  </text>
+                  <text class:list={['tag', r.w && 'tag--on']} x={s.wx} y={y + 3}>
+                    {r.w ? s.tag.read : '—'}
+                  </text>
+                  <text class:list={['tag', r.kv !== '' && 'tag--on']} x={s.kvx} y={y + 3}>
+                    {r.kv === 'write' ? s.tag.write : r.kv === 'read' ? s.tag.kvread : '—'}
+                  </text>
+                </>
+              );
+            })}
+
+            <line
+              class="ln"
+              x1="0"
+              y1={s.row0 + (ROWS.length - 1) * s.pitch + 20}
+              x2={s.w - 4}
+              y2={s.row0 + (ROWS.length - 1) * s.pitch + 20}
+            />
+            {s.foot.map((t, i) => (
+              <text
+                class="hdr"
+                x="0"
+                y={s.row0 + (ROWS.length - 1) * s.pitch + 36 + i * 14}
+              >
+                {t}
+              </text>
+            ))}
+          </g>
+        </svg>
+      ))
+    }
+  </div>
+  <figcaption class="plate__caption">{CAPTION}</figcaption>
+</figure>
+
+<style>
+  .plate {
+    margin: 2.25rem 0 2.5rem;
+  }
+
+  .plate__frame {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 1.1rem 0;
+  }
+
+  .plate__caption {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    line-height: 1.6;
+    color: var(--fg-faint);
+    margin-top: 0.6rem;
+  }
+
+  .plate__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    --sz: 10px;
+  }
+
+  /* The narrow plate is capped so it cannot grow into a poster just under the
+     breakpoint: its labels only ever sit between 10 and 12 device pixels. */
+  .plate__svg--narrow {
+    display: none;
+    max-width: 21rem;
+    --sz: 10.5px;
+  }
+
+  @media (max-width: 40rem) {
+    .plate__svg--wide {
+      display: none;
+    }
+
+    .plate__svg--narrow {
+      display: block;
+    }
+  }
+
+  .ln {
+    fill: none;
+    stroke: var(--rule);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .hdr,
+  .idx,
+  .op,
+  .tag {
+    font-family: var(--font-mono);
+    font-size: var(--sz);
+    letter-spacing: 0.1em;
+  }
+
+  .hdr {
+    fill: var(--fg-faint);
+    letter-spacing: 0.16em;
+  }
+
+  .idx {
+    fill: var(--fg-faint);
+  }
+
+  .op {
+    fill: var(--fg);
+  }
+
+  .tag {
+    fill: var(--fg-faint);
+  }
+
+  .tag--on {
+    fill: var(--accent);
+  }
+
+  .node {
+    fill: var(--bg);
+    stroke: var(--rule-strong);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .node--on {
+    fill: var(--accent);
+    stroke: var(--accent);
+  }
+</style>

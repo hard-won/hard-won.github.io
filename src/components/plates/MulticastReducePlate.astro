@@ -1,0 +1,311 @@
+---
+/**
+ * FIG. 03 — MULTICAST IN, REDUCTION OUT.
+ *
+ * A tiled array with the two traffic shapes the workload actually produces
+ * drawn as what they are: one operand entering a whole row of PEs at once,
+ * and a column of partial sums collapsing into a single result on the way
+ * out. Neither is a point-to-point transfer between a random pair of nodes.
+ *
+ * The buses run behind the PEs, which carry the page background, so a tile
+ * reads as sitting on the network rather than inside a wire.
+ *
+ * Static SVG, two drawings swapped by one media query, same reasoning as the
+ * other plates: an 8px label does not survive being scaled down.
+ */
+
+interface Spec {
+  id: 'wide' | 'narrow';
+  w: number;
+  h: number;
+  cols: number;
+  rows: number;
+  /** Operand source block. */
+  src: { x: number; w: number; y: number; h: number; lines: string[] };
+  pe: { x0: number; pitch: number; w: number; y0: number; vpitch: number; h: number };
+  /** Where the row bus and the column line stop. */
+  busEnd: number;
+  colEnd: number;
+  arrowX: number;
+  acc: { y: number; h: number; text: string };
+  head: string;
+  ruleY: number;
+  key: { x: number; y: number; text: string }[];
+}
+
+const wide: Spec = {
+  id: 'wide',
+  w: 560,
+  h: 236,
+  cols: 6,
+  rows: 4,
+  src: { x: 0, w: 72, y: 40, h: 124, lines: ['OPERAND', 'SRAM'] },
+  pe: { x0: 120, pitch: 52, w: 40, y0: 40, vpitch: 32, h: 26 },
+  busEnd: 420,
+  colEnd: 186,
+  arrowX: 100,
+  acc: { y: 186, h: 20, text: 'ACCUMULATE' },
+  head: 'OPERAND DISTRIBUTION AND PARTIAL-SUM REDUCTION',
+  ruleY: 214,
+  key: [
+    { x: 0, y: 228, text: 'MULTICAST IN · ONE SOURCE, MANY PES' },
+    { x: 280, y: 228, text: 'REDUCTION OUT · MANY PES, ONE RESULT' },
+  ],
+};
+
+const narrow: Spec = {
+  id: 'narrow',
+  w: 300,
+  h: 232,
+  cols: 4,
+  rows: 3,
+  src: { x: 0, w: 56, y: 40, h: 92, lines: ['SRAM'] },
+  pe: { x0: 76, pitch: 46, w: 36, y0: 40, vpitch: 32, h: 26 },
+  busEnd: 250,
+  colEnd: 154,
+  arrowX: 62,
+  acc: { y: 154, h: 20, text: 'ACCUM' },
+  head: 'MULTICAST IN, REDUCTION OUT',
+  ruleY: 184,
+  key: [
+    { x: 0, y: 198, text: 'MULTICAST IN · 1 SRC, MANY PES' },
+    { x: 0, y: 216, text: 'REDUCTION OUT · MANY PES, 1 RESULT' },
+  ],
+};
+
+const CAPTION = 'FIG. 03 — TRAFFIC SHAPE ON A TILED ARRAY (SCHEMATIC)';
+
+const LABEL =
+  'Schematic of on-chip traffic in a tiled accelerator array. An operand source on the left feeds a horizontal bus along each row of processing elements, so one value reaches every processing element in that row: a multicast, not a point-to-point transfer. Partial sums travel down each column through the processing elements, accumulating as they go, and leave at the bottom edge into an accumulator: a reduction, not a set of independent replies. Neither shape resembles uniform-random traffic between arbitrary pairs of nodes.';
+
+const plates = [wide, narrow];
+
+function right(x: number, y: number): string {
+  return `${x},${y - 3.5} ${x + 7},${y} ${x},${y + 3.5}`;
+}
+
+function down(x: number, y: number): string {
+  return `${x - 3.5},${y} ${x + 3.5},${y} ${x},${y + 7}`;
+}
+---
+
+<figure class="plate">
+  <div class="plate__frame">
+    {
+      plates.map((s) => {
+        const rowY = Array.from({ length: s.rows }, (_, r) => s.pe.y0 + r * s.pe.vpitch);
+        const colX = Array.from({ length: s.cols }, (_, c) => s.pe.x0 + c * s.pe.pitch);
+        return (
+          <svg
+            class:list={['plate__svg', `plate__svg--${s.id}`]}
+            viewBox={`0 0 ${s.w} ${s.h}`}
+            role="img"
+            aria-label={LABEL}
+          >
+            <title>{LABEL}</title>
+
+            <g aria-hidden="true">
+              <text class="hdr" x="0" y="13">
+                {s.head}
+              </text>
+              <line class="ln" x1="0" y1="20" x2={s.w - 4} y2="20" />
+
+              {/* one operand, delivered to a whole row at once */}
+              {rowY.map((y) => (
+                <>
+                  <line
+                    class="bus bus--mc"
+                    x1={s.src.x + s.src.w}
+                    y1={y + s.pe.h / 2}
+                    x2={s.busEnd}
+                    y2={y + s.pe.h / 2}
+                  />
+                  <polygon class="tip tip--mc" points={right(s.arrowX, y + s.pe.h / 2)} />
+                </>
+              ))}
+
+              {/* partial sums, accumulating down each column */}
+              {colX.map((x) => (
+                <>
+                  <line
+                    class="bus bus--rd"
+                    x1={x + s.pe.w / 2}
+                    y1={s.pe.y0}
+                    x2={x + s.pe.w / 2}
+                    y2={s.colEnd}
+                    />
+                  <polygon class="tip tip--rd" points={down(x + s.pe.w / 2, s.colEnd - 12)} />
+                </>
+              ))}
+
+              {/* the tiles sit on the network, not inside it */}
+              {rowY.map((y) =>
+                colX.map((x) => (
+                  <>
+                    <rect class="pe" x={x} y={y} width={s.pe.w} height={s.pe.h} />
+                    <text class="lbl lbl--mid" x={x + s.pe.w / 2} y={y + s.pe.h / 2 + 3.5}>
+                      PE
+                    </text>
+                  </>
+                )),
+              )}
+
+              <rect class="box" x={s.src.x} y={s.src.y} width={s.src.w} height={s.src.h} />
+              {s.src.lines.map((t, i) => (
+                <text
+                  class="lbl"
+                  x={s.src.x + 8}
+                  y={s.src.y + s.src.h / 2 - 3 + i * 14}
+                >
+                  {t}
+                </text>
+              ))}
+
+              <rect
+                class="box"
+                x={s.pe.x0}
+                y={s.acc.y}
+                width={colX[s.cols - 1] + s.pe.w - s.pe.x0}
+                height={s.acc.h}
+              />
+              <text class="lbl" x={s.pe.x0 + 8} y={s.acc.y + s.acc.h / 2 + 3.5}>
+                {s.acc.text}
+              </text>
+
+              <line class="ln" x1="0" y1={s.ruleY} x2={s.w - 4} y2={s.ruleY} />
+              {s.key.map((k, i) => (
+                <>
+                  <rect
+                    class:list={['sw', i === 0 ? 'sw--mc' : 'sw--rd']}
+                    x={k.x}
+                    y={k.y - 7}
+                    width="10"
+                    height="3"
+                  />
+                  <text class="hdr" x={k.x + 16} y={k.y}>
+                    {k.text}
+                  </text>
+                </>
+              ))}
+            </g>
+          </svg>
+        );
+      })
+    }
+  </div>
+  <figcaption class="plate__caption">{CAPTION}</figcaption>
+</figure>
+
+<style>
+  .plate {
+    margin: 2.25rem 0 2.5rem;
+  }
+
+  .plate__frame {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 1.1rem 0;
+  }
+
+  .plate__caption {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    line-height: 1.6;
+    color: var(--fg-faint);
+    margin-top: 0.6rem;
+  }
+
+  .plate__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    --sz: 10px;
+    --foot: 9.5px;
+  }
+
+  .plate__svg--narrow {
+    display: none;
+    max-width: 21rem;
+    --sz: 10.5px;
+    --foot: 10.5px;
+  }
+
+  @media (max-width: 40rem) {
+    .plate__svg--wide {
+      display: none;
+    }
+
+    .plate__svg--narrow {
+      display: block;
+    }
+  }
+
+  .ln {
+    fill: none;
+    stroke: var(--rule);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .box {
+    fill: none;
+    stroke: var(--rule-strong);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .pe {
+    fill: var(--bg);
+    stroke: var(--rule-strong);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .bus {
+    fill: none;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .bus--mc,
+  .tip--mc,
+  .sw--mc {
+    stroke: var(--accent);
+    fill: var(--accent);
+  }
+
+  .bus--rd,
+  .tip--rd,
+  .sw--rd {
+    stroke: var(--fg-muted);
+    fill: var(--fg-muted);
+  }
+
+  .bus--mc,
+  .bus--rd {
+    fill: none;
+  }
+
+  .hdr,
+  .lbl {
+    font-family: var(--font-mono);
+    letter-spacing: 0.1em;
+  }
+
+  .hdr {
+    font-size: var(--foot);
+    letter-spacing: 0.14em;
+    fill: var(--fg-faint);
+  }
+
+  .lbl {
+    font-size: var(--sz);
+    fill: var(--fg);
+  }
+
+  .lbl--mid {
+    fill: var(--fg-muted);
+    text-anchor: middle;
+  }
+</style>
