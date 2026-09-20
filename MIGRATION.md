@@ -28,6 +28,13 @@ in git history:
 - `themes/`
 - `package.json` / any Hexo dependency manifest
 
+Verified with
+`git log hexo-final --diff-filter=A --name-only`: across the whole pre-rebuild
+history, none of those paths was ever added. (The repository was published with
+`hexo-deployer-git`, which pushes only the build output — hence the uniform
+"Site updated: …" commit messages.) The `package.json` now at the root is the
+new Astro one, added by this rebuild.
+
 The original post Markdown is therefore gone. The only recoverable form of the
 content was the rendered HTML.
 
@@ -196,6 +203,12 @@ npx astro check  # type check (currently 0 errors, 0 warnings, 0 hints)
 
 Node 22 is what CI uses. Node 26 works locally.
 
+Code blocks are highlighted by Shiki with dual themes
+(`github-light-high-contrast` / `github-dark-high-contrast`) and
+`defaultColor: false`, so the palette follows the site theme. Both palettes
+were measured against the code-block background: every token clears 4.5:1 in
+both themes.
+
 ### Add an English note
 
 Create `src/content/notes/<slug>.md` (or `.mdx`). It is published at
@@ -255,19 +268,24 @@ because only the GitHub URL and the email address are confirmed.
   markers, line wrapping, link reference style, HTML comments, Hexo tag
   plugins) is gone.
 - **Syntax highlighting metadata is reduced to a language name.** The old site
-  shipped pre-highlighted spans; the new site emits plain fenced blocks with
-  the language tag. Three posts had `figure.highlight` classes beyond
-  `verilog`; anything NexT encoded only in span classes is lost.
+  shipped pre-highlighted spans; the new site emits plain fenced blocks with a
+  language tag, re-highlighted at build time by Shiki. The 38 recovered blocks
+  carry `verilog` (18), `bash` (4), `tex` (4), `c` (2), `cpp` (2), `javascript`
+  (1) and `python` (1); the remainder had no language on the original
+  `figure.highlight` and are emitted as plain fences. Anything NexT encoded
+  only in span classes is lost.
 - **The old Chinese `/about/` page was dropped by design.** `/about` is new
   English text describing current work. The old page's content was not carried
   over or translated.
 - **The NexT sidebar, tag cloud, category tree, "我的微信" WeChat block, post
   navigation and comment integrations are gone.** Only the article body was
   migrated.
-- **`/categories/*` and `/tags/*` sub-pages are not individually redirected.**
-  Only the three index paths redirect; a deep link such as
-  `/categories/技术/数字IC/` will 404. Category and tag values are preserved in
-  each post's frontmatter, so per-taxonomy pages could be rebuilt later.
+- **Only the three legacy index paths redirect.** `/archives/`, `/categories/`
+  and `/tags/` go to the archive index, but their sub-pages do not: a deep link
+  such as `/categories/技术/数字IC/`, `/tags/NexT/` or a Hexo pagination URL
+  like `/page/2/` will 404. Category and tag values are preserved in each
+  post's frontmatter, so per-taxonomy pages could be rebuilt later if the
+  404s show up in Search Console.
 - **Two image files were renamed.** `3:5.png` → `3-5.png` and
   `8b:10b_structure.png` → `8b-10b_structure.png` (both under
   `/2024/04/17/Encoding/`). Colons in paths are legal in URLs but break on

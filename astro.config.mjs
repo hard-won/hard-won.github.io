@@ -55,7 +55,7 @@ export default defineConfig({
       // Dual themes with no default colour: Shiki emits both palettes as CSS
       // variables and global.css picks one, so code blocks follow the site
       // theme instead of pinning a dark block onto a light page.
-      themes: { light: 'github-light', dark: 'github-dark' },
+      themes: { light: 'github-light-high-contrast', dark: 'github-dark-high-contrast' },
       defaultColor: false,
       wrap: false,
     },
