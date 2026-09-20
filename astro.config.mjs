@@ -50,6 +50,16 @@ export default defineConfig({
       filter: (page) => !/^https:\/\/hard-won\.github\.io\/(2018|2022|2024|archives|categories|tags)\//.test(page),
     }),
   ],
+  markdown: {
+    shikiConfig: {
+      // Dual themes with no default colour: Shiki emits both palettes as CSS
+      // variables and global.css picks one, so code blocks follow the site
+      // theme instead of pinning a dark block onto a light page.
+      themes: { light: 'github-light', dark: 'github-dark' },
+      defaultColor: false,
+      wrap: false,
+    },
+  },
   build: {
     format: 'directory',
   },
