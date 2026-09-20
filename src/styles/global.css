@@ -886,9 +886,14 @@ h3 {
 
 /* --- pull quote ------------------------------------------------------------ */
 
+/* It is a <blockquote>, so the global blockquote rule's left bar, indent and
+   muted colour all have to be cleared: this is the one loud moment on the
+   page and it sits between two hairlines, not behind a margin bar. */
 .pullquote {
+  border: 0;
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
+  color: var(--fg);
   margin: 0 0 5rem;
   padding: 3.5rem 0;
 }
