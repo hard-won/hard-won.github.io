@@ -30,7 +30,7 @@
   --rule-strong: rgba(232, 232, 230, 0.28);
   --focus: #e0a33e;
 
-  --measure: 60ch;
+  --measure: 68ch;
   --page: 46rem;
   --gap: 1rem;
   --radius: 2px;
@@ -752,11 +752,10 @@ h3 {
   line-height: 1.7;
   color: var(--fg-muted);
   margin: 1.25rem 0 0;
-  max-width: 44ch;
 }
 
 .framing {
-  max-width: var(--measure);
+  max-width: 60ch;
   font-size: 1.0625rem;
   margin: 0 0 4.5rem;
 }
