@@ -1,0 +1,130 @@
+---
+import '../styles/global.css';
+import { SITE } from '../data/site';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Page language. English pages are 'en'; migrated posts are 'zh-CN'. */
+  lang?: string;
+  /** OpenGraph type. */
+  ogType?: 'website' | 'article';
+  publishedTime?: string;
+}
+
+const { title, description, lang = 'en', ogType = 'website', publishedTime } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname.replace(/\/+$/, '/') || '/', Astro.site).href;
+const fullTitle = title === SITE.name ? `${SITE.name} — ${SITE.role}` : `${title} — ${SITE.name}`;
+const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isCurrent = (href: string) =>
+  (href === '/' ? path === '/' : path === href || path.startsWith(href + '/')) ? 'page' : undefined;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="google-site-verification" content="iYL9tkwv4TxFVf_3Ge-4SRYl7Vf376N_yQZxc_9eD3w" />
+    <meta name="author" content={SITE.name} />
+    <meta name="generator" content={Astro.generator} />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={lang === 'zh-CN' ? 'zh_CN' : 'en_US'} />
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="color-scheme" content="light dark" />
+
+    {/* Applied before first paint so the chosen theme does not flash. */}
+    <script is:inline>
+      try {
+        var t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch (e) {
+        /* Storage can be unavailable (private mode, blocked cookies). Ignore. */
+      }
+    </script>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <div class="shell">
+        <a class="brand" href="/">{SITE.name}</a>
+        <nav class="site-nav" aria-label="Primary">
+          <a href="/projects" aria-current={isCurrent('/projects')}>Projects</a>
+          <a href="/notes" aria-current={isCurrent('/notes')}>Notes</a>
+          <a href="/archive/zh" aria-current={isCurrent('/archive/zh')}>Archive</a>
+          <a href="/about" aria-current={isCurrent('/about')}>About</a>
+          <a href="/resume" aria-current={isCurrent('/resume')}>Résumé</a>
+          <button class="theme-toggle" type="button" id="theme-toggle" aria-live="polite">
+            Theme
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="shell">
+        <slot />
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell">
+        <p>
+          {SITE.name} · <a href={SITE.github}>GitHub</a> ·
+          <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+        </p>
+      </div>
+    </footer>
+
+    {/* The only client-side JavaScript on the site. */}
+    <script is:inline>
+      (function () {
+        var btn = document.getElementById('theme-toggle');
+        if (!btn) return;
+        var root = document.documentElement;
+
+        function resolved() {
+          if (root.dataset.theme) return root.dataset.theme;
+          return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        function label() {
+          var next = resolved() === 'dark' ? 'light' : 'dark';
+          btn.textContent = resolved() === 'dark' ? 'Light' : 'Dark';
+          btn.setAttribute('aria-label', 'Switch to ' + next + ' theme');
+        }
+
+        label();
+
+        btn.addEventListener('click', function () {
+          var next = resolved() === 'dark' ? 'light' : 'dark';
+          root.dataset.theme = next;
+          try {
+            localStorage.setItem('theme', next);
+          } catch (e) {
+            /* Non-fatal: the theme still applies for this page view. */
+          }
+          label();
+        });
+      })();
+    </script>
+  </body>
+</html>

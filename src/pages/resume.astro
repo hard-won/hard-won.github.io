@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../data/site';
+---
+
+<BaseLayout
+  title="Résumé"
+  description="Résumé available on request by email. See the About and Projects pages for background and current work."
+>
+  <h1>Résumé</h1>
+
+  <div class="note-box" style="margin-top:1.25rem">
+    <p>
+      My résumé is available on request. Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> and
+      I will send the current version as a PDF.
+    </p>
+  </div>
+
+  <div class="prose" style="margin-top:1.5rem">
+    <p>In the meantime:</p>
+    <ul>
+      <li><a href="/about">About</a> — background and what I work on.</li>
+      <li><a href="/projects">Projects</a> — current work and its real status.</li>
+      <li><a href={SITE.github}>github.com/hard-won</a> — code.</li>
+    </ul>
+  </div>
+</BaseLayout>

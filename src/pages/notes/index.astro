@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const notes = (await getCollection('notes', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+const fmt = new Intl.DateTimeFormat('en-GB', {
+  year: 'numeric',
+  month: 'short',
+  day: '2-digit',
+  timeZone: 'UTC',
+});
+---
+
+<BaseLayout
+  title="Notes"
+  description="English technical notes on computer architecture, memory systems, interconnects and RTL."
+>
+  <h1>Notes</h1>
+  <p class="lede">
+    Short technical write-ups in English. New notes appear here as the project work produces
+    something worth recording.
+  </p>
+
+  {
+    notes.length === 0 ? (
+      <div class="note-box" style="margin-top:1.5rem">
+        <p>
+          No notes published yet. In the meantime, the{' '}
+          <a href="/archive/zh">Chinese archive</a> holds sixteen older posts on PCIe, ASIC
+          synthesis, RTL style and GPU microarchitecture.
+        </p>
+      </div>
+    ) : (
+      <ul class="entry-list" style="margin-top:1.5rem">
+        {notes.map((note) => (
+          <li>
+            <time datetime={note.data.date.toISOString()}>{fmt.format(note.data.date)}</time>
+            <span class="entry-title">
+              <a href={`/notes/${note.id}/`}>{note.data.title}</a>
+            </span>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</BaseLayout>
