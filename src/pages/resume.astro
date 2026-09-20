@@ -7,21 +7,29 @@ import { SITE } from '../data/site';
   title="Résumé"
   description="Résumé available on request by email. See the About and Projects pages for background and current work."
 >
-  <h1>Résumé</h1>
+  <header class="page-head">
+    <h1 class="page-head__title">Résumé</h1>
+    <p class="page-head__kicker">ON REQUEST · PDF</p>
+  </header>
 
-  <div class="note-box" style="margin-top:1.25rem">
-    <p>
-      My résumé is available on request. Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> and
-      I will send the current version as a PDF.
-    </p>
-  </div>
+  <p class="band">
+    My résumé is available on request. Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> and I
+    will send the current version as a PDF.
+  </p>
 
-  <div class="prose" style="margin-top:1.5rem">
-    <p>In the meantime:</p>
-    <ul>
-      <li><a href="/about">About</a> — background and what I work on.</li>
-      <li><a href="/projects">Projects</a> — current work and its real status.</li>
-      <li><a href={SITE.github}>github.com/hard-won</a> — code.</li>
-    </ul>
-  </div>
+  <section aria-labelledby="meanwhile">
+    <h2 class="index-head index-head--stacked" id="meanwhile">
+      <span>IN THE MEANTIME</span>
+      <span>3 LINKS</span>
+    </h2>
+
+    <dl class="spec">
+      <dt>About</dt>
+      <dd><a href="/about">Background and what I work on</a></dd>
+      <dt>Projects</dt>
+      <dd><a href="/projects">Current work and its real status</a></dd>
+      <dt>Code</dt>
+      <dd><a href={SITE.github}>{SITE.github.replace(/^https?:\/\//, '')}</a></dd>
+    </dl>
+  </section>
 </BaseLayout>

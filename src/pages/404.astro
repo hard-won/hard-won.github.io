@@ -3,19 +3,31 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="Page not found" description="That page does not exist on this site.">
-  <h1>404 — page not found</h1>
-  <p class="lede">That URL does not exist here.</p>
-
-  <div class="prose" style="margin-top:1.5rem">
-    <p>
-      If you followed a link to an older post, try the <a href="/archive/zh">Chinese archive</a> —
-      every permalink from the previous version of this site redirects there.
+  <header class="page-head">
+    <p class="page-head__eyebrow">Error</p>
+    <h1 class="page-head__title">404</h1>
+    <p class="page-head__kicker">PAGE NOT FOUND</p>
+    <p class="page-head__lede">
+      That URL does not exist here. If you followed a link to an older post, try the archive — every
+      permalink from the previous version of this site redirects there.
     </p>
-    <ul>
-      <li><a href="/">Home</a></li>
-      <li><a href="/projects">Projects</a></li>
-      <li><a href="/notes">Notes</a></li>
-      <li><a href="/about">About</a></li>
-    </ul>
-  </div>
+  </header>
+
+  <section aria-labelledby="elsewhere">
+    <h2 class="index-head" id="elsewhere">
+      <span>ELSEWHERE</span>
+      <span>4 LINKS</span>
+    </h2>
+
+    <dl class="spec">
+      <dt>Home</dt>
+      <dd><a href="/">The front page</a></dd>
+      <dt>Archive</dt>
+      <dd><a href="/archive/zh">Sixteen earlier Chinese-language posts</a></dd>
+      <dt>Notes</dt>
+      <dd><a href="/notes">English technical write-ups</a></dd>
+      <dt>Projects</dt>
+      <dd><a href="/projects">Current work and its real status</a></dd>
+    </dl>
+  </section>
 </BaseLayout>

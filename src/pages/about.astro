@@ -7,9 +7,12 @@ import { SITE, FRAMING } from '../data/site';
   title="About"
   description="Shengyi Wei is a digital design and computer architecture engineer working on AI data movement, memory systems, interconnects and RTL."
 >
-  <h1>About</h1>
+  <header class="page-head">
+    <h1 class="page-head__title">About</h1>
+    <p class="page-head__kicker">AI DATA MOVEMENT · MEMORY SYSTEMS · INTERCONNECT · RTL</p>
+  </header>
 
-  <div class="prose" style="margin-top:1.25rem">
+  <div class="prose">
     <p>
       I am <strong>{SITE.name}</strong>, a digital design and computer architecture engineer. My
       work sits around AI data movement: memory systems, interconnects and network-on-chip,
@@ -23,18 +26,22 @@ import { SITE, FRAMING } from '../data/site';
     </p>
     <p>
       <a href="/projects">Projects</a> is what I am building. <a href="/notes">Notes</a> is English
-      write-ups. The <a href="/archive/zh">Chinese archive</a> holds sixteen earlier posts on PCIe,
-      ASIC synthesis, RTL coding style and GPU microarchitecture.
+      write-ups. The <a href="/archive/zh">archive</a> holds sixteen earlier Chinese-language posts
+      on PCIe, ASIC synthesis, RTL coding style and GPU microarchitecture.
     </p>
   </div>
 
-  <section class="section">
-    <h2>Contact</h2>
-    <dl class="contact-grid">
+  <section aria-labelledby="contact">
+    <h2 class="index-head index-head--stacked" id="contact">
+      <span>CONTACT</span>
+      <span>DIRECT</span>
+    </h2>
+
+    <dl class="spec">
       <dt>Email</dt>
       <dd><a href={`mailto:${SITE.email}`}>{SITE.email}</a></dd>
       <dt>GitHub</dt>
-      <dd><a href={SITE.github}>github.com/hard-won</a></dd>
+      <dd><a href={SITE.github}>{SITE.github.replace(/^https?:\/\//, '')}</a></dd>
       {
         SITE.links.map((link) => (
           <>

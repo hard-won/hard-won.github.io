@@ -1,6 +1,7 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { isoDay, stamp } from '../../lib/date';
 
 export async function getStaticPaths() {
   const notes = await getCollection('notes', ({ data }) => !data.draft);
@@ -13,13 +14,7 @@ interface Props {
 
 const { note } = Astro.props;
 const { Content } = await render(note);
-
-const fmt = new Intl.DateTimeFormat('en-GB', {
-  year: 'numeric',
-  month: 'short',
-  day: '2-digit',
-  timeZone: 'UTC',
-});
+const day = isoDay(note.data.date);
 ---
 
 <BaseLayout
@@ -29,16 +24,22 @@ const fmt = new Intl.DateTimeFormat('en-GB', {
   publishedTime={note.data.date.toISOString()}
 >
   <article>
-    <header class="post-header">
-      <h1>{note.data.title}</h1>
-      <p class="post-meta">
-        <time datetime={note.data.date.toISOString()}>{fmt.format(note.data.date)}</time>
+    <header class="article__head">
+      <p class="article__eyebrow">Note</p>
+      <h1 class="article__title">{note.data.title}</h1>
+      <p class="article__meta">
+        <time datetime={day}>{stamp(day)}</time>
+        {note.data.tags.map((tag) => <span>{tag}</span>)}
       </p>
     </header>
-    <div class="prose archive-body">
+
+    <div class="prose">
       <Content />
     </div>
   </article>
 
-  <p style="margin-top:2.5rem"><a href="/notes">← All notes</a></p>
+  <p class="crumbs">
+    <a href="/notes">ALL NOTES</a>
+    <a href="/archive/zh">ARCHIVE</a>
+  </p>
 </BaseLayout>

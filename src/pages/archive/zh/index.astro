@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { entryCount, stampDay } from '../../../lib/date';
 
 const posts = (await getCollection('archive')).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
@@ -15,41 +16,52 @@ for (const post of posts) {
   else byYear.set(year, [post]);
 }
 const years = [...byYear.entries()].sort((a, b) => b[0] - a[0]);
-
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-/** Format the stored calendar date directly; no timezone conversion. */
-function formatDay(displayDate: string): string {
-  const [, month, day] = displayDate.split('-');
-  return `${day} ${MONTHS[Number(month) - 1]}`;
-}
 ---
 
 <BaseLayout
   title="Archive"
   description="Sixteen older Chinese-language posts on PCIe, ASIC synthesis, RTL coding style and GPU microarchitecture, preserved from the previous version of this site."
 >
-  <h1>Archive</h1>
-
-  <p class="lede">Earlier notes, written in Chinese. {posts.length} entries.</p>
+  <header class="page-head">
+    <h1 class="page-head__title">Archive</h1>
+    <p class="page-head__kicker">PCIe · ASIC SYNTHESIS · RTL STYLE · GPU</p>
+    <p class="page-head__lede">
+      Earlier notes, written in Chinese and preserved from the previous version of this site. Every
+      old permalink still resolves here.
+    </p>
+  </header>
 
   {
-    years.map(([year, items]) => (
-      <section class="year-group">
-        <h2>{year}</h2>
-        <ul class="entry-list">
+    years.map(([year, items], i) => (
+      <section aria-labelledby={`y${year}`}>
+        <h2 class:list={['index-head', i > 0 && 'index-head--stacked']} id={`y${year}`}>
+          <span>{year}</span>
+          <span>{entryCount(items.length)}</span>
+        </h2>
+
+        <ol class="index">
           {items.map((post) => (
             <li>
-              <time datetime={post.data.displayDate}>{formatDay(post.data.displayDate)}</time>
-              <span class="entry-title">
-                <a href={`/archive/zh/${post.data.slug}/`} lang="zh-CN">
+              <a class="index__row" href={`/archive/zh/${post.data.slug}/`}>
+                <span class="index__tick" aria-hidden="true">
+                  +
+                </span>
+                <time class="index__date" datetime={post.data.displayDate}>
+                  {stampDay(post.data.displayDate)}
+                </time>
+                <span class="index__title" lang="zh-CN">
                   {post.data.title}
-                </a>
-              </span>
+                </span>
+              </a>
             </li>
           ))}
-        </ul>
+        </ol>
       </section>
     ))
   }
+
+  <p class="crumbs">
+    <a href="/notes">NOTES</a>
+    <a href="/">HOME</a>
+  </p>
 </BaseLayout>
