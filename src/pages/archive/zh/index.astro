@@ -26,23 +26,12 @@ function formatDay(displayDate: string): string {
 ---
 
 <BaseLayout
-  title="Archive (中文)"
+  title="Archive"
   description="Sixteen older Chinese-language posts on PCIe, ASIC synthesis, RTL coding style and GPU microarchitecture, preserved from the previous version of this site."
 >
-  <h1>Archive <span style="color:var(--fg-faint);font-weight:400">中文</span></h1>
+  <h1>Archive</h1>
 
-  <div class="note-box" style="margin-top:1.25rem">
-    <p>
-      These {posts.length} posts are older Chinese-language notes, kept for reference. They are
-      preserved as written and are not maintained or translated. New writing is in English under{' '}
-      <a href="/notes">Notes</a>.
-    </p>
-    <p lang="zh-CN">
-      以下为早期中文技术笔记，原样保留以供参考，不再更新，也没有翻译。新的英文写作见 <a href="/notes"
-        >Notes</a
-      >。
-    </p>
-  </div>
+  <p class="lede">Earlier notes, written in Chinese. {posts.length} entries.</p>
 
   {
     years.map(([year, items]) => (
