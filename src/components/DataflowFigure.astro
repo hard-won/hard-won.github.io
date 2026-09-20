@@ -1,0 +1,922 @@
+---
+/**
+ * FIG. 01 — DECODE STEP.
+ *
+ * One decode step of an LLM drawn as traffic, not as model structure. Three
+ * bands, left to right: the operator column (WORKLOAD), a mesh NoC
+ * (INTERCONNECT), and the memory side (HBM) with a KV-cache occupancy gauge.
+ *
+ * Pure SVG + CSS. No dependencies, no client JavaScript. Everything is driven
+ * by ten keyframe sets over one 16s master loop of four 4s decode steps;
+ * individual events are scheduled purely with negative `animation-delay`, so
+ * the plate is mid-flight on first paint and every element is invisible at
+ * both 0% and 100% of its own cycle — the loop wraps without a seam.
+ *
+ * Hop-by-hop motion: a flit's `<g>` interpolates `translate(var(--pN))`
+ * between mesh node positions, and each keyframe pair holds the same point for
+ * a beat before moving on. Move, dwell, move — a router, not a wire.
+ *
+ * Two drawings are emitted and swapped by a media query: a 4x4 / four-channel
+ * plate above 40rem, and a 3x3 / two-channel one below it. There is no way to
+ * change a viewBox or reflow a mesh from CSS alone, so the narrow plate is
+ * drawn rather than squeezed.
+ *
+ * All styles are scoped to this component; only the global design tokens
+ * (--fg, --rule, --accent, --font-mono …) are borrowed.
+ */
+
+/** Master loop, seconds. Four decode steps of four seconds. */
+const LOOP = 16;
+const STEP = 4;
+const STEPS = LOOP / STEP;
+
+/** Operator column, top to bottom. Exactly one is active at a time. */
+const OPS = ['QKV PROJ', 'ATTN', 'KV$ READ', 'MLP'];
+
+const CAPTION =
+  'FIG. 01 — DECODE STEP · WEIGHT AND KV TRAFFIC THROUGH THE INTERCONNECT (SCHEMATIC)';
+
+const LABEL =
+  'Schematic of one decode step: an operator column on the left, a mesh interconnect in the middle carrying weight, KV-cache and partial-sum traffic hop by hop, and HBM channels on the right with a KV-cache occupancy gauge that grows with every step and resets when the sequence restarts.';
+
+/** A point on the plate: a mesh column index (or the HBM edge) and a row. */
+type Col = number | 'h';
+type Pt = [Col, number];
+
+/** weight fetch · KV-cache read · partial sums and activations. */
+type Kind = 'w' | 'kv' | 'ps';
+
+interface Flit {
+  kind: Kind;
+  /** 3, 5 or 7 points — one per available keyframe set. */
+  path: Pt[];
+  /** Seconds into the master loop at which this burst leaves its source. */
+  start: number;
+  /** Path index to park at when motion is reduced. */
+  rest?: number;
+}
+
+interface Spec {
+  id: 'wide' | 'narrow';
+  w: number;
+  h: number;
+  /** Mesh geometry: column x, row y, router square size. */
+  cols: number[];
+  rows: number[];
+  node: number;
+  /** Band headers and the hairline under each. */
+  bandY: number;
+  ruleY: number;
+  bands: { text: string; x: number; x2: number }[];
+  /** Operator blocks. */
+  block: { x: number; w: number; h: number };
+  opRows: number[];
+  /** HBM channel bars. `hbmRows` maps a channel to the mesh row it serves. */
+  bar: { x: number; w: number; h: number; labelX: number };
+  hbmRows: number[];
+  gauge: { x: number; y: number; w: number; h: number; cells: number; per: number };
+  legend: { x: number; gap: number; y: number };
+  stepAt: { x: number; y: number };
+  /** Flit body size per traffic class. */
+  size: Record<Kind, [number, number]>;
+  flits: Flit[];
+  /** The frame motion freezes on: active operator, flashing channel, step. */
+  rm: { op: number; ch: number; step: number };
+}
+
+/* --- the two plates -------------------------------------------------------
+   Rows and channels are aligned so an HBM link is a straight run into the
+   right-hand column of the mesh. */
+
+const wide: Spec = {
+  id: 'wide',
+  w: 720,
+  h: 232,
+  cols: [182, 278, 374, 470],
+  rows: [52, 92, 132, 172],
+  node: 13,
+  bandY: 13,
+  ruleY: 20,
+  bands: [
+    { text: 'WORKLOAD', x: 0, x2: 104 },
+    { text: 'INTERCONNECT', x: 152, x2: 500 },
+    { text: 'HBM', x: 548, x2: 716 },
+  ],
+  block: { x: 0, w: 104, h: 30 },
+  opRows: [52, 92, 132, 172],
+  bar: { x: 582, w: 134, h: 22, labelX: 548 },
+  hbmRows: [0, 1, 2, 3],
+  gauge: { x: 582, y: 194, w: 134, h: 22, cells: 16, per: 3 },
+  legend: { x: 152, gap: 116, y: 214 },
+  stepAt: { x: 0, y: 214 },
+  size: { w: [9, 5], kv: [8, 4.5], ps: [7, 4] },
+  rm: { op: 1, ch: 2, step: 2 },
+  flits: [
+    /* weight fetch — dense around QKV PROJ (t=4k) and MLP (t=4k+3) */
+    { kind: 'w', start: 2.0, path: [['h', 1], [3, 1], [2, 1], [1, 1], [0, 1]] },
+    { kind: 'w', start: 3.0, path: [['h', 0], [3, 0], [2, 0], [1, 0], [0, 0]], rest: 3 },
+    { kind: 'w', start: 6.0, path: [['h', 3], [3, 3], [2, 3], [2, 2], [1, 2], [1, 1], [0, 1]] },
+    { kind: 'w', start: 7.0, path: [['h', 2], [3, 2], [2, 2], [1, 2], [0, 2]], rest: 2 },
+    { kind: 'w', start: 10.0, path: [['h', 0], [3, 0], [2, 0], [2, 1], [1, 1], [1, 2], [0, 2]] },
+    { kind: 'w', start: 11.0, path: [['h', 3], [3, 3], [2, 3], [1, 3], [0, 3]] },
+    { kind: 'w', start: 14.0, path: [['h', 2], [3, 2], [3, 1], [2, 1], [1, 1]] },
+    { kind: 'w', start: 15.0, path: [['h', 0], [3, 0], [2, 0], [1, 0], [0, 0]] },
+
+    /* KV-cache read — bursty around KV$ READ (t=4k+2), and more of it
+       every step as the cache grows */
+    { kind: 'kv', start: 1.2, path: [['h', 1], [3, 1], [2, 1], [2, 2], [1, 2]], rest: 2 },
+    { kind: 'kv', start: 5.2, path: [['h', 3], [3, 3], [2, 3], [2, 2], [1, 2]] },
+    { kind: 'kv', start: 5.8, path: [['h', 1], [3, 1], [2, 1]] },
+    { kind: 'kv', start: 9.1, path: [['h', 1], [3, 1], [2, 1], [2, 0], [1, 0]] },
+    { kind: 'kv', start: 9.5, path: [['h', 3], [3, 3], [2, 3]], rest: 1 },
+    { kind: 'kv', start: 9.9, path: [['h', 2], [3, 2], [2, 2]] },
+    { kind: 'kv', start: 13.0, path: [['h', 3], [3, 3], [3, 2], [2, 2], [1, 2]] },
+    { kind: 'kv', start: 13.35, path: [['h', 1], [3, 1], [2, 1]] },
+    { kind: 'kv', start: 13.7, path: [['h', 2], [3, 2], [2, 2]] },
+    { kind: 'kv', start: 14.05, path: [['h', 1], [3, 1], [3, 2], [2, 2], [1, 2]] },
+
+    /* partial sums — inside the mesh, while ATTN runs (t=4k+1) */
+    { kind: 'ps', start: 0.8, path: [[1, 1], [2, 1], [2, 2]], rest: 1 },
+    { kind: 'ps', start: 1.35, path: [[0, 2], [0, 1], [1, 1]] },
+    { kind: 'ps', start: 4.8, path: [[2, 2], [1, 2], [1, 1]], rest: 1 },
+    { kind: 'ps', start: 5.35, path: [[1, 0], [1, 1], [2, 1]] },
+    { kind: 'ps', start: 8.8, path: [[1, 1], [2, 1], [2, 2]] },
+    { kind: 'ps', start: 9.35, path: [[2, 2], [1, 2], [1, 1]] },
+    { kind: 'ps', start: 12.8, path: [[0, 2], [0, 1], [1, 1]] },
+    { kind: 'ps', start: 13.35, path: [[1, 0], [1, 1], [2, 1]] },
+  ],
+};
+
+const narrow: Spec = {
+  id: 'narrow',
+  w: 340,
+  h: 258,
+  cols: [110, 166, 222],
+  rows: [60, 116, 172],
+  node: 11,
+  bandY: 12,
+  ruleY: 18,
+  bands: [
+    { text: 'WORKLOAD', x: 0, x2: 78 },
+    { text: 'INTERCONNECT', x: 96, x2: 236 },
+    { text: 'HBM', x: 252, x2: 336 },
+  ],
+  block: { x: 0, w: 78, h: 26 },
+  opRows: [56, 96, 136, 176],
+  bar: { x: 276, w: 60, h: 20, labelX: 252 },
+  hbmRows: [0, 2],
+  gauge: { x: 276, y: 212, w: 60, h: 24, cells: 10, per: 2 },
+  legend: { x: 0, gap: 112, y: 250 },
+  stepAt: { x: 0, y: 202 },
+  size: { w: [8, 4.5], kv: [7, 4], ps: [6, 3.5] },
+  rm: { op: 1, ch: 1, step: 2 },
+  flits: [
+    { kind: 'w', start: 2.0, path: [['h', 0], [2, 0], [1, 0], [1, 1], [0, 1]], rest: 2 },
+    { kind: 'w', start: 6.0, path: [['h', 2], [2, 2], [2, 1], [1, 1], [1, 2], [0, 2], [0, 1]] },
+    { kind: 'w', start: 10.0, path: [['h', 0], [2, 0], [1, 0], [1, 1], [0, 1]] },
+    { kind: 'w', start: 14.0, path: [['h', 2], [2, 2], [1, 2], [1, 1], [0, 1]] },
+
+    { kind: 'kv', start: 5.4, path: [['h', 2], [2, 2], [1, 2]] },
+    { kind: 'kv', start: 9.2, path: [['h', 0], [2, 0], [2, 1], [1, 1], [0, 1]], rest: 2 },
+    { kind: 'kv', start: 9.7, path: [['h', 2], [2, 2], [1, 2]] },
+    { kind: 'kv', start: 13.2, path: [['h', 0], [2, 0], [1, 0]] },
+    { kind: 'kv', start: 13.7, path: [['h', 2], [2, 2], [1, 2], [1, 1], [0, 1]] },
+    { kind: 'kv', start: 14.2, path: [['h', 2], [2, 2], [2, 1]] },
+
+    { kind: 'ps', start: 0.9, path: [[0, 1], [1, 1], [1, 0]], rest: 1 },
+    { kind: 'ps', start: 4.9, path: [[1, 1], [1, 2], [0, 2]] },
+    { kind: 'ps', start: 8.9, path: [[0, 0], [1, 0], [1, 1]] },
+    { kind: 'ps', start: 12.9, path: [[1, 2], [0, 2], [0, 1]] },
+  ],
+};
+
+/* --- resolution ----------------------------------------------------------- */
+
+/** A point as a CSS translate() argument list: "470px, 52px". */
+function at(s: Spec, p: Pt): string {
+  const x = p[0] === 'h' ? s.bar.x : s.cols[p[0]];
+  const y = s.rows[p[1]];
+  if (x === undefined || y === undefined) {
+    throw new Error(`DataflowFigure: point ${JSON.stringify(p)} is off the ${s.id} plate`);
+  }
+  return `${x}px, ${y}px`;
+}
+
+/** Keyframe set by hop count: 2, 4 or 6 hops. */
+const HOPS: Record<number, string> = { 3: 's', 5: 'a', 7: 'b' };
+
+/**
+ * Where in the master loop the page is when it first paints: part way into
+ * the second decode step, with KV$ READ running, all three traffic classes
+ * in flight and the gauge already part full. Nothing starts empty.
+ */
+const PHASE = 6.4;
+
+/**
+ * The only scheduling primitive here. Places the 0% keyframe of an animation
+ * of `period` at loop time `t0`, as a negative delay — so it is already
+ * running on first paint.
+ */
+function dly(t0: number, period: number = LOOP): string {
+  const d = ((((t0 - PHASE) % period) + period) % period) - period;
+  return `${Number(d.toFixed(3))}s`;
+}
+
+function build(s: Spec) {
+  const right = s.cols[s.cols.length - 1];
+
+  const flits = s.flits.map((f) => {
+    const hop = HOPS[f.path.length];
+    if (!hop) {
+      throw new Error(`DataflowFigure: ${f.path.length} points has no keyframe set`);
+    }
+    if ((f.kind === 'ps') === (f.path[0][0] === 'h')) {
+      throw new Error('DataflowFigure: only inbound traffic may start at the HBM edge');
+    }
+    const vars = f.path.map((p, i) => `--p${i}:${at(s, p)}`).join(';');
+    const rest = f.rest === undefined ? '' : `;--rp:var(--p${f.rest})`;
+    const [w, h] = s.size[f.kind];
+    return {
+      kind: f.kind,
+      hop,
+      rest: f.rest !== undefined,
+      w,
+      h,
+      style: `${vars}${rest};animation-delay:${dly(f.start)}`,
+    };
+  });
+
+  /* A channel flashes just before it puts a weight burst on the link. */
+  let rmTaken = false;
+  const flashes = s.flits
+    .filter((f) => f.kind === 'w')
+    .map((f) => {
+      const ch = s.hbmRows.indexOf(f.path[0][1] as number);
+      const rm = !rmTaken && ch === s.rm.ch;
+      if (rm) rmTaken = true;
+      return { ch, rm, style: `animation-delay:${dly(f.start - 0.35)}` };
+    });
+
+  /* The gauge fills a few cells per decode step and drains at the wrap. The
+     increment lands early in the step, while QKV PROJ runs: that is when the
+     new token's keys and values are projected and appended — attention reads
+     them a moment later. */
+  const cells = Array.from({ length: s.gauge.cells }, (_, i) => {
+    const pitch = (s.gauge.w - 6) / s.gauge.cells;
+    const group = Math.floor(i / s.gauge.per);
+    return {
+      x: s.gauge.x + 3 + i * pitch,
+      w: pitch - 1.8,
+      group: group < STEPS ? group : -1,
+      /* a small stagger fills each group left to right, and ripples the drain
+         the same way */
+      style: `animation-delay:${dly((i % s.gauge.per) * 0.18)}`,
+    };
+  });
+
+  return { right, flits, flashes, cells };
+}
+
+const plates = [wide, narrow].map((s) => ({ s, ...build(s) }));
+
+const KEY: { kind: Kind; text: string }[] = [
+  { kind: 'w', text: 'WEIGHT FETCH' },
+  { kind: 'kv', text: 'KV READ' },
+  { kind: 'ps', text: 'PARTIAL SUM' },
+];
+---
+
+<figure class="dff">
+  <div class="dff__frame">
+    {
+      plates.map(({ s, right, flits, flashes, cells }) => (
+        <svg
+          class:list={['dff-svg', `dff-svg--${s.id}`]}
+          viewBox={`0 0 ${s.w} ${s.h}`}
+          role="img"
+          aria-label={LABEL}
+        >
+          <title>{LABEL}</title>
+
+          {/* band headers */}
+          <g aria-hidden="true">
+            {s.bands.map((b) => (
+              <>
+                <text class="hdr" x={b.x} y={s.bandY}>
+                  {b.text}
+                </text>
+                <line class="ln" x1={b.x} y1={s.ruleY} x2={b.x2} y2={s.ruleY} />
+              </>
+            ))}
+          </g>
+
+          {/* band 1 — the operator column */}
+          <g aria-hidden="true">
+            {s.opRows.map((cy, i) => (
+              <>
+                <rect
+                  class="box"
+                  x={s.block.x}
+                  y={cy - s.block.h / 2}
+                  width={s.block.w}
+                  height={s.block.h}
+                />
+                <text class="lbl" x={s.block.x + 9} y={cy + 3}>
+                  {OPS[i]}
+                </text>
+                <g
+                  class:list={['op', i === s.rm.op && 'op--rm']}
+                  style={`animation-delay:${dly(i, STEP)}`}
+                >
+                  <rect
+                    class="tint"
+                    x={s.block.x}
+                    y={cy - s.block.h / 2}
+                    width={s.block.w}
+                    height={s.block.h}
+                  />
+                  <rect
+                    class="edge"
+                    x={s.block.x}
+                    y={cy - s.block.h / 2}
+                    width="2.5"
+                    height={s.block.h}
+                  />
+                  <text class="lbl lbl--on" x={s.block.x + 9} y={cy + 3}>
+                    {OPS[i]}
+                  </text>
+                </g>
+              </>
+            ))}
+            {Array.from({ length: STEPS }, (_, i) => (
+              <text
+                class:list={['lbl', 'step', i === s.rm.step && 'step--rm']}
+                x={s.stepAt.x}
+                y={s.stepAt.y}
+                style={`animation-delay:${dly(i * STEP)}`}
+              >
+                {`STEP 0${i + 1}/0${STEPS}`}
+              </text>
+            ))}
+          </g>
+
+          {/* band 2 — the mesh */}
+          <g aria-hidden="true">
+            {s.rows.map((y) =>
+              s.cols.slice(1).map((x, i) => (
+                <line class="ln" x1={s.cols[i]} y1={y} x2={x} y2={y} />
+              )),
+            )}
+            {s.cols.map((x) =>
+              s.rows.slice(1).map((y, i) => (
+                <line class="ln" x1={x} y1={s.rows[i]} x2={x} y2={y} />
+              )),
+            )}
+            {s.hbmRows.map((r) => (
+              <line class="ln" x1={s.bar.x} y1={s.rows[r]} x2={right} y2={s.rows[r]} />
+            ))}
+            {s.rows.map((y) =>
+              s.cols.map((x) => (
+                <rect
+                  class="node"
+                  x={x - s.node / 2}
+                  y={y - s.node / 2}
+                  width={s.node}
+                  height={s.node}
+                />
+              )),
+            )}
+          </g>
+
+          {/* traffic */}
+          <g aria-hidden="true">
+            {flits.map((f) => (
+              <g
+                class:list={['flit', `flit--${f.hop}`, `f-${f.kind}`, f.rest && 'flit--rm']}
+                style={f.style}
+              >
+                <rect x={-f.w / 2} y={-f.h / 2} width={f.w} height={f.h} />
+              </g>
+            ))}
+          </g>
+
+          {/* band 3 — HBM channels and the KV-cache gauge */}
+          <g aria-hidden="true">
+            {s.hbmRows.map((r, i) => {
+              const y = s.rows[r] - s.bar.h / 2;
+              return (
+                <>
+                  <text class="lbl" x={s.bar.labelX} y={s.rows[r] + 3}>
+                    {`CH${i}`}
+                  </text>
+                  <rect class="box" x={s.bar.x} y={y} width={s.bar.w} height={s.bar.h} />
+                  {/* graduations along the foot of the bar, not divisions:
+                      the only segmented thing on the plate is the gauge */}
+                  {[0.2, 0.4, 0.6, 0.8].map((f) => (
+                    <line
+                      class="ln"
+                      x1={s.bar.x + s.bar.w * f}
+                      y1={y + s.bar.h - 5}
+                      x2={s.bar.x + s.bar.w * f}
+                      y2={y + s.bar.h}
+                    />
+                  ))}
+                </>
+              );
+            })}
+            {flashes.map((f) => {
+              const y = s.rows[s.hbmRows[f.ch]] - s.bar.h / 2;
+              return (
+                <g class:list={['serve', f.rm && 'serve--rm']} style={f.style}>
+                  <rect class="tint" x={s.bar.x} y={y} width={s.bar.w} height={s.bar.h} />
+                  <rect class="edge" x={s.bar.x} y={y} width="2.5" height={s.bar.h} />
+                </g>
+              );
+            })}
+
+            <text class="lbl" x={s.bar.labelX} y={s.gauge.y + s.gauge.h / 2 + 3}>
+              KV$
+            </text>
+            <rect
+              class="box"
+              x={s.gauge.x}
+              y={s.gauge.y}
+              width={s.gauge.w}
+              height={s.gauge.h}
+            />
+            {cells.map((c) => (
+              <>
+                <rect
+                  class="cell"
+                  x={c.x}
+                  y={s.gauge.y + 4}
+                  width={c.w}
+                  height={s.gauge.h - 8}
+                />
+                {c.group >= 0 && (
+                  <rect
+                    class:list={['cell-on', `cell-on--${c.group}`, c.group < s.rm.step + 1 && 'cell-on--rm']}
+                    x={c.x}
+                    y={s.gauge.y + 4}
+                    width={c.w}
+                    height={s.gauge.h - 8}
+                    style={c.style}
+                  />
+                )}
+              </>
+            ))}
+          </g>
+
+          {/* key */}
+          <g aria-hidden="true">
+            {KEY.map((k, i) => (
+              <>
+                <rect
+                  class:list={['sw', `f-${k.kind}`]}
+                  x={s.legend.x + i * s.legend.gap}
+                  y={s.legend.y - 4}
+                  width="9"
+                  height="4.5"
+                />
+                <text class="lbl" x={s.legend.x + i * s.legend.gap + 14} y={s.legend.y}>
+                  {k.text}
+                </text>
+              </>
+            ))}
+          </g>
+        </svg>
+      ))
+    }
+  </div>
+  <figcaption class="dff__caption">{CAPTION}</figcaption>
+</figure>
+
+<style>
+  .dff {
+    margin: 0 0 4.5rem;
+  }
+
+  .dff__frame {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 1.25rem 0;
+  }
+
+  .dff__caption {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    line-height: 1.6;
+    color: var(--fg-faint);
+    margin-top: 0.75rem;
+  }
+
+  /* Two plates, one media query. The narrow one is capped so it cannot grow
+     into a poster just below the breakpoint. */
+  .dff-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    --lbl: 8px;
+    --hdr: 8px;
+  }
+
+  .dff-svg--narrow {
+    display: none;
+    max-width: 24rem;
+    --lbl: 7px;
+    --hdr: 7.5px;
+  }
+
+  /* The wide plate is never scaled below 1:1 — its 8px labels do not survive
+     it. Below that the narrow plate takes over, capped so it cannot grow into
+     a poster just under the breakpoint. */
+  @media (max-width: 48rem) {
+    .dff-svg--wide {
+      display: none;
+    }
+
+    .dff-svg--narrow {
+      display: block;
+    }
+  }
+
+  /* --- ink ---------------------------------------------------------------- */
+
+  .ln {
+    fill: none;
+    stroke: var(--rule);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .box {
+    fill: none;
+    stroke: var(--rule-strong);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* Routers sit on the page, not on the links that pass beneath them. */
+  .node {
+    fill: var(--bg);
+    stroke: var(--rule-strong);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .hdr,
+  .lbl {
+    fill: var(--fg-faint);
+    font-family: var(--font-mono);
+    letter-spacing: 0.12em;
+  }
+
+  .hdr {
+    font-size: var(--hdr);
+    letter-spacing: 0.18em;
+  }
+
+  .lbl {
+    font-size: var(--lbl);
+  }
+
+  .lbl--on {
+    fill: var(--fg);
+  }
+
+  .tint {
+    fill: var(--accent);
+    fill-opacity: 0.13;
+  }
+
+  .edge {
+    fill: var(--accent);
+  }
+
+  .cell {
+    fill: var(--fg);
+    fill-opacity: 0.08;
+  }
+
+  .cell-on {
+    fill: var(--accent);
+  }
+
+  /* The three traffic classes. */
+  .f-w {
+    fill: var(--accent);
+  }
+
+  .f-kv {
+    fill: var(--accent);
+    fill-opacity: 0.5;
+  }
+
+  .f-ps {
+    fill: var(--fg-muted);
+  }
+
+  /* --- motion -------------------------------------------------------------
+     Everything runs on the 16s master loop except the operator sweep, which
+     runs on the 4s decode step. Each element is invisible at 0% and 100% of
+     its own cycle, so the loop has no seam. */
+
+  .flit,
+  .serve,
+  .cell-on,
+  .step {
+    opacity: 0;
+    animation-duration: 16s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+  }
+
+  .flit--s {
+    animation-name: dff-hop-s;
+  }
+
+  .flit--a {
+    animation-name: dff-hop-a;
+  }
+
+  .flit--b {
+    animation-name: dff-hop-b;
+  }
+
+  .serve {
+    animation-name: dff-serve;
+  }
+
+  .step {
+    animation-name: dff-step;
+    animation-timing-function: linear;
+  }
+
+  .cell-on--0 {
+    animation-name: dff-kv0;
+  }
+
+  .cell-on--1 {
+    animation-name: dff-kv1;
+  }
+
+  .cell-on--2 {
+    animation-name: dff-kv2;
+  }
+
+  .cell-on--3 {
+    animation-name: dff-kv3;
+  }
+
+  .op {
+    opacity: 0;
+    animation: dff-op 4s ease-in-out infinite;
+  }
+
+  /* Hop by hop: move, hold at the router, move again. The held pairs are what
+     make this read as a network rather than a wire. */
+  @keyframes dff-hop-s {
+    0% {
+      transform: translate(var(--p0));
+      opacity: 0;
+    }
+    0.7% {
+      transform: translate(var(--p0));
+      opacity: 1;
+    }
+    3.5% {
+      transform: translate(var(--p1));
+    }
+    4.7% {
+      transform: translate(var(--p1));
+    }
+    7.5% {
+      transform: translate(var(--p2));
+      opacity: 1;
+    }
+    8%,
+    100% {
+      transform: translate(var(--p2));
+      opacity: 0;
+    }
+  }
+
+  @keyframes dff-hop-a {
+    0% {
+      transform: translate(var(--p0));
+      opacity: 0;
+    }
+    0.7% {
+      transform: translate(var(--p0));
+      opacity: 1;
+    }
+    3.5% {
+      transform: translate(var(--p1));
+    }
+    4.7% {
+      transform: translate(var(--p1));
+    }
+    7.5% {
+      transform: translate(var(--p2));
+    }
+    8.7% {
+      transform: translate(var(--p2));
+    }
+    11.5% {
+      transform: translate(var(--p3));
+    }
+    12.7% {
+      transform: translate(var(--p3));
+    }
+    15.5% {
+      transform: translate(var(--p4));
+      opacity: 1;
+    }
+    16%,
+    100% {
+      transform: translate(var(--p4));
+      opacity: 0;
+    }
+  }
+
+  @keyframes dff-hop-b {
+    0% {
+      transform: translate(var(--p0));
+      opacity: 0;
+    }
+    0.6% {
+      transform: translate(var(--p0));
+      opacity: 1;
+    }
+    3.2% {
+      transform: translate(var(--p1));
+    }
+    4.2% {
+      transform: translate(var(--p1));
+    }
+    6.8% {
+      transform: translate(var(--p2));
+    }
+    7.8% {
+      transform: translate(var(--p2));
+    }
+    10.4% {
+      transform: translate(var(--p3));
+    }
+    11.4% {
+      transform: translate(var(--p3));
+    }
+    14% {
+      transform: translate(var(--p4));
+    }
+    15% {
+      transform: translate(var(--p4));
+    }
+    17.6% {
+      transform: translate(var(--p5));
+    }
+    18.6% {
+      transform: translate(var(--p5));
+    }
+    21.2% {
+      transform: translate(var(--p6));
+      opacity: 1;
+    }
+    22%,
+    100% {
+      transform: translate(var(--p6));
+      opacity: 0;
+    }
+  }
+
+  /* A long crossfade, so the column reads as a sweep rather than a tick. */
+  @keyframes dff-op {
+    0% {
+      opacity: 0;
+    }
+    8% {
+      opacity: 1;
+    }
+    22% {
+      opacity: 1;
+    }
+    34%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes dff-serve {
+    0% {
+      opacity: 0;
+    }
+    1.2% {
+      opacity: 1;
+    }
+    5% {
+      opacity: 1;
+    }
+    7.5%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes dff-step {
+    0%,
+    24% {
+      opacity: 1;
+    }
+    25%,
+    99% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  /* The gauge: a few more cells every decode step, drained at the wrap. */
+  @keyframes dff-kv0 {
+    0%,
+    3% {
+      opacity: 0;
+    }
+    5%,
+    97% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes dff-kv1 {
+    0%,
+    28% {
+      opacity: 0;
+    }
+    30%,
+    97% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes dff-kv2 {
+    0%,
+    53% {
+      opacity: 0;
+    }
+    55%,
+    97% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes dff-kv3 {
+    0%,
+    78% {
+      opacity: 0;
+    }
+    80%,
+    97% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* --- still frame ---------------------------------------------------------
+     Frozen mid-decode: ATTN running, partial sums between routers, weight and
+     KV flits parked at the router they reached, CH2 serving, the gauge filled
+     for three of four steps. */
+  @media (prefers-reduced-motion: reduce) {
+    .flit,
+    .serve,
+    .cell-on,
+    .step,
+    .op {
+      animation: none;
+    }
+
+    .flit--rm {
+      opacity: 1;
+      transform: translate(var(--rp));
+    }
+
+    .op--rm,
+    .serve--rm,
+    .cell-on--rm,
+    .step--rm {
+      opacity: 1;
+    }
+  }
+</style>

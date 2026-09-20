@@ -2,85 +2,111 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { projects } from '../data/projects';
 import { SITE } from '../data/site';
+import { entryCount } from '../lib/date';
 
-const real = projects.filter((p) => p.status !== 'in design');
+/**
+ * A datasheet listing, not a card grid: every entry is a numbered row under a
+ * hairline. The rows are deliberately not links — nothing here has shipped, so
+ * there is nowhere for a click to go, and a hover tick would promise one.
+ */
+const shipped = projects.filter((p) => p.status !== 'in design');
 const planned = projects.filter((p) => p.status === 'in design');
+
+const index = (n: number) => String(n + 1).padStart(2, '0');
 ---
 
 <BaseLayout
   title="Projects"
   description="Project work in progress: workload characterization, memory and HBM modeling, NoC and interconnect simulation, and an RTL network datapath."
 >
-  <h1>Projects</h1>
-  <p class="lede">What I am building, and what state it is in.</p>
+  <header class="page-head">
+    <h1 class="page-head__title">Projects</h1>
+    <p class="page-head__kicker">WORKLOAD · MEMORY · INTERCONNECT · RTL</p>
+    <p class="page-head__lede">What I am building, and what state it is in.</p>
+  </header>
 
   {
-    real.length === 0 && (
-      <p class="prose" style="margin-top:1.5rem">
+    shipped.length === 0 && (
+      <p class="band">
         Nothing shipped yet. The four directions below are what I am working through.
       </p>
     )
   }
 
   {
-    real.length > 0 && (
-      <section class="section">
-        <h2>Work</h2>
-        <ul class="card-list">
-          {real.map((p) => (
-            <li class="card">
-              <h3>
-                {p.title}
-                <span class="status">{p.status}</span>
-              </h3>
-              <p>{p.summary}</p>
-              {p.links && p.links.length > 0 && (
-                <p>
-                  {p.links.map((l, i) => (
-                    <>
-                      {i > 0 && ' · '}
-                      <a href={l.href}>{l.label}</a>
-                    </>
-                  ))}
-                </p>
-              )}
-              <ul class="tag-row">
-                {p.topics.map((t) => (
-                  <li>{t}</li>
-                ))}
-              </ul>
+    shipped.length > 0 && (
+      <section aria-labelledby="work">
+        <h2 class="index-head" id="work">
+          <span>WORK</span>
+          <span>{entryCount(shipped.length)}</span>
+        </h2>
+
+        <ol class="sheet">
+          {shipped.map((project, i) => (
+            <li class="sheet__item">
+              <span class="sheet__num" aria-hidden="true">
+                {index(i)}
+              </span>
+              <div>
+                <h3 class="sheet__title">{project.title}</h3>
+                <p class="sheet__summary">{project.summary}</p>
+                {project.links && project.links.length > 0 && (
+                  <p class="sheet__links">
+                    {project.links.map((link) => (
+                      <a href={link.href}>{link.label}</a>
+                    ))}
+                  </p>
+                )}
+                <div class="sheet__meta">
+                  <ul class="tags">
+                    {project.topics.map((topic) => (
+                      <li>{topic}</li>
+                    ))}
+                  </ul>
+                  <span class="status">{project.status}</span>
+                </div>
+              </div>
             </li>
           ))}
-        </ul>
+        </ol>
       </section>
     )
   }
 
-  <section class="section">
-    <h2>Planned directions</h2>
-    <ul class="card-list">
+  <section aria-labelledby="planned">
+    <h2 class="index-head index-head--stacked" id="planned">
+      <span>PLANNED DIRECTIONS</span>
+      <span>{entryCount(planned.length)}</span>
+    </h2>
+
+    <ol class="sheet">
       {
-        planned.map((p) => (
-          <li class="card">
-            <h3>
-              {p.title}
-              <span class="status">{p.status}</span>
-            </h3>
-            <p>{p.summary}</p>
-            <ul class="tag-row">
-              {p.topics.map((t) => (
-                <li>{t}</li>
-              ))}
-            </ul>
+        planned.map((project, i) => (
+          <li class="sheet__item">
+            <span class="sheet__num" aria-hidden="true">
+              {index(i)}
+            </span>
+            <div>
+              <h3 class="sheet__title">{project.title}</h3>
+              <p class="sheet__summary">{project.summary}</p>
+              <div class="sheet__meta">
+                <ul class="tags">
+                  {project.topics.map((topic) => (
+                    <li>{topic}</li>
+                  ))}
+                </ul>
+                <span class="status">{project.status}</span>
+              </div>
+            </div>
           </li>
         ))
       }
-    </ul>
+    </ol>
   </section>
 
-  <section class="section">
-    <p class="prose">
-      Questions — <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
-    </p>
-  </section>
+  <p class="crumbs">
+    <a href={`mailto:${SITE.email}`}>QUESTIONS — {SITE.email}</a>
+    <a href="/notes">NOTES</a>
+    <a href="/archive/zh">ARCHIVE</a>
+  </p>
 </BaseLayout>

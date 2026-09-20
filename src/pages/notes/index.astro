@@ -1,46 +1,58 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { entryCount, isoDay, stamp } from '../../lib/date';
 
 const notes = (await getCollection('notes', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
-
-const fmt = new Intl.DateTimeFormat('en-GB', {
-  year: 'numeric',
-  month: 'short',
-  day: '2-digit',
-  timeZone: 'UTC',
-});
 ---
 
 <BaseLayout
   title="Notes"
   description="English technical notes on computer architecture, memory systems, interconnects and RTL."
 >
-  <h1>Notes</h1>
-  <p class="lede">Short technical write-ups in English.</p>
+  <header class="page-head">
+    <h1 class="page-head__title">Notes</h1>
+    <p class="page-head__kicker">ARCHITECTURE · MEMORY · INTERCONNECT · RTL</p>
+    <p class="page-head__lede">Short technical write-ups in English.</p>
+  </header>
 
-  {
-    notes.length === 0 ? (
-      <div class="note-box" style="margin-top:1.5rem">
-        <p>
-          No notes published yet. In the meantime, the{' '}
-          <a href="/archive/zh">Chinese archive</a> holds sixteen older posts on PCIe, ASIC
-          synthesis, RTL style and GPU microarchitecture.
+  <section aria-labelledby="notes-index">
+    <h2 class="index-head" id="notes-index">
+      <span>NOTES</span>
+      <span>{entryCount(notes.length)}</span>
+    </h2>
+
+    {
+      notes.length === 0 ? (
+        <p class="band">
+          No notes published yet. In the meantime, the <a href="/archive/zh">archive</a> holds
+          sixteen older Chinese-language posts on PCIe, ASIC synthesis, RTL style and GPU
+          microarchitecture.
         </p>
-      </div>
-    ) : (
-      <ul class="entry-list" style="margin-top:1.5rem">
-        {notes.map((note) => (
-          <li>
-            <time datetime={note.data.date.toISOString()}>{fmt.format(note.data.date)}</time>
-            <span class="entry-title">
-              <a href={`/notes/${note.id}/`}>{note.data.title}</a>
-            </span>
-          </li>
-        ))}
-      </ul>
-    )
-  }
+      ) : (
+        <ol class="index">
+          {notes.map((note) => (
+            <li>
+              <a class="index__row" href={`/notes/${note.id}/`}>
+                <span class="index__tick" aria-hidden="true">
+                  +
+                </span>
+                <time class="index__date" datetime={isoDay(note.data.date)}>
+                  {stamp(isoDay(note.data.date))}
+                </time>
+                <span class="index__title">{note.data.title}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      )
+    }
+
+    <p class="index__foot">
+      <a href="/archive/zh">ARCHIVE</a>
+      <a href="/projects">PROJECTS</a>
+    </p>
+  </section>
 </BaseLayout>

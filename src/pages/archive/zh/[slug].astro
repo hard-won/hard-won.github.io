@@ -1,6 +1,7 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { stamp } from '../../../lib/date';
 
 export async function getStaticPaths() {
   const posts = await getCollection('archive');
@@ -16,11 +17,8 @@ interface Props {
 const { post } = Astro.props;
 const { Content } = await render(post);
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-/** Format the stored calendar date directly; no timezone conversion. */
-const [year, month, day] = post.data.displayDate.split('-');
-const formattedDate = `${day} ${MONTHS[Number(month) - 1]} ${year}`;
+const year = post.data.displayDate.slice(0, 4);
+const formattedDate = stamp(post.data.displayDate);
 
 const description =
   `${post.data.title} — archived Chinese-language post from ${year}` +
@@ -28,6 +26,9 @@ const description =
   '.';
 ---
 
+{/* The page is zh-CN because the post body is. Every interface string on it is
+    English and marked lang="en"; the post's own categories and tags are the
+    author's original metadata, so they stay Chinese and stay zh-CN. */}
 <BaseLayout
   title={post.data.title}
   description={description}
@@ -36,30 +37,23 @@ const description =
   publishedTime={post.data.date.toISOString()}
 >
   <article>
-    <header class="post-header">
-      <p class="eyebrow">Archive</p>
-      <h1>{post.data.title}</h1>
-      <p class="post-meta">
+    <header class="article__head">
+      <p class="article__eyebrow" lang="en">Archive</p>
+      <h1 class="article__title" lang="zh-CN">{post.data.title}</h1>
+      <p class="article__meta" lang="en">
         <time datetime={post.data.displayDate}>{formattedDate}</time>
-        {post.data.categories.length > 0 && <> · {post.data.categories.join(' / ')}</>}
+        {post.data.categories.length > 0 && <span lang="zh-CN">{post.data.categories.join(' / ')}</span>}
+        {post.data.tags.map((tag) => <span lang="zh-CN">{tag}</span>)}
       </p>
-      {
-        post.data.tags.length > 0 && (
-          <ul class="tag-row">
-            {post.data.tags.map((tag) => (
-              <li>{tag}</li>
-            ))}
-          </ul>
-        )
-      }
     </header>
 
-    <div class="prose archive-body">
+    <div class="prose">
       <Content />
     </div>
   </article>
 
-  <p style="margin-top:2.5rem" lang="en">
-    <a href="/archive/zh">← Archive index</a>
+  <p class="crumbs" lang="en">
+    <a href="/archive/zh">ARCHIVE INDEX</a>
+    <a href="/notes">NOTES</a>
   </p>
 </BaseLayout>
