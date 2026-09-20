@@ -7,10 +7,10 @@
  * it to; underneath, the channels themselves, each split into two
  * pseudo-channels that share a command bus.
  *
- * The digits under the bursts are the whole argument: consecutive addresses
- * do not stay on one channel, so neither read is served by one channel. The
- * particular map drawn here is an illustration — which address bits select a
- * channel is a controller policy, and the plate says so.
+ * The digits under the bursts are the whole argument. Under a map that puts
+ * channel select on a low address bit, consecutive bursts of either read land
+ * on different channels. That map is a controller policy rather than a
+ * property of the tensor, which is what the plate's footer says.
  *
  * Static SVG, two drawings swapped by one media query, same reasoning as
  * FIG. 01: an 8px label does not survive being scaled down.
@@ -94,7 +94,7 @@ const narrow: Spec = {
 const CAPTION = 'FIG. 02 — A WEIGHT READ AND A KV READ, STRIPED ACROSS CHANNELS (SCHEMATIC)';
 
 const LABEL =
-  'Schematic of HBM traffic for one decode step. A weight tensor occupies one contiguous run of addresses; the KV cache occupies many separate ranges, one per layer and head. Under each burst is the index of the channel its address maps to, and the indices cycle, so consecutive bursts of either read land on different channels and no single channel serves the whole read. Below, each channel is drawn split into two pseudo-channels, PC0 and PC1, which each drive a 32-bit data bus, share the command bus, and execute commands separately. Which address bits select a channel is a memory-controller policy, not a property of the tensor.';
+  'Schematic of HBM traffic for one decode step. A weight tensor occupies one contiguous run of addresses; the KV cache occupies many separate ranges, one per layer and head. Under each burst is the index of the channel its address maps to. In the map drawn here the indices cycle, so consecutive bursts of either read land on different channels and no single channel serves the whole read. Below, each channel is drawn split into two pseudo-channels, PC0 and PC1, which each drive a 32-bit data bus, share the command bus, and execute commands separately. Which address bits select a channel is a memory-controller policy, not a property of the tensor.';
 
 const plates = [wide, narrow];
 
@@ -251,7 +251,7 @@ function run(s: Spec, x0: number, n: number, from: number) {
     display: none;
     max-width: 21rem;
     --sz: 10.5px;
-    --foot: 10px;
+    --foot: 10.5px;
   }
 
   @media (max-width: 40rem) {

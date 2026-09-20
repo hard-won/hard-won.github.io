@@ -93,9 +93,9 @@ One layer's query projection holds `d²` = 16.8M weights, so 34M bytes read and
 2 × 16.8M = 34M FLOP. The table's `q_proj` row reads 34M, 34M, intensity 1.
 
 One layer's attention reads `T · n_kv · d_h · b_kv` = 2048 × 32 × 128 × 2, or
-17M bytes of keys, and the same again of values. The QK product does
-`2 · T · n_kv · d_h` = 17M FLOP. The table's `qk_matmul` row reads 17M, 17M,
-intensity 0.99.
+17M bytes of keys, and the same again of values. The QK product does two FLOP
+per stored key element per query head, 2 × 2048 × 32 × 128 = 17M FLOP. The
+table's `qk_matmul` row reads 17M, 17M, intensity 0.99.
 
 The MLP's gate projection holds 4096 × 11008 = 45M weights, so 90M bytes and
 90M FLOP. The table's `gate_proj` row reads 90M, 90M, intensity 1.
@@ -139,12 +139,13 @@ that flexibility costs: scheduling accesses efficiently within each
 pseudo-channel at that command rate is hard.
 
 Every channel reaches its own distinct set of DRAM banks, and a request on one
-channel cannot reach data belonging to another [2]. A weight tensor is far
-larger than one channel's share of the address space, so no single channel
-serves it. It is striped, and which bits of the address do the striping is a
-decision someone made: the mapping from application address to bank, row and
-column is a controller policy, and on an FPGA HBM stack, changing nothing but
-that policy moved sequential-traversal throughput by an order of magnitude [4].
+channel cannot reach data belonging to another [2]. So whether a contiguous run
+of weight addresses stays on one channel or cycles across all of them is not a
+property of the tensor. It is set by which address bits the controller uses to
+select a channel, and that is a policy, the same kind of decision as which bits
+select bank, row and column inside a channel. The inner decision alone is worth
+an order of magnitude: on an FPGA HBM stack, changing nothing but the
+bank/row/column mapping moved sequential-traversal throughput by that much [4].
 
 <ChannelStripePlate />
 
