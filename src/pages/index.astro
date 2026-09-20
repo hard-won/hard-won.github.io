@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Pipeline from '../components/Pipeline.astro';
+import { SITE, FRAMING } from '../data/site';
+import { projects } from '../data/projects';
+
+const shipped = projects.filter((p) => p.status !== 'in design');
+const planned = projects.filter((p) => p.status === 'in design');
+---
+
+<BaseLayout
+  title={SITE.name}
+  description="Shengyi Wei — digital design and computer architecture, focused on AI data movement, memory systems, interconnects and RTL."
+>
+  <section>
+    <h1>{SITE.name}</h1>
+    <p class="lede">
+      Digital design · computer architecture<br />
+      AI data movement · memory systems · interconnect · performance modeling
+    </p>
+    <p class="prose" style="margin-top:1.25rem">{FRAMING}</p>
+    <Pipeline />
+  </section>
+
+  <section class="section">
+    <h2>Selected work</h2>
+    {
+      shipped.length === 0 ? (
+        <p class="prose">
+          Nothing shipped yet. What is in design is below; <a href="/projects">/projects</a> has
+          the detail.
+        </p>
+      ) : (
+        <ul class="card-list">
+          {shipped.map((p) => (
+            <li class="card">
+              <h3>
+                {p.title}
+                <span class="status">{p.status}</span>
+              </h3>
+              <p>{p.summary}</p>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    {
+      planned.length > 0 && (
+        <ul class="entry-list" style="margin-top:1.25rem">
+          {planned.map((p) => (
+            <li>
+              <span class="entry-title">{p.title}</span>
+              <span class="status">{p.status}</span>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+
+  <section class="section">
+    <h2>Writing</h2>
+    <div class="prose">
+      <p><a href="/notes">Notes</a> — English technical notes.</p>
+      <p>
+        <a href="/archive/zh">Archive (中文)</a> — sixteen earlier posts on PCIe, ASIC synthesis,
+        RTL style and GPU microarchitecture.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Contact</h2>
+    <dl class="contact-grid">
+      <dt>Email</dt>
+      <dd><a href={`mailto:${SITE.email}`}>{SITE.email}</a></dd>
+      <dt>GitHub</dt>
+      <dd><a href={SITE.github}>github.com/hard-won</a></dd>
+      {
+        SITE.links.map((link) => (
+          <>
+            <dt>{link.label}</dt>
+            <dd>
+              <a href={link.href}>{link.href.replace(/^https?:\/\//, '')}</a>
+            </dd>
+          </>
+        ))
+      }
+    </dl>
+  </section>
+</BaseLayout>

@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, FRAMING } from '../data/site';
+---
+
+<BaseLayout
+  title="About"
+  description="Shengyi Wei is a digital design and computer architecture engineer working on AI data movement, memory systems, interconnects and RTL."
+>
+  <h1>About</h1>
+
+  <div class="prose" style="margin-top:1.25rem">
+    <p>
+      I am <strong>{SITE.name}</strong>, a digital design and computer architecture engineer. My
+      work sits around AI data movement: memory systems, interconnects and network-on-chip,
+      workload-driven performance modeling, simulation, and RTL.
+    </p>
+    <p>{FRAMING}</p>
+    <p>
+      That means starting from what a model actually does to memory rather than from a block
+      diagram, and carrying the measurement forward into the memory system, the interconnect, and
+      then the hardware it justifies.
+    </p>
+    <p>
+      <a href="/projects">Projects</a> is what I am building. <a href="/notes">Notes</a> is English
+      write-ups. The <a href="/archive/zh">Chinese archive</a> holds sixteen earlier posts on PCIe,
+      ASIC synthesis, RTL coding style and GPU microarchitecture.
+    </p>
+  </div>
+
+  <section class="section">
+    <h2>Contact</h2>
+    <dl class="contact-grid">
+      <dt>Email</dt>
+      <dd><a href={`mailto:${SITE.email}`}>{SITE.email}</a></dd>
+      <dt>GitHub</dt>
+      <dd><a href={SITE.github}>github.com/hard-won</a></dd>
+      {
+        SITE.links.map((link) => (
+          <>
+            <dt>{link.label}</dt>
+            <dd>
+              <a href={link.href}>{link.href.replace(/^https?:\/\//, '')}</a>
+            </dd>
+          </>
+        ))
+      }
+    </dl>
+  </section>
+</BaseLayout>

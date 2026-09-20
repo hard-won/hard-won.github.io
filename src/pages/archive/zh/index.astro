@@ -1,0 +1,66 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const posts = (await getCollection('archive')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+const byYear = new Map<number, typeof posts>();
+for (const post of posts) {
+  // Group by the date the post originally carried, not the UTC instant.
+  const year = Number(post.data.displayDate.slice(0, 4));
+  const bucket = byYear.get(year);
+  if (bucket) bucket.push(post);
+  else byYear.set(year, [post]);
+}
+const years = [...byYear.entries()].sort((a, b) => b[0] - a[0]);
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** Format the stored calendar date directly; no timezone conversion. */
+function formatDay(displayDate: string): string {
+  const [, month, day] = displayDate.split('-');
+  return `${day} ${MONTHS[Number(month) - 1]}`;
+}
+---
+
+<BaseLayout
+  title="Archive (中文)"
+  description="Sixteen older Chinese-language posts on PCIe, ASIC synthesis, RTL coding style and GPU microarchitecture, preserved from the previous version of this site."
+>
+  <h1>Archive <span style="color:var(--fg-faint);font-weight:400">中文</span></h1>
+
+  <div class="note-box" style="margin-top:1.25rem">
+    <p>
+      These {posts.length} posts are older Chinese-language notes, kept for reference. They are
+      preserved as written and are not maintained or translated. New writing is in English under{' '}
+      <a href="/notes">Notes</a>.
+    </p>
+    <p lang="zh-CN">
+      以下为早期中文技术笔记，原样保留以供参考，不再更新，也没有翻译。新的英文写作见 <a href="/notes"
+        >Notes</a
+      >。
+    </p>
+  </div>
+
+  {
+    years.map(([year, items]) => (
+      <section class="year-group">
+        <h2>{year}</h2>
+        <ul class="entry-list">
+          {items.map((post) => (
+            <li>
+              <time datetime={post.data.displayDate}>{formatDay(post.data.displayDate)}</time>
+              <span class="entry-title">
+                <a href={`/archive/zh/${post.data.slug}/`} lang="zh-CN">
+                  {post.data.title}
+                </a>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+</BaseLayout>

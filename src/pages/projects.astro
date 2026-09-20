@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { projects } from '../data/projects';
+import { SITE } from '../data/site';
+
+const real = projects.filter((p) => p.status !== 'in design');
+const planned = projects.filter((p) => p.status === 'in design');
+---
+
+<BaseLayout
+  title="Projects"
+  description="Project work in progress: workload characterization, memory and HBM modeling, NoC and interconnect simulation, and an RTL network datapath."
+>
+  <h1>Projects</h1>
+  <p class="lede">What I am building, and what state it is in.</p>
+
+  {
+    real.length === 0 && (
+      <p class="prose" style="margin-top:1.5rem">
+        Nothing shipped yet. The four directions below are what I am working through.
+      </p>
+    )
+  }
+
+  {
+    real.length > 0 && (
+      <section class="section">
+        <h2>Work</h2>
+        <ul class="card-list">
+          {real.map((p) => (
+            <li class="card">
+              <h3>
+                {p.title}
+                <span class="status">{p.status}</span>
+              </h3>
+              <p>{p.summary}</p>
+              {p.links && p.links.length > 0 && (
+                <p>
+                  {p.links.map((l, i) => (
+                    <>
+                      {i > 0 && ' · '}
+                      <a href={l.href}>{l.label}</a>
+                    </>
+                  ))}
+                </p>
+              )}
+              <ul class="tag-row">
+                {p.topics.map((t) => (
+                  <li>{t}</li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section class="section">
+    <h2>Planned directions</h2>
+    <ul class="card-list">
+      {
+        planned.map((p) => (
+          <li class="card">
+            <h3>
+              {p.title}
+              <span class="status">{p.status}</span>
+            </h3>
+            <p>{p.summary}</p>
+            <ul class="tag-row">
+              {p.topics.map((t) => (
+                <li>{t}</li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="section">
+    <p class="prose">
+      Questions — <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+    </p>
+  </section>
+</BaseLayout>

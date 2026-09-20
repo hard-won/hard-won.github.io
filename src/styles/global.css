@@ -1,0 +1,662 @@
+/* ---------------------------------------------------------------------------
+   Tokens
+   Light is the default. Dark comes from prefers-color-scheme, and an explicit
+   [data-theme] on <html> overrides both (set by the toggle in BaseLayout).
+   Contrast: every text/background pair below is >= 4.5:1.
+--------------------------------------------------------------------------- */
+
+:root {
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Noto Sans", "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  --bg: #fbfbfa;
+  --bg-raised: #ffffff;
+  --bg-code: #f2f2f0;
+  /* Measured against the darkest background each is used on (--bg-code). */
+  --fg: #16181c;          /* 15.9:1 */
+  --fg-muted: #55595f;    /* 6.3:1  */
+  --fg-faint: #686d73;    /* 4.7:1  */
+  --accent: #1d4ed8;      /* 6.0:1  */
+  --accent-hover: #14329e;
+  --rule: #dcdcd8;
+  --rule-strong: #b9b9b3;
+  --focus: #1d4ed8;
+
+  --measure: 68ch;
+  --page: 46rem;
+  --gap: 1rem;
+  --radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101215;
+    --bg-raised: #171a1e;
+    --bg-code: #1b1f24;
+    --fg: #e7e9ec;         /* 13.6:1 */
+    --fg-muted: #a8aeb6;   /* 7.4:1  */
+    --fg-faint: #8b929b;   /* 5.3:1  */
+    --accent: #8ab4ff;     /* 7.9:1  */
+    --accent-hover: #b6cfff;
+    --rule: #2a2f36;
+    --rule-strong: #3d444d;
+    --focus: #8ab4ff;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #101215;
+  --bg-raised: #171a1e;
+  --bg-code: #1b1f24;
+  --fg: #e7e9ec;
+  --fg-muted: #a8aeb6;
+  --fg-faint: #8b929b;
+  --accent: #8ab4ff;
+  --accent-hover: #b6cfff;
+  --rule: #2a2f36;
+  --rule-strong: #3d444d;
+  --focus: #8ab4ff;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.65;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 2.5rem 0;
+}
+
+code,
+kbd,
+samp {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+:not(pre) > code {
+  background: var(--bg-code);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 0.1em 0.35em;
+}
+
+pre {
+  background: var(--bg-code);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* Shiki dual themes with defaultColor: false. Each token carries both
+   palettes as custom properties; pick the light one by default and the dark
+   one wherever the site is dark. */
+.astro-code,
+.astro-code span {
+  color: var(--shiki-light);
+  background-color: transparent;
+  font-style: var(--shiki-light-font-style);
+  font-weight: var(--shiki-light-font-weight);
+  text-decoration: var(--shiki-light-text-decoration);
+}
+
+/* Highlighted blocks sit on --bg-raised, not --bg-code: the extra contrast is
+   what lifts the dimmest comment token over 4.5:1 in the light theme. */
+pre.astro-code {
+  background-color: var(--bg-raised);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .astro-code,
+  :root:not([data-theme="light"]) .astro-code span {
+    color: var(--shiki-dark);
+    font-style: var(--shiki-dark-font-style);
+    font-weight: var(--shiki-dark-font-weight);
+    text-decoration: var(--shiki-dark-text-decoration);
+  }
+}
+
+:root[data-theme="dark"] .astro-code,
+:root[data-theme="dark"] .astro-code span {
+  color: var(--shiki-dark);
+  font-style: var(--shiki-dark-font-style);
+  font-weight: var(--shiki-dark-font-weight);
+  text-decoration: var(--shiki-dark-text-decoration);
+}
+
+blockquote {
+  margin: 1.5rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--rule-strong);
+  color: var(--fg-muted);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.925rem;
+  margin: 1.5rem 0;
+}
+
+th,
+td {
+  border: 1px solid var(--rule);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: var(--bg-code);
+}
+
+/* ---------------------------------------------------------------------------
+   Layout
+--------------------------------------------------------------------------- */
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-raised);
+  color: var(--fg);
+  border: 1px solid var(--rule-strong);
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--radius);
+}
+
+.skip-link:focus {
+  left: 0.75rem;
+  top: 0.75rem;
+}
+
+.shell {
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+@media (max-width: 22.5rem) {
+  .shell {
+    padding: 0 0.875rem;
+  }
+}
+
+.site-header {
+  border-bottom: 1px solid var(--rule);
+  padding: 1.25rem 0;
+  margin-bottom: 2.5rem;
+}
+
+.site-header > .shell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem 1.25rem;
+}
+
+.site-header .brand {
+  font-weight: 600;
+  color: var(--fg);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-left: auto;
+  font-size: 0.9375rem;
+}
+
+.site-nav a {
+  color: var(--fg-muted);
+  text-decoration: none;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"] {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.theme-toggle {
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--fg-muted);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 0.15rem 0.55rem;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.theme-toggle:hover {
+  color: var(--fg);
+  border-color: var(--rule-strong);
+}
+
+main {
+  display: block;
+}
+
+.site-footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 4rem;
+  padding: 1.5rem 0 2.5rem;
+  color: var(--fg-faint);
+  font-size: 0.875rem;
+}
+
+.site-footer a {
+  color: var(--fg-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   Typography helpers
+--------------------------------------------------------------------------- */
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 1.75rem;
+  margin: 0 0 0.5rem;
+}
+
+h2 {
+  font-size: 1.1875rem;
+  margin: 2.75rem 0 0.75rem;
+}
+
+h3 {
+  font-size: 1.0625rem;
+  margin: 1.75rem 0 0.5rem;
+}
+
+.prose {
+  max-width: var(--measure);
+}
+
+.prose p,
+.prose ul,
+.prose ol {
+  margin: 0 0 1.1rem;
+}
+
+.lede {
+  font-size: 1.0625rem;
+  color: var(--fg-muted);
+  max-width: var(--measure);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  margin: 0 0 0.75rem;
+}
+
+.section {
+  margin-top: 3rem;
+}
+
+.section > h2 {
+  margin-top: 0;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.note-box {
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  padding: 0.9rem 1.1rem;
+  color: var(--fg-muted);
+  max-width: var(--measure);
+}
+
+.note-box p:first-child {
+  margin-top: 0;
+}
+
+.note-box p:last-child {
+  margin-bottom: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Lists of things
+--------------------------------------------------------------------------- */
+
+.card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  padding: 1rem 1.1rem;
+}
+
+.card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.card p {
+  margin: 0 0 0.6rem;
+  color: var(--fg-muted);
+  font-size: 0.9375rem;
+}
+
+.card p:last-child {
+  margin-bottom: 0;
+}
+
+.status {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+  vertical-align: 0.15em;
+  margin-left: 0.4rem;
+  white-space: nowrap;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag-row li {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--fg-faint);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 0.05rem 0.4rem;
+}
+
+.entry-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.entry-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.85rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.entry-list li:last-child {
+  border-bottom: 0;
+}
+
+.entry-list time {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--fg-faint);
+  flex: 0 0 5.5rem;
+}
+
+.entry-list .entry-title {
+  flex: 1 1 14rem;
+}
+
+.contact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.9375rem;
+}
+
+.contact-list dt {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0;
+  max-width: var(--measure);
+  font-size: 0.9375rem;
+}
+
+.contact-grid dt {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  padding-top: 0.2rem;
+}
+
+.contact-grid dd {
+  margin: 0;
+}
+
+@media (max-width: 26rem) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+
+  .contact-grid dd {
+    margin-bottom: 0.6rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Pipeline diagram (homepage) — inline SVG, themed via currentColor + vars.
+--------------------------------------------------------------------------- */
+
+.pipeline {
+  margin: 1.75rem 0 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  padding: 1rem 0.75rem;
+  overflow-x: auto;
+}
+
+.pipeline svg {
+  display: block;
+  width: 100%;
+  min-width: 18rem;
+  height: auto;
+}
+
+.pipeline .stage-box {
+  fill: var(--bg);
+  stroke: var(--rule-strong);
+}
+
+.pipeline .stage-label {
+  fill: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.pipeline .stage-sub {
+  fill: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+}
+
+.pipeline .flow {
+  stroke: var(--accent);
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.pipeline .flow-head {
+  fill: var(--accent);
+}
+
+.pipeline .axis-label {
+  fill: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+}
+
+/* ---------------------------------------------------------------------------
+   Archive post pages
+--------------------------------------------------------------------------- */
+
+.post-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.post-meta {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--fg-faint);
+  margin: 0.5rem 0 0;
+}
+
+.archive-body {
+  max-width: var(--measure);
+}
+
+.archive-body h1 {
+  font-size: 1.375rem;
+  margin: 2.5rem 0 0.75rem;
+}
+
+.archive-body h2 {
+  font-size: 1.1875rem;
+}
+
+.archive-body img {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+.archive-body table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.year-group {
+  margin-top: 2.25rem;
+}
+
+.year-group h2 {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  color: var(--fg-faint);
+  margin: 0 0 0.25rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--rule);
+}
