@@ -15,8 +15,8 @@ const planned = projects.filter((p) => p.status === 'in design');
   <section>
     <h1>{SITE.name}</h1>
     <p class="lede">
-      Digital Design / Computer Architecture — AI data movement, memory systems, interconnects and
-      NoC, workload-driven performance modeling, simulation, and RTL.
+      Digital design · computer architecture<br />
+      AI data movement · memory systems · interconnect · performance modeling
     </p>
     <p class="prose" style="margin-top:1.25rem">{FRAMING}</p>
     <Pipeline />
@@ -26,17 +26,10 @@ const planned = projects.filter((p) => p.status === 'in design');
     <h2>Selected work</h2>
     {
       shipped.length === 0 ? (
-        <div class="note-box">
-          <p>
-            Nothing is listed here yet. This portfolio is being rebuilt around a small number of
-            substantial projects rather than a long list of small ones, and no entry goes up until
-            it is real and finished enough to be read critically.
-          </p>
-          <p>
-            The directions currently in design are below, and <a href="/projects">/projects</a>{' '}
-            has the detail.
-          </p>
-        </div>
+        <p class="prose">
+          Nothing shipped yet. What is in design is below; <a href="/projects">/projects</a> has
+          the detail.
+        </p>
       ) : (
         <ul class="card-list">
           {shipped.map((p) => (
@@ -66,32 +59,12 @@ const planned = projects.filter((p) => p.status === 'in design');
   </section>
 
   <section class="section">
-    <h2>Current direction</h2>
-    <div class="prose">
-      <p>
-        The work I care about starts at the workload. A model's execution is, from the hardware's
-        point of view, a pattern of reads and writes — and most of what limits an accelerator is
-        decided by that pattern long before it reaches a datapath.
-      </p>
-      <p>
-        So the direction is to measure that pattern honestly, model what it costs in a memory
-        system and across an interconnect, and then build the piece of RTL the model argues for.
-        Each step should be checkable against the one before it.
-      </p>
-    </div>
-  </section>
-
-  <section class="section">
     <h2>Writing</h2>
     <div class="prose">
+      <p><a href="/notes">Notes</a> — English technical notes.</p>
       <p>
-        <a href="/notes">Notes</a> — English technical notes, written as the work above produces
-        something worth writing down.
-      </p>
-      <p>
-        <a href="/archive/zh">Archive (中文)</a> — sixteen older Chinese posts on PCIe, ASIC
-        synthesis, RTL style and GPU microarchitecture, preserved from the previous version of this
-        site.
+        <a href="/archive/zh">Archive (中文)</a> — sixteen earlier posts on PCIe, ASIC synthesis,
+        RTL style and GPU microarchitecture.
       </p>
     </div>
   </section>
