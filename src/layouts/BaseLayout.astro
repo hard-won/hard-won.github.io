@@ -47,7 +47,18 @@ const isCurrent = (href: string) =>
 
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="color-scheme" content="dark light" />
+
+    {/* Instrument Serif for display, JetBrains Mono for metadata. Body prose
+        stays on the system stack, so this is the only webfont request. No
+        `&text=` subsetting: css2 applies it to every family in the request,
+        which would gut the mono face. */}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
 
     {/* Applied before first paint so the chosen theme does not flash. */}
     <script is:inline>
@@ -64,10 +75,13 @@ const isCurrent = (href: string) =>
     <a class="skip-link" href="#main">Skip to content</a>
 
     <header class="site-header">
-      <div class="shell">
-        <a class="brand" href="/">{SITE.name}</a>
+      <div class="shell doc-head">
+        <div class="doc-head__line">
+          <a class="doc-head__name" href="/">{SITE.name}</a>
+          <span class="doc-head__role">{SITE.role}</span>
+        </div>
         <nav class="site-nav" aria-label="Primary">
-          <a href="/projects" aria-current={isCurrent('/projects')}>Projects</a>
+          {/* /projects is deliberately absent until something ships. */}
           <a href="/notes" aria-current={isCurrent('/notes')}>Notes</a>
           <a href="/archive/zh" aria-current={isCurrent('/archive/zh')}>Archive</a>
           <a href="/about" aria-current={isCurrent('/about')}>About</a>
@@ -87,9 +101,10 @@ const isCurrent = (href: string) =>
 
     <footer class="site-footer">
       <div class="shell">
-        <p>
-          {SITE.name} · <a href={SITE.github}>GitHub</a> ·
+        <p class="foot-row">
           <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+          <a href={SITE.github}>GitHub</a>
+          {SITE.links.map((link) => <a href={link.href}>{link.label}</a>)}
         </p>
       </div>
     </footer>
