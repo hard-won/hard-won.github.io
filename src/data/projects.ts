@@ -1,6 +1,6 @@
 /**
- * Project entries render as cards on /projects and, once any entry reaches
- * status 'shipped', on the homepage under Selected Work.
+ * Project entries render as numbered rows in the datasheet listing on
+ * /projects, under either WORK or PLANNED DIRECTIONS depending on status.
  *
  * To add a real project, append an entry with status 'shipped' (or 'active')
  * and fill in `links`. Do not list anything that does not exist yet as

@@ -613,15 +613,6 @@ h3 {
   line-height: 1.45;
 }
 
-/* The one-line description under a note title in the index. */
-.index__note {
-  grid-column: 3;
-  font-size: 0.875rem;
-  color: var(--fg-muted);
-  line-height: 1.5;
-  margin-top: 0.15rem;
-}
-
 /* --- a row of quiet mono links (page feet, back links) --------------------- */
 
 .index__foot,
