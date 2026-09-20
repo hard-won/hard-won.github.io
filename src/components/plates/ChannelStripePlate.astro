@@ -1,0 +1,320 @@
+---
+/**
+ * FIG. 02 — WHERE THE BYTES COME FROM.
+ *
+ * Three bands. A contiguous weight tensor and a set of disjoint KV ranges,
+ * each drawn as a run of bursts with the channel index the address map sends
+ * it to; underneath, the channels themselves, each split into two
+ * pseudo-channels that share a command bus.
+ *
+ * The digits under the bursts are the whole argument. Under a map that puts
+ * channel select on a low address bit, consecutive bursts of either read land
+ * on different channels. That map is a controller policy rather than a
+ * property of the tensor, which is what the plate's footer says.
+ *
+ * Static SVG, two drawings swapped by one media query, same reasoning as
+ * FIG. 01: an 8px label does not survive being scaled down.
+ */
+
+interface Spec {
+  id: 'wide' | 'narrow';
+  w: number;
+  h: number;
+  /** Number of channels the map stripes across. */
+  ch: number;
+  /** Bursts in the contiguous weight run. */
+  wn: number;
+  /** KV: how many disjoint ranges, of how many bursts each. */
+  kvGroups: number;
+  kvRun: number;
+  kvGap: number;
+  cell: { w: number; pitch: number; h: number };
+  /** Band anchors. */
+  aY: number;
+  bY: number;
+  cY: number;
+  box: { w: number; pitch: number; h: number };
+  pc: { w: number; x0: number; x1: number; y: number; h: number };
+  head: { a: string; b: string; c: string };
+  foot: string[];
+}
+
+const wide: Spec = {
+  id: 'wide',
+  w: 560,
+  h: 250,
+  ch: 4,
+  wn: 16,
+  kvGroups: 3,
+  kvRun: 4,
+  kvGap: 196,
+  cell: { w: 31, pitch: 34, h: 16 },
+  aY: 12,
+  bY: 74,
+  cY: 136,
+  box: { w: 132, pitch: 140, h: 54 },
+  pc: { w: 54, x0: 8, x1: 70, y: 20, h: 22 },
+  head: {
+    a: 'WEIGHT TENSOR · ONE CONTIGUOUS ADDRESS RANGE',
+    b: 'KV CACHE · A SEPARATE RANGE PER LAYER AND HEAD',
+    c: 'HBM3 · TWO PSEUDO-CHANNELS PER CHANNEL',
+  },
+  foot: [
+    'DIGIT = CHANNEL THE ADDRESS MAPS TO. THE MAP IS A CONTROLLER POLICY',
+    'PC0/PC1: 32-BIT DATA EACH, SHARED COMMAND BUS, COMMANDS EXECUTED SEPARATELY',
+  ],
+};
+
+const narrow: Spec = {
+  id: 'narrow',
+  w: 300,
+  h: 262,
+  ch: 2,
+  wn: 8,
+  kvGroups: 2,
+  kvRun: 3,
+  kvGap: 160,
+  cell: { w: 33, pitch: 36, h: 16 },
+  aY: 12,
+  bY: 74,
+  cY: 136,
+  box: { w: 144, pitch: 152, h: 54 },
+  pc: { w: 58, x0: 8, x1: 74, y: 20, h: 22 },
+  head: {
+    a: 'WEIGHT · CONTIGUOUS',
+    b: 'KV · SEPARATE RANGES',
+    c: 'HBM3 · 2 PC PER CHANNEL',
+  },
+  foot: [
+    'DIGIT = CHANNEL THE ADDRESS MAPS TO',
+    'PC0/PC1: 32-BIT DATA, SHARED CMD BUS',
+  ],
+};
+
+const CAPTION = 'FIG. 02 — A WEIGHT READ AND A KV READ, STRIPED ACROSS CHANNELS (SCHEMATIC)';
+
+const LABEL =
+  'Schematic of HBM traffic for one decode step. A weight tensor occupies one contiguous run of addresses; the KV cache occupies many separate ranges, one per layer and head. Under each burst is the index of the channel its address maps to. In the map drawn here the indices cycle, so consecutive bursts of either read land on different channels and no single channel serves the whole read. Below, each channel is drawn split into two pseudo-channels, PC0 and PC1, which each drive a 32-bit data bus, share the command bus, and execute commands separately. Which address bits select a channel is a memory-controller policy, not a property of the tensor.';
+
+const plates = [wide, narrow];
+
+/** A run of bursts starting at x, with the channel digit under each. */
+function run(s: Spec, x0: number, n: number, from: number) {
+  return Array.from({ length: n }, (_, i) => ({
+    x: x0 + i * s.cell.pitch,
+    ch: (from + i) % s.ch,
+  }));
+}
+---
+
+<figure class="plate">
+  <div class="plate__frame">
+    {
+      plates.map((s) => {
+        const weights = run(s, 0, s.wn, 0);
+        const kv = Array.from({ length: s.kvGroups }, (_, g) =>
+          run(s, g * s.kvGap, s.kvRun, g),
+        ).flat();
+        const footY = s.cY + 14 + s.box.h + 18;
+        return (
+          <svg
+            class:list={['plate__svg', `plate__svg--${s.id}`]}
+            viewBox={`0 0 ${s.w} ${s.h}`}
+            role="img"
+            aria-label={LABEL}
+          >
+            <title>{LABEL}</title>
+
+            <g aria-hidden="true">
+              {/* band A — a contiguous weight tensor */}
+              <text class="hdr" x="0" y={s.aY + 1}>
+                {s.head.a}
+              </text>
+              <line class="ln" x1="0" y1={s.aY + 7} x2={s.w - 4} y2={s.aY + 7} />
+              {weights.map((c) => (
+                <>
+                  <rect
+                    class:list={['cell', c.ch === 0 && 'cell--on']}
+                    x={c.x}
+                    y={s.aY + 15}
+                    width={s.cell.w}
+                    height={s.cell.h}
+                  />
+                  <text class:list={['ch', c.ch === 0 && 'ch--on']} x={c.x + s.cell.w / 2} y={s.aY + 41}>
+                    {c.ch}
+                  </text>
+                </>
+              ))}
+
+              {/* band B — the KV cache, in pieces */}
+              <text class="hdr" x="0" y={s.bY + 1}>
+                {s.head.b}
+              </text>
+              <line class="ln" x1="0" y1={s.bY + 7} x2={s.w - 4} y2={s.bY + 7} />
+              {kv.map((c) => (
+                <>
+                  <rect
+                    class:list={['cell', c.ch === 0 && 'cell--on']}
+                    x={c.x}
+                    y={s.bY + 15}
+                    width={s.cell.w}
+                    height={s.cell.h}
+                  />
+                  <text class:list={['ch', c.ch === 0 && 'ch--on']} x={c.x + s.cell.w / 2} y={s.bY + 41}>
+                    {c.ch}
+                  </text>
+                </>
+              ))}
+
+              {/* band C — the channels themselves */}
+              <text class="hdr" x="0" y={s.cY + 1}>
+                {s.head.c}
+              </text>
+              <line class="ln" x1="0" y1={s.cY + 7} x2={s.w - 4} y2={s.cY + 7} />
+              {Array.from({ length: s.ch }, (_, i) => {
+                const x = i * s.box.pitch;
+                const y = s.cY + 14;
+                return (
+                  <>
+                    <rect class="box" x={x} y={y} width={s.box.w} height={s.box.h} />
+                    <text class:list={['lbl', i === 0 && 'lbl--on']} x={x + 8} y={y + 14}>
+                      {`CH${i}`}
+                    </text>
+                    <rect
+                      class="pc"
+                      x={x + s.pc.x0}
+                      y={y + s.pc.y}
+                      width={s.pc.w}
+                      height={s.pc.h}
+                    />
+                    <text class="lbl" x={x + s.pc.x0 + 8} y={y + s.pc.y + 15}>
+                      PC0
+                    </text>
+                    <rect
+                      class="pc"
+                      x={x + s.pc.x1}
+                      y={y + s.pc.y}
+                      width={s.pc.w}
+                      height={s.pc.h}
+                    />
+                    <text class="lbl" x={x + s.pc.x1 + 8} y={y + s.pc.y + 15}>
+                      PC1
+                    </text>
+                  </>
+                );
+              })}
+
+              <line class="ln" x1="0" y1={footY - 12} x2={s.w - 4} y2={footY - 12} />
+              {s.foot.map((t, i) => (
+                <text class="hdr" x="0" y={footY + i * 14}>
+                  {t}
+                </text>
+              ))}
+            </g>
+          </svg>
+        );
+      })
+    }
+  </div>
+  <figcaption class="plate__caption">{CAPTION}</figcaption>
+</figure>
+
+<style>
+  .plate {
+    margin: 2.25rem 0 2.5rem;
+  }
+
+  .plate__frame {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 1.1rem 0;
+  }
+
+  .plate__caption {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    line-height: 1.6;
+    color: var(--fg-faint);
+    margin-top: 0.6rem;
+  }
+
+  .plate__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    --sz: 10px;
+    --foot: 9.5px;
+  }
+
+  .plate__svg--narrow {
+    display: none;
+    max-width: 21rem;
+    --sz: 10.5px;
+    --foot: 10.5px;
+  }
+
+  @media (max-width: 40rem) {
+    .plate__svg--wide {
+      display: none;
+    }
+
+    .plate__svg--narrow {
+      display: block;
+    }
+  }
+
+  .ln {
+    fill: none;
+    stroke: var(--rule);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .box,
+  .cell,
+  .pc {
+    fill: none;
+    stroke: var(--rule-strong);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .cell--on {
+    fill: var(--accent);
+    fill-opacity: 0.16;
+    stroke: var(--accent);
+  }
+
+  .hdr,
+  .ch,
+  .lbl {
+    font-family: var(--font-mono);
+    letter-spacing: 0.1em;
+  }
+
+  .hdr {
+    font-size: var(--foot);
+    letter-spacing: 0.14em;
+    fill: var(--fg-faint);
+  }
+
+  .ch {
+    font-size: var(--sz);
+    fill: var(--fg-muted);
+    text-anchor: middle;
+  }
+
+  .ch--on {
+    fill: var(--accent);
+  }
+
+  .lbl {
+    font-size: var(--sz);
+    fill: var(--fg);
+  }
+
+  .lbl--on {
+    fill: var(--accent);
+  }
+</style>
