@@ -1,6 +1,7 @@
 ---
 title: "高速串行通信编码 Encoding"
 date: 2024-04-17T15:37:11-07:00
+displayDate: "2024-04-17"
 slug: "Encoding"
 lang: zh
 categories: ["技术", "数字IC", "高速IO"]

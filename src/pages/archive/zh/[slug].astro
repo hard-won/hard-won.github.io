@@ -16,15 +16,14 @@ interface Props {
 const { post } = Astro.props;
 const { Content } = await render(post);
 
-const fmt = new Intl.DateTimeFormat('en-GB', {
-  year: 'numeric',
-  month: 'short',
-  day: '2-digit',
-  timeZone: 'UTC',
-});
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** Format the stored calendar date directly; no timezone conversion. */
+const [year, month, day] = post.data.displayDate.split('-');
+const formattedDate = `${day} ${MONTHS[Number(month) - 1]} ${year}`;
 
 const description =
-  `${post.data.title} — archived Chinese-language post from ${post.data.date.getUTCFullYear()}` +
+  `${post.data.title} — archived Chinese-language post from ${year}` +
   (post.data.categories.length ? ` (${post.data.categories.join(' / ')})` : '') +
   '.';
 ---
@@ -41,7 +40,7 @@ const description =
       <p class="eyebrow">Archive · 中文</p>
       <h1>{post.data.title}</h1>
       <p class="post-meta">
-        <time datetime={post.data.date.toISOString()}>{fmt.format(post.data.date)}</time>
+        <time datetime={post.data.displayDate}>{formattedDate}</time>
         {post.data.categories.length > 0 && <> · {post.data.categories.join(' / ')}</>}
       </p>
       {

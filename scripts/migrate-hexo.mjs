@@ -175,8 +175,14 @@ function extract(postPath) {
   const header = article.querySelector('.post-meta') || article;
   const created = header.querySelector('time[itemprop~="dateCreated"], time[itemprop*="datePublished"]');
   const updated = header.querySelector('time[itemprop="dateModified"]');
-  const date = created?.getAttribute('datetime') || updated?.getAttribute('datetime');
+  const dateEl = created ?? updated;
+  const date = dateEl?.getAttribute('datetime');
   if (!date) throw new Error(`no date in ${file}`);
+  // The calendar date as the old site rendered it. The datetime attribute
+  // carries the author's UTC offset (e.g. 2024-04-15T21:08:30-07:00), so its
+  // first ten characters are already the local date; formatting the UTC instant
+  // instead would shift evening posts forward by a day.
+  const displayDate = date.slice(0, 10);
 
   // Categories: scoped to the post meta block (the sidebar has its own lists).
   const categories = Array.from(
@@ -202,6 +208,7 @@ function extract(postPath) {
     slug: postPath.split('/').pop(),
     title,
     date,
+    displayDate,
     categories,
     tags,
     originalUrl: `/${postPath}/`,
@@ -227,6 +234,7 @@ function frontmatter(post) {
     '---',
     `title: ${yamlString(post.title)}`,
     `date: ${post.date}`,
+    `displayDate: ${yamlString(post.displayDate)}`,
     `slug: ${yamlString(post.slug)}`,
     'lang: zh',
     `categories: ${yamlList(post.categories)}`,

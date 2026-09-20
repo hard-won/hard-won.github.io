@@ -1,6 +1,7 @@
 ---
 title: "如何提问技术问题"
 date: 2024-06-02T03:30:22-07:00
+displayDate: "2024-06-02"
 slug: "TechQA"
 lang: zh
 categories: ["技术", "Soft Skill"]

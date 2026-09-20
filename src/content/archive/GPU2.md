@@ -1,6 +1,7 @@
 ---
 title: "手搓GPU（二）"
 date: 2024-06-04T23:03:29-07:00
+displayDate: "2024-06-04"
 slug: "GPU2"
 lang: zh
 categories: ["技术", "数字IC", "GPU"]

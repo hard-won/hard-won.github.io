@@ -1,6 +1,7 @@
 ---
 title: "Advanced Computer Architecture CA1 分支预测竞赛"
 date: 2024-04-12T14:15:03-07:00
+displayDate: "2024-04-12"
 slug: "Advanced-Architecture-CA1"
 lang: zh
 categories: ["技术", "课", "Advanced Computer Architecture"]

@@ -1,6 +1,7 @@
 ---
 title: "高速接口PCIe无痛入门（三）数据链路层"
 date: 2024-04-14T19:20:18-07:00
+displayDate: "2024-04-14"
 slug: "PCIe-3"
 lang: zh
 categories: ["技术", "数字IC", "高速IO"]

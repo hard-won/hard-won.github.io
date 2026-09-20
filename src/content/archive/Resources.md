@@ -1,6 +1,7 @@
 ---
 title: "Resources"
 date: 2024-04-14T09:34:13-07:00
+displayDate: "2024-04-14"
 slug: "Resources"
 lang: zh
 categories: ["技术", "Resources"]

@@ -8,18 +8,21 @@ const posts = (await getCollection('archive')).sort(
 
 const byYear = new Map<number, typeof posts>();
 for (const post of posts) {
-  const year = post.data.date.getUTCFullYear();
+  // Group by the date the post originally carried, not the UTC instant.
+  const year = Number(post.data.displayDate.slice(0, 4));
   const bucket = byYear.get(year);
   if (bucket) bucket.push(post);
   else byYear.set(year, [post]);
 }
 const years = [...byYear.entries()].sort((a, b) => b[0] - a[0]);
 
-const fmt = new Intl.DateTimeFormat('en-GB', {
-  month: 'short',
-  day: '2-digit',
-  timeZone: 'UTC',
-});
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** Format the stored calendar date directly; no timezone conversion. */
+function formatDay(displayDate: string): string {
+  const [, month, day] = displayDate.split('-');
+  return `${day} ${MONTHS[Number(month) - 1]}`;
+}
 ---
 
 <BaseLayout
@@ -48,7 +51,7 @@ const fmt = new Intl.DateTimeFormat('en-GB', {
         <ul class="entry-list">
           {items.map((post) => (
             <li>
-              <time datetime={post.data.date.toISOString()}>{fmt.format(post.data.date)}</time>
+              <time datetime={post.data.displayDate}>{formatDay(post.data.displayDate)}</time>
               <span class="entry-title">
                 <a href={`/archive/zh/${post.data.slug}/`} lang="zh-CN">
                   {post.data.title}

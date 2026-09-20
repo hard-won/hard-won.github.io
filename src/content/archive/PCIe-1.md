@@ -1,6 +1,7 @@
 ---
 title: "高速接口PCIe无痛入门（一）总体架构"
 date: 2024-04-02T20:35:07-07:00
+displayDate: "2024-04-02"
 slug: "PCIe-1"
 lang: zh
 categories: ["技术", "数字IC", "高速IO"]

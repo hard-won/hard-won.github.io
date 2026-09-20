@@ -1,6 +1,7 @@
 ---
 title: "GPU3"
 date: 2024-06-04T18:12:38-07:00
+displayDate: "2024-06-04"
 slug: "GPU3"
 lang: zh
 categories: []

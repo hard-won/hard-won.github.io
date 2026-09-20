@@ -1,6 +1,7 @@
 ---
 title: "Hello World"
 date: 2018-09-02T23:12:00-07:00
+displayDate: "2018-09-02"
 slug: "hello-world"
 lang: zh
 categories: ["阅读"]

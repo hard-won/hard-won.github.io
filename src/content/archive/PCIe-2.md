@@ -1,6 +1,7 @@
 ---
 title: "高速接口PCIe无痛入门（二）事务层"
 date: 2024-04-14T12:42:40-07:00
+displayDate: "2024-04-14"
 slug: "PCIe-2"
 lang: zh
 categories: ["技术", "数字IC", "高速IO"]

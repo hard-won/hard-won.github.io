@@ -1,6 +1,7 @@
 ---
 title: "高速接口PCIe无痛入门（四）物理层（1）"
 date: 2024-04-15T21:08:30-07:00
+displayDate: "2024-04-15"
 slug: "PCIe-4"
 lang: zh
 categories: ["技术", "数字IC", "高速IO"]

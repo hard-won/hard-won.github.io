@@ -1,6 +1,7 @@
 ---
 title: "速读ASIC综合（一）"
 date: 2022-01-01T00:00:00-08:00
+displayDate: "2022-01-01"
 slug: "ASIC_Syn_1"
 lang: zh
 categories: ["技术", "数字IC", "Synthesis"]

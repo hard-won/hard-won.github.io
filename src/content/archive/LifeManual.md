@@ -1,6 +1,7 @@
 ---
 title: "LifeManual"
 date: 2024-05-29T10:31:30-07:00
+displayDate: "2024-05-29"
 slug: "LifeManual"
 lang: zh
 categories: ["阅读", "思考"]
