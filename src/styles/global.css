@@ -15,7 +15,11 @@
     "Microsoft YaHei", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo,
     Consolas, "Liberation Mono", monospace;
-  --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  /* Instrument Serif carries no CJK glyphs, so archived Chinese titles set in
+     the display face fall through to an explicit CJK serif rather than to
+     whatever the platform happens to pick. */
+  --font-display: "Instrument Serif", Georgia, "Times New Roman", "Songti SC",
+    "Noto Serif CJK SC", "Source Han Serif SC", "Source Han Serif", serif;
 
   /* Dark (default) */
   --bg: #0a0a0b;
@@ -98,6 +102,8 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Links read as body text with an accent rule underneath them. The accent is
+   never the text colour: it marks, it does not shout. */
 a {
   color: var(--fg);
   text-decoration: underline;
@@ -140,14 +146,14 @@ samp {
 :not(pre) > code {
   background: var(--bg-code);
   border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border-radius: 0;
   padding: 0.1em 0.35em;
 }
 
 pre {
   background: var(--bg-code);
   border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border-radius: 0;
   padding: 0.9rem 1rem;
   overflow-x: auto;
   font-size: 0.85rem;
@@ -198,29 +204,39 @@ pre.astro-code {
 }
 
 blockquote {
-  margin: 1.5rem 0;
-  padding-left: 1rem;
-  border-left: 3px solid var(--rule-strong);
+  margin: 1.75rem 0;
+  padding: 0 0 0 1.25rem;
+  border: 0;
+  border-left: 1px solid var(--rule-strong);
   color: var(--fg-muted);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.925rem;
-  margin: 1.5rem 0;
+  font-size: 0.9375rem;
+  margin: 1.75rem 0;
 }
 
+/* Hairline rows, no cell boxes: a table reads as ruled paper. */
 th,
 td {
-  border: 1px solid var(--rule);
-  padding: 0.4rem 0.6rem;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  padding: 0.45rem 1rem 0.45rem 0;
   text-align: left;
   vertical-align: top;
 }
 
 th {
-  background: var(--bg-code);
+  background: none;
+  border-bottom: 1px solid var(--rule-strong);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--fg-faint);
 }
 
 /* ---------------------------------------------------------------------------
@@ -357,10 +373,12 @@ main {
   display: block;
 }
 
+/* --- footer ---------------------------------------------------------------- */
+
 .site-footer {
   border-top: 1px solid var(--rule);
   margin-top: 6rem;
-  padding: 1rem 0 3rem;
+  padding: 0.75rem 0 2.5rem;
   color: var(--fg-faint);
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -370,8 +388,66 @@ main {
 .foot-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 1.5rem;
   margin: 0;
+  min-height: 2.75rem;
+}
+
+.foot-row__id {
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+.foot-marks {
+  display: flex;
+  align-items: center;
+  /* Negative margin pulls the first mark's 44px hit area back to the optical
+     edge of the column, so the row still lines up with the text above it. */
+  margin: 0 -0.6875rem 0 0;
+}
+
+/* 20px marks in a 44px target. currentColor lets one rule theme all four. */
+.foot-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  color: var(--fg-muted);
+  text-decoration: none;
+  border-bottom: 0;
+  transition: color 0.15s ease;
+}
+
+.foot-mark svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* A contact with no glyph keeps the same hit area and reads as mono text. */
+.foot-mark--text {
+  width: auto;
+  padding: 0 0.6875rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+.site-footer a.foot-mark:hover,
+.site-footer a.foot-mark:focus-visible {
+  color: var(--accent);
+  border-bottom-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foot-mark {
+    transition: none;
+  }
 }
 
 .site-footer a {
@@ -387,7 +463,11 @@ main {
 }
 
 /* ---------------------------------------------------------------------------
-   Typography helpers
+   Display type
+   Two tiers. The masthead on the homepage is the loudest thing on the site;
+   every interior page opens one tier below it. Instrument Serif ships a single
+   weight, so every display rule pins font-weight: 400 — otherwise the global
+   heading weight below synthesises a bold and the face smears.
 --------------------------------------------------------------------------- */
 
 h1,
@@ -414,6 +494,369 @@ h3 {
   margin: 1.75rem 0 0.5rem;
 }
 
+/* --- page head (every interior page) --------------------------------------- */
+
+.page-head {
+  margin: 0 0 3.5rem;
+}
+
+.page-head__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  margin: 0 0 1.1rem;
+}
+
+.page-head__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.page-head__kicker {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  line-height: 1.7;
+  color: var(--fg-muted);
+  margin: 1.1rem 0 0;
+}
+
+.page-head__lede {
+  max-width: 60ch;
+  font-size: 1.0625rem;
+  margin: 1.5rem 0 0;
+}
+
+/* --- section label: WRITING ............... 16 ENTRIES ---------------------- */
+
+.index-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  font-weight: 500;
+  color: var(--fg-faint);
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--rule-strong);
+  margin: 0;
+}
+
+/* Later sections on the same page need air above the rule. */
+.index-head--stacked {
+  margin-top: 4rem;
+}
+
+/* --- dense dated index ----------------------------------------------------- */
+
+.index {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.index__row {
+  display: grid;
+  grid-template-columns: 0.9rem 6.5rem 1fr;
+  align-items: baseline;
+  gap: 0 0.5rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--fg);
+}
+
+.index__row:hover {
+  text-decoration: none;
+  box-shadow: inset 0 -1px 0 0 var(--accent);
+}
+
+.index__tick {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: transparent;
+}
+
+.index__row:hover .index__tick,
+.index__row:focus-visible .index__tick {
+  color: var(--accent);
+}
+
+.index__date {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--fg-faint);
+  white-space: nowrap;
+}
+
+.index__title {
+  line-height: 1.45;
+}
+
+/* The one-line description under a note title in the index. */
+.index__note {
+  grid-column: 3;
+  font-size: 0.875rem;
+  color: var(--fg-muted);
+  line-height: 1.5;
+  margin-top: 0.15rem;
+}
+
+/* --- a row of quiet mono links (page feet, back links) --------------------- */
+
+.index__foot,
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+  margin: 1.25rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+.crumbs {
+  margin-top: 3.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
+.index__foot a,
+.crumbs a {
+  color: var(--fg-muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 1px;
+}
+
+.index__foot a:hover,
+.crumbs a:hover {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+}
+
+/* ---------------------------------------------------------------------------
+   Datasheet listing — numbered entries, hairline separated, no boxes.
+   Used by /projects. Deliberately not an anchor: none of these entries has
+   anywhere to go yet, and a hover tick would promise a link that is not there.
+--------------------------------------------------------------------------- */
+
+.sheet {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sheet__item {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr;
+  gap: 0 0.5rem;
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.sheet__num {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  color: var(--fg-faint);
+  line-height: 1.6;
+  padding-top: 0.5rem;
+}
+
+.sheet__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.375rem, 4.5vw, 1.875rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.sheet__summary {
+  max-width: 58ch;
+  margin: 0.85rem 0 0;
+  color: var(--fg-muted);
+}
+
+.sheet__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-top: 1.25rem;
+}
+
+.sheet__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin: 1rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 30rem) {
+  .sheet__item {
+    grid-template-columns: 2.25rem 1fr;
+  }
+}
+
+/* --- small mono tags, no pills --------------------------------------------- */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+/* A status is a marker on a sheet, not a badge: mono, uppercase, no border. */
+.status {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  white-space: nowrap;
+}
+
+/* --- spec list: mono term, plain definition, hairline rows ------------------ */
+
+.spec {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 0;
+  margin: 0;
+  max-width: var(--measure);
+}
+
+.spec dt {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  padding: 0.8rem 1rem 0.8rem 0;
+  border-bottom: 1px solid var(--rule);
+  line-height: 1.6;
+}
+
+.spec dd {
+  margin: 0;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--rule);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 26rem) {
+  .spec {
+    grid-template-columns: 1fr;
+  }
+
+  .spec dt {
+    padding: 0.9rem 0 0;
+    border-bottom: 0;
+  }
+
+  .spec dd {
+    padding: 0.1rem 0 0.9rem;
+  }
+}
+
+/* --- a quiet aside: hairline band, never a card ---------------------------- */
+
+.band {
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 1.75rem 0;
+  margin: 2.5rem 0;
+  max-width: var(--measure);
+  color: var(--fg-muted);
+}
+
+.band > :first-child {
+  margin-top: 0;
+}
+
+.band > :last-child {
+  margin-bottom: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Article — mono eyebrow, display title, mono meta, hairline, prose.
+--------------------------------------------------------------------------- */
+
+.article__head {
+  margin: 0 0 3rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.article__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  margin: 0 0 1.1rem;
+}
+
+.article__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 6.5vw, 3.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  margin: 0;
+  max-width: 24ch;
+}
+
+/* CJK needs more leading and no negative tracking to stay legible. */
+.article__title:lang(zh-CN) {
+  letter-spacing: 0;
+  line-height: 1.25;
+  font-size: clamp(1.75rem, 5.5vw, 2.75rem);
+}
+
+.article__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.5rem;
+  margin: 1.5rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+.article__meta time {
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+   Prose
+--------------------------------------------------------------------------- */
+
 .prose {
   max-width: var(--measure);
 }
@@ -424,311 +867,83 @@ h3 {
   margin: 0 0 1.1rem;
 }
 
-.lede {
-  font-size: 1.0625rem;
-  color: var(--fg-muted);
-  max-width: var(--measure);
+.prose ul,
+.prose ol {
+  padding-left: 1.25rem;
 }
 
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--fg-faint);
-  margin: 0 0 0.75rem;
+.prose li {
+  margin-bottom: 0.35rem;
 }
 
-.section {
-  margin-top: 3rem;
+/* Headings inside an article are the display face, one tier under the title. */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
-.section > h2 {
-  margin-top: 0;
+.prose h1 {
+  font-size: 1.875rem;
+  margin: 3rem 0 0.75rem;
   padding-bottom: 0.4rem;
   border-bottom: 1px solid var(--rule);
 }
 
-.note-box {
-  border: 1px solid var(--rule);
-  border-left: 3px solid var(--rule-strong);
-  border-radius: var(--radius);
-  background: var(--bg-raised);
-  padding: 0.9rem 1.1rem;
+.prose h2 {
+  font-size: 1.625rem;
+  margin: 2.75rem 0 0.6rem;
+}
+
+.prose h3 {
+  font-size: 1.3125rem;
+  margin: 2rem 0 0.5rem;
+}
+
+.prose h4 {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--fg-muted);
-  max-width: var(--measure);
+  margin: 1.75rem 0 0.5rem;
 }
 
-.note-box p:first-child {
-  margin-top: 0;
-}
-
-.note-box p:last-child {
-  margin-bottom: 0;
-}
-
-/* ---------------------------------------------------------------------------
-   Lists of things
---------------------------------------------------------------------------- */
-
-.card-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 1rem;
-}
-
-.card {
+.prose img {
+  display: block;
   border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border-radius: 0;
   background: var(--bg-raised);
-  padding: 1rem 1.1rem;
+  margin: 1.75rem 0;
 }
 
-.card h3 {
-  margin: 0 0 0.35rem;
-  font-size: 1rem;
+/* Wide tables scroll inside their own block rather than the page: this is what
+   keeps archived posts from forcing a horizontal scrollbar at 320px. */
+.prose table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 
-.card p {
-  margin: 0 0 0.6rem;
-  color: var(--fg-muted);
-  font-size: 0.9375rem;
+.prose figure {
+  margin: 1.75rem 0;
 }
 
-.card p:last-child {
-  margin-bottom: 0;
-}
-
-.status {
-  display: inline-block;
+.prose figcaption {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.12em;
   color: var(--fg-faint);
-  border: 1px solid var(--rule-strong);
-  border-radius: 999px;
-  padding: 0.05rem 0.5rem;
-  vertical-align: 0.15em;
-  margin-left: 0.4rem;
-  white-space: nowrap;
-}
-
-.tag-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin: 0.6rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.tag-row li {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--fg-faint);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  padding: 0.05rem 0.4rem;
-}
-
-.entry-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.entry-list li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 0.85rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--rule);
-}
-
-.entry-list li:last-child {
-  border-bottom: 0;
-}
-
-.entry-list time {
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  color: var(--fg-faint);
-  flex: 0 0 5.5rem;
-}
-
-.entry-list .entry-title {
-  flex: 1 1 14rem;
-}
-
-.contact-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0.4rem;
-  font-size: 0.9375rem;
-}
-
-.contact-list dt {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--fg-faint);
-}
-
-.contact-grid {
-  display: grid;
-  grid-template-columns: 7rem 1fr;
-  gap: 0.35rem 1rem;
-  margin: 0;
-  max-width: var(--measure);
-  font-size: 0.9375rem;
-}
-
-.contact-grid dt {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--fg-faint);
-  padding-top: 0.2rem;
-}
-
-.contact-grid dd {
-  margin: 0;
-}
-
-@media (max-width: 26rem) {
-  .contact-grid {
-    grid-template-columns: 1fr;
-    gap: 0.1rem;
-  }
-
-  .contact-grid dd {
-    margin-bottom: 0.6rem;
-  }
+  margin-top: 0.6rem;
 }
 
 /* ---------------------------------------------------------------------------
-   Pipeline diagram (homepage) — inline SVG, themed via currentColor + vars.
---------------------------------------------------------------------------- */
-
-.pipeline {
-  margin: 1.75rem 0 0;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  background: var(--bg-raised);
-  padding: 1rem 0.75rem;
-  overflow-x: auto;
-}
-
-.pipeline svg {
-  display: block;
-  width: 100%;
-  min-width: 18rem;
-  height: auto;
-}
-
-.pipeline .stage-box {
-  fill: var(--bg);
-  stroke: var(--rule-strong);
-}
-
-.pipeline .stage-label {
-  fill: var(--fg);
-  font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.pipeline .stage-sub {
-  fill: var(--fg-faint);
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-}
-
-.pipeline .flow {
-  stroke: var(--accent);
-  fill: none;
-  stroke-width: 1.5;
-}
-
-.pipeline .flow-head {
-  fill: var(--accent);
-}
-
-.pipeline .axis-label {
-  fill: var(--fg-faint);
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  letter-spacing: 0.06em;
-}
-
-/* ---------------------------------------------------------------------------
-   Archive post pages
---------------------------------------------------------------------------- */
-
-.post-header {
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--rule);
-}
-
-.post-meta {
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  color: var(--fg-faint);
-  margin: 0.5rem 0 0;
-}
-
-.archive-body {
-  max-width: var(--measure);
-}
-
-.archive-body h1 {
-  font-size: 1.375rem;
-  margin: 2.5rem 0 0.75rem;
-}
-
-.archive-body h2 {
-  font-size: 1.1875rem;
-}
-
-.archive-body img {
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  background: var(--bg-raised);
-}
-
-.archive-body table {
-  display: block;
-  overflow-x: auto;
-  white-space: nowrap;
-}
-
-.year-group {
-  margin-top: 2.25rem;
-}
-
-.year-group h2 {
-  font-family: var(--font-mono);
-  font-size: 0.875rem;
-  letter-spacing: 0.08em;
-  color: var(--fg-faint);
-  margin: 0 0 0.25rem;
-  padding-bottom: 0.3rem;
-  border-bottom: 1px solid var(--rule);
-}
-
-/* ---------------------------------------------------------------------------
-   Homepage — datasheet
-   Everything below is scoped to homepage classes so the rest of the site keeps
-   its existing typography.
+   Homepage — masthead
 --------------------------------------------------------------------------- */
 
 .masthead {
@@ -907,90 +1122,6 @@ h3 {
   max-width: 22ch;
 }
 
-/* --- writing index --------------------------------------------------------- */
-
-.index-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.14em;
-  font-weight: 500;
-  color: var(--fg-faint);
-  padding-bottom: 0.6rem;
-  border-bottom: 1px solid var(--rule-strong);
-  margin: 0;
-}
-
-.index {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.index__row {
-  display: grid;
-  grid-template-columns: 0.9rem 6.5rem 1fr;
-  align-items: baseline;
-  gap: 0 0.5rem;
-  padding: 0.7rem 0;
-  border-bottom: 1px solid var(--rule);
-  text-decoration: none;
-  color: var(--fg);
-}
-
-.index__row:hover {
-  text-decoration: none;
-  box-shadow: inset 0 -1px 0 0 var(--accent);
-}
-
-.index__tick {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  color: transparent;
-}
-
-.index__row:hover .index__tick,
-.index__row:focus-visible .index__tick {
-  color: var(--accent);
-}
-
-.index__date {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  color: var(--fg-faint);
-  white-space: nowrap;
-}
-
-.index__title {
-  line-height: 1.45;
-}
-
-.index__foot {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem 1.5rem;
-  margin: 1.25rem 0 0;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-}
-
-.index__foot a {
-  color: var(--fg-muted);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  padding-bottom: 1px;
-}
-
-.index__foot a:hover {
-  color: var(--fg);
-  border-bottom-color: var(--accent);
-}
-
 @media (max-width: 30rem) {
   .index__row {
     grid-template-columns: 0.8rem 5.6rem 1fr;
@@ -999,4 +1130,59 @@ h3 {
   .index__date {
     font-size: 0.625rem;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Pipeline diagram — inline SVG, themed via currentColor + vars.
+--------------------------------------------------------------------------- */
+
+.pipeline {
+  margin: 1.75rem 0 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  padding: 1rem 0.75rem;
+  overflow-x: auto;
+}
+
+.pipeline svg {
+  display: block;
+  width: 100%;
+  min-width: 18rem;
+  height: auto;
+}
+
+.pipeline .stage-box {
+  fill: var(--bg);
+  stroke: var(--rule-strong);
+}
+
+.pipeline .stage-label {
+  fill: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.pipeline .stage-sub {
+  fill: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+}
+
+.pipeline .flow {
+  stroke: var(--accent);
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.pipeline .flow-head {
+  fill: var(--accent);
+}
+
+.pipeline .axis-label {
+  fill: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
 }
