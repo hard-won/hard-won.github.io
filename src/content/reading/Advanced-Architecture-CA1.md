@@ -12,10 +12,10 @@ source:
 furtherReading:
   - title: "CPU分支预测算法及其演进"
     url: "https://www.cnblogs.com/arthurzyc/p/16895277.html"
-  - title: "分支预测技术汇总"
+  - title: "分支预测器（Branch Predictor） 汇总介绍"
     url: "https://blog.csdn.net/edonlii/article/details/8754724"
-  - title: "Satjpatel/Branch-Predictor-Project — TAGE implementation"
-    url: "https://github.com/Satjpatel/Branch-Predictor-Project"
+  - title: "Satjpatel/Branch-Predictor-Project — my_predictor.h"
+    url: "https://github.com/Satjpatel/Branch-Predictor-Project/blob/fb34a61660f788c0339b68218e5c790d43d77e0e/Newr%20Final%20Infrastructure/cbp2-infrastructure-v3/src/my_predictor.h#L37"
 originalUrl: "/2024/04/12/Advanced-Architecture-CA1/"
 ---
 竞赛内容：[https://docs.google.com/document/d/1wGhjB8iqROP4Ovs78SrmGrZcxDbrATPX9CFyKd7pTxo/edit](https://docs.google.com/document/d/1wGhjB8iqROP4Ovs78SrmGrZcxDbrATPX9CFyKd7pTxo/edit)

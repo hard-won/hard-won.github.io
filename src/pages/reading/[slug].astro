@@ -1,7 +1,7 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { stamp } from '../../lib/date';
+import { entryCount, stamp } from '../../lib/date';
 import { titleLang } from '../../lib/reading';
 
 export async function getStaticPaths() {
@@ -77,7 +77,7 @@ const description =
         <section class="further" aria-labelledby="further">
           <h2 class="index-head index-head--stacked" id="further" lang="en">
             <span>ALSO CITED</span>
-            <span>{furtherReading.length}</span>
+            <span>{entryCount(furtherReading.length)}</span>
           </h2>
           <ul class="further__list">
             {furtherReading.map((ref) => (
