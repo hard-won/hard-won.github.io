@@ -16,11 +16,23 @@ export const READING_CATEGORIES = [
   'gpu',
   'rtl',
   'architecture',
-  'practice',
   'notebook',
 ] as const;
 
 export type ReadingCategory = (typeof READING_CATEGORIES)[number];
+
+/**
+ * Categories that stay off the front page. `notebook` is personal reading, not
+ * technical work: it keeps its own entry under /reading like everything else,
+ * but it does not belong in the site's writing index. Stated as a category
+ * rather than a slug so the rule holds for entries added later.
+ */
+export const UNFEATURED_CATEGORIES: readonly ReadingCategory[] = ['notebook'];
+
+/** Whether an entry of this category may appear in the homepage writing index. */
+export function isFeatured(category: ReadingCategory): boolean {
+  return !UNFEATURED_CATEGORIES.includes(category);
+}
 
 /** The upstream work a note was taken from, or a further-reading entry. */
 export interface SourceRef {

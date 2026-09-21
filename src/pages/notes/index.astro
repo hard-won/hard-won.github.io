@@ -27,8 +27,8 @@ const notes = (await getCollection('notes', ({ data }) => !data.draft)).sort(
     {
       notes.length === 0 ? (
         <p class="band">
-          No notes published yet. In the meantime, the <a href="/archive/zh">archive</a> holds
-          sixteen older Chinese-language posts on PCIe, ASIC synthesis, RTL style and GPU
+          No notes published yet. In the meantime, <a href="/reading">Reading</a> holds notes worked
+          through from other people's material on PCIe, ASIC synthesis, RTL style and GPU
           microarchitecture.
         </p>
       ) : (
@@ -51,7 +51,7 @@ const notes = (await getCollection('notes', ({ data }) => !data.draft)).sort(
     }
 
     <p class="index__foot">
-      <a href="/archive/zh">ARCHIVE</a>
+      <a href="/reading">READING</a>
       <a href="/projects">PROJECTS</a>
     </p>
   </section>

@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { LINK_GROUPS, host } from '../data/links';
+import { entryCount } from '../lib/date';
+---
+
+<BaseLayout
+  title="Links"
+  description="A reading list for digital IC design and PCIe: the references collected while learning the material behind the notes."
+>
+  <header class="page-head">
+    <h1 class="page-head__title">Links</h1>
+    <p class="page-head__kicker">DIGITAL IC · PCIE</p>
+    <p class="page-head__lede">
+      References collected while learning the material behind the <a href="/reading">reading notes</a
+      >. Kept as a list rather than a note, because that is all it ever was. Titles are the original
+      Chinese.
+    </p>
+  </header>
+
+  {
+    LINK_GROUPS.map((group, i) => (
+      <section aria-labelledby={group.label.replace(/[^a-z]/gi, '').toLowerCase()}>
+        <h2
+          class:list={['index-head', i > 0 && 'index-head--stacked']}
+          id={group.label.replace(/[^a-z]/gi, '').toLowerCase()}
+        >
+          <span>{group.label}</span>
+          <span>{entryCount(group.links.length)}</span>
+        </h2>
+
+        <ul class="links">
+          {group.links.map((link) => (
+            <li>
+              <a href={link.url}>
+                <span class="links__title" lang="zh-CN">
+                  {link.starred && (
+                    <span class="links__star" title="Singled out in the original list">
+                      *
+                    </span>
+                  )}
+                  {link.title}
+                </span>
+                <span class="links__host">{host(link.url)}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+
+  <p class="crumbs">
+    <a href="/reading">READING</a>
+    <a href="/notes">NOTES</a>
+    <a href="/">HOME</a>
+  </p>
+</BaseLayout>
+
+<style>
+  /* Hairline rows, the same rhythm as the dated indexes, but with a host tag
+     instead of a date: these entries have no date worth showing. */
+  .links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .links a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+    color: var(--fg);
+  }
+
+  .links a:hover,
+  .links a:focus-visible {
+    text-decoration: none;
+    box-shadow: inset 0 -1px 0 0 var(--accent);
+  }
+
+  .links__title {
+    line-height: 1.45;
+    min-width: 0;
+  }
+
+  /* The one entry the original marked with an asterisk keeps its mark. */
+  .links__star {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    margin-right: 0.3em;
+  }
+
+  .links__host {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.08em;
+    color: var(--fg-faint);
+    white-space: nowrap;
+  }
+</style>

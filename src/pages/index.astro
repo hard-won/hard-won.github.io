@@ -3,8 +3,11 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import DataflowFigure from '../components/DataflowFigure.astro';
 import { SITE, FRAMING } from '../data/site';
+import { isFeatured } from '../lib/reading';
 
-const posts = (await getCollection('archive')).sort(
+// The front page lists the technical reading notes. `notebook` entries are
+// personal reading: they keep their place under /reading and stay off here.
+const posts = (await getCollection('reading', ({ data }) => isFeatured(data.category))).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
 
@@ -44,7 +47,7 @@ function stamp(displayDate: string): string {
 
   <section aria-labelledby="writing">
     <h2 class="index-head" id="writing">
-      <span>WRITING</span>
+      <span>READING NOTES</span>
       <span>{posts.length} ENTRIES</span>
     </h2>
 
@@ -52,7 +55,7 @@ function stamp(displayDate: string): string {
       {
         posts.map((post) => (
           <li>
-            <a class="index__row" href={`/archive/zh/${post.data.slug}/`}>
+            <a class="index__row" href={`/reading/${post.data.slug}/`}>
               <span class="index__tick" aria-hidden="true">
                 +
               </span>
@@ -69,7 +72,7 @@ function stamp(displayDate: string): string {
     </ol>
 
     <p class="index__foot">
-      <a href="/archive/zh">ARCHIVE</a>
+      <a href="/reading">ALL READING</a>
       <a href="/notes">NOTES</a>
     </p>
   </section>

@@ -1050,5 +1050,101 @@ h3 {
 }
 
 /* ---------------------------------------------------------------------------
+   Reading — attribution is the section's whole point, so it is set beside the
+   title, never in a footer. Hairlines and mono only; no chips, no cards.
+--------------------------------------------------------------------------- */
+
+/* The title cell of a reading row: title, then its category pushed right. On a
+   narrow screen the tag wraps onto its own line instead of squeezing the
+   title, so the 3-column index grid is left alone. */
+.index__cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 1rem;
+  min-width: 0;
+}
+
+.index__tag {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  white-space: nowrap;
+}
+
+/* `READING NOTE · FROM <source>`, directly above the article title. */
+.from-line.from-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.5rem;
+  max-width: var(--measure);
+}
+
+.from-line__sep {
+  color: var(--rule-strong);
+}
+
+/* A cited work keeps its own capitalisation — `tiny-gpu` is not `TINY-GPU` —
+   and a long CJK title must wrap rather than push the page sideways. */
+.from-line__source {
+  text-transform: none;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent);
+  padding-bottom: 1px;
+  overflow-wrap: anywhere;
+}
+
+.from-line__source:hover,
+.from-line__source:focus-visible {
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom-color: var(--accent-hover);
+}
+
+/* Three of the migrated notes name no source anywhere in their own text. Say
+   so plainly rather than rendering a line that looks like an attribution. */
+.from-line__absent {
+  color: var(--fg-faint);
+}
+
+/* --- the rest of what a note cites, after the body ------------------------- */
+
+.further {
+  margin-top: 4rem;
+}
+
+.further__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: var(--measure);
+}
+
+.further__list li {
+  border-bottom: 1px solid var(--rule);
+}
+
+.further__list a {
+  display: block;
+  padding: 0.7rem 0;
+  color: var(--fg-muted);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.further__list a:hover,
+.further__list a:focus-visible {
+  color: var(--fg);
+  text-decoration: none;
+  box-shadow: inset 0 -1px 0 0 var(--accent);
+}
+
+/* ---------------------------------------------------------------------------
    Pipeline diagram — inline SVG, themed via currentColor + vars.
 --------------------------------------------------------------------------- */
