@@ -13,7 +13,7 @@ Coding style matters. It lets other people read what you wrote, and that makes e
 
 What follows is a simple way of writing code.
 
-# How to write RTL
+# RTL coding style
 
 ```verilog
 /* STYLE_NOTES begin
