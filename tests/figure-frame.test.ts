@@ -17,6 +17,8 @@ import assert from 'node:assert/strict';
 
 import { makeLayerLedger, makeProjectionLedger, LAYER_EDGES } from '../src/lib/decode-traffic/index.ts';
 import {
+  annotateLayer,
+  annotateProjection,
   LANE,
   lanePct,
   sampleLayer,
@@ -29,8 +31,8 @@ import {
   isCompute,
 } from '../src/lib/figure/frame.ts';
 
-const layer = makeLayerLedger({ T0: 2048, stepIndex: 0 });
-const projection = makeProjectionLedger(2, 3);
+const layer = annotateLayer(makeLayerLedger({ T0: 2048, stepIndex: 0 }));
+const projection = annotateProjection(makeProjectionLedger(2, 3));
 const wide = projectionLayout(projection, PROJECTION_WIDE);
 const narrow = projectionLayout(projection, PROJECTION_NARROW);
 
@@ -255,6 +257,9 @@ test('the static frames the figure ships are the ones they claim to be', () => {
     ['attn.k.return'],
   );
   assert.equal(a.kvValid, 2049);
+  // The two highlights the old figure conflated, at the same instant.
+  assert.equal(a.stage['attention'], 'now');
+  assert.equal(a.bands.find((b) => b.id === 'COMPUTE')?.state, 'waiting');
   const b = sampleProjection(projection, wide, 3600);
   assert.equal(b.columns[0]?.delivered, false);
   assert.ok(b.parcels.length > 0, 'the projection static frame should show traffic');

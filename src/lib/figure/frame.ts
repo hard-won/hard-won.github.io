@@ -190,6 +190,80 @@ export function alongPolyline(points: Pt[], f: number): Pt {
   return points[points.length - 1] as Pt;
 }
 
+/* -------------------------------------------------------------------------
+   Annotation. `describe`, `parcelLabel` and `stageDemand` are pure
+   functions of a ledger event, so their answers are fixed the moment the
+   ledger is built. They are evaluated once here, at build time, and the
+   result travels with the scene. The browser then ships the ledger's own
+   words instead of the code that derives them, and the samplers below read
+   one field rather than re-deriving a phrase sixty times a second.
+------------------------------------------------------------------------- */
+
+export interface DrawnEvent extends LedgerEvent {
+  /** `describe(e)`, computed once. */
+  phrase: string;
+  /** `parcelLabel(e)`, computed once. */
+  tag: string;
+  /** True where this event is arithmetic rather than traffic or state. */
+  arith: boolean;
+  /** The phrases of the events this one waited for. Fixed by the ledger. */
+  after: string;
+  /** The phrases of the events waiting on this one. Fixed by the ledger. */
+  into: string;
+  /** The declared route, already written out as `A->B->C`. */
+  path: string;
+}
+
+export interface DrawnStageWindow {
+  id: string;
+  label: string;
+  startMs: number;
+  endMs: number;
+  /** `stageDemand(scene, id)`, computed once. */
+  demand: string;
+  /** The stage label as the figure prints it. */
+  title: string;
+}
+
+export interface DrawnLayerScene extends Omit<LayerScene, 'events' | 'stageWindows'> {
+  events: DrawnEvent[];
+  stageWindows: DrawnStageWindow[];
+}
+
+export interface DrawnProjectionScene extends Omit<ProjectionScene, 'events'> {
+  events: DrawnEvent[];
+}
+
+function drawAll(events: LedgerEvent[]): DrawnEvent[] {
+  const phrase = new Map(events.map((e) => [e.id, describe(e)]));
+  const said = (ids: string[]): string => ids.map((i) => phrase.get(i) as string).join('; ');
+  return events.map((e) => ({
+    ...e,
+    phrase: phrase.get(e.id) as string,
+    tag: parcelLabel(e),
+    arith: isCompute(e),
+    after: said(e.deps) || 'THE SEQUENCE STARTED',
+    path: (e.route ?? []).join('->'),
+    into: said(events.filter((c) => c.deps.includes(e.id)).map((c) => c.id)) || 'NO LATER EVENT',
+  }));
+}
+
+export function annotateLayer(scene: LayerScene): DrawnLayerScene {
+  return {
+    ...scene,
+    events: drawAll(scene.events),
+    stageWindows: scene.stageWindows.map((w) => ({
+      ...w,
+      demand: stageDemand(scene, w.id),
+      title: w.label.toUpperCase(),
+    })),
+  };
+}
+
+export function annotateProjection(scene: ProjectionScene): DrawnProjectionScene {
+  return { ...scene, events: drawAll(scene.events) };
+}
+
 /* =========================================================================
    VIEW A — layer traffic
    ========================================================================= */
@@ -212,7 +286,6 @@ export interface LayerParcel {
   id: string;
   kind: string;
   label: string;
-  tensor: string;
   /** Percent down the lane: 0 is the device-memory end. */
   pct: number;
   /** Toward device memory, or toward compute. */
@@ -221,7 +294,12 @@ export interface LayerParcel {
   to: string;
 }
 
-export type BandState = 'idle' | 'transit' | 'active' | 'ready';
+/**
+ * `active` is the one state that means arithmetic is running. `waiting` is
+ * its opposite and is drawn differently on purpose: a highlighted stage
+ * whose compute is waiting is the whole point of the rebuild.
+ */
+export type BandState = 'idle' | 'transit' | 'active' | 'ready' | 'waiting';
 
 export interface Band {
   id: string;
@@ -250,8 +328,6 @@ export interface LayerFrame {
   kvPending: boolean;
   /** True while the ledger is in its unshown-work window. */
   replay: boolean;
-  /** Qualitative operand demand of the current stage. Never a measurement. */
-  demand: string;
   readout: Row[];
 }
 
@@ -279,21 +355,21 @@ export function stageDemand(scene: LayerScene, stage: string | null): string {
   return 'NO LARGE OPERAND CROSSES THE MEMORY BOUNDARY IN THIS STAGE';
 }
 
-export function sampleLayer(scene: LayerScene, tMs: number): LayerFrame {
+export function sampleLayer(scene: DrawnLayerScene, tMs: number): LayerFrame {
   const s = stateAt(scene, tMs);
   const done = new Set(s.complete);
-  const activeIds = new Set(s.active.map((e) => e.id));
+  const active = s.active as DrawnEvent[];
   const byId = new Map(scene.events.map((e) => [e.id, e]));
+  const tag = (id: string): string => byId.get(id)?.tag ?? id;
 
-  const parcels: LayerParcel[] = s.active
+  const parcels: LayerParcel[] = active
     .filter((e) => (e.route ?? []).length > 1)
     .map((e) => {
       const { from, to, f } = hopAt(e, s.tMs);
       return {
         id: e.id,
         kind: e.kind,
-        label: parcelLabel(e),
-        tensor: e.tensor ?? '',
+        label: e.tag,
         pct: lerp(lanePct(from), lanePct(to), f),
         dir: LANE.indexOf(to) < LANE.indexOf(from) ? ('up' as const) : ('down' as const),
         from,
@@ -303,15 +379,15 @@ export function sampleLayer(scene: LayerScene, tMs: number): LayerFrame {
 
   // The next arithmetic the ledger has not finished, and what it still lacks.
   const pending = scene.events
-    .filter((e) => isCompute(e) && !done.has(e.id))
+    .filter((e) => e.arith && !done.has(e.id))
     .sort((a, b) => a.startMs - b.startMs)[0];
-  const activeCompute = s.active.find((e) => isCompute(e));
-  const needs = pending ? pending.deps.filter((d) => !done.has(d)).map((d) => parcelLabel(byId.get(d) as LedgerEvent)) : [];
+  const arith = active.find((e) => e.arith);
+  const needs = pending ? pending.deps.filter((d) => !done.has(d)).map(tag) : [];
 
-  const compute: LayerFrame['compute'] = activeCompute
-    ? { state: 'active', label: describe(activeCompute), needs: [] }
+  const compute: LayerFrame['compute'] = arith
+    ? { state: 'active', label: arith.phrase, needs: [] }
     : pending
-      ? { state: needs.length ? 'waiting' : 'idle', label: describe(pending), needs }
+      ? { state: needs.length ? 'waiting' : 'idle', label: pending.phrase, needs }
       : { state: 'idle', label: 'NOTHING LEFT IN THIS LAYER', needs: [] };
 
   // Operands that have landed in a buffer and whose consumer has not yet run.
@@ -324,11 +400,12 @@ export function sampleLayer(scene: LayerScene, tMs: number): LayerFrame {
     )
     .map((e) => e.tensor as string);
 
-  const serving = s.active.find((e) => e.kind === 'memory-read');
+  const serving = active.find((e) => e.kind === 'memory-read');
+  const at = (n: string): boolean => parcels.some((p) => p.from === n || p.to === n);
   const bands: Band[] = [
     {
       id: 'HBM',
-      state: serving ? 'active' : parcels.some((p) => p.from === 'HBM' || p.to === 'HBM') ? 'transit' : 'idle',
+      state: serving ? 'active' : at('HBM') ? 'transit' : 'idle',
       text: serving ? `SERVICING ${serving.tensor}` : 'NO SERVICE IN PROGRESS',
     },
     {
@@ -338,12 +415,12 @@ export function sampleLayer(scene: LayerScene, tMs: number): LayerFrame {
     },
     {
       id: 'BUF',
-      state: held.length ? 'ready' : parcels.some((p) => p.from === 'BUF' || p.to === 'BUF') ? 'transit' : 'idle',
-      text: held.length ? `OPERAND READY: ${held.join(', ')}` : 'NO OPERAND HELD FOR A WAITING CONSUMER',
+      state: held.length ? 'ready' : at('BUF') ? 'transit' : 'idle',
+      text: held.length ? `OPERAND READY: ${held.join(', ')}` : 'NO OPERAND HELD',
     },
     {
       id: 'COMPUTE',
-      state: compute.state === 'active' ? 'active' : 'idle',
+      state: compute.state,
       text:
         compute.state === 'active'
           ? compute.label
@@ -353,14 +430,15 @@ export function sampleLayer(scene: LayerScene, tMs: number): LayerFrame {
     },
   ];
 
+  const appending = active.some((e) => e.stage === 'append');
   const stage: Record<string, 'done' | 'now' | 'next'> = {};
-  for (const w of scene.stageWindows)
+  let window: DrawnStageWindow | undefined;
+  for (const w of scene.stageWindows) {
     stage[w.id] = w.endMs <= s.tMs ? 'done' : w.id === s.phase ? 'now' : 'next';
+    if (w.id === s.phase) window = w;
+  }
 
-  const visible = scene.events.find((e) => e.kind === 'kv-visible') as LedgerEvent;
-  const kvPending = activeIds.has('kv.write') || activeIds.has('kv.update') || activeIds.has('kv.visible');
-
-  const frame: LayerFrame = {
+  return {
     view: 'layer',
     tMs: s.tMs,
     durationMs: scene.durationMs,
@@ -371,50 +449,40 @@ export function sampleLayer(scene: LayerScene, tMs: number): LayerFrame {
     compute,
     kvBaseline: scene.T0 + scene.stepIndex,
     kvValid: s.kvValid ?? scene.T0,
-    kvPending,
+    kvPending: appending,
     replay: s.phase === 'unshown',
-    demand: stageDemand(scene, s.phase),
-    readout: [],
-  };
-
-  const stageLabel = scene.stageWindows.find((w) => w.id === s.phase)?.label ?? 'END OF THE DEPICTED LAYER';
-  const inFlight = s.active.filter((e) => (e.route ?? []).length > 1);
-  frame.readout = [
-    { k: 'T', v: `${(s.tMs / 1000).toFixed(3)} s OF ${(scene.durationMs / 1000).toFixed(1)} s (ORDER, NOT LATENCY)` },
-    { k: 'STAGE', v: stageLabel.toUpperCase() },
-    {
-      k: 'IN FLIGHT',
-      v: inFlight.length
-        ? inFlight
-            .map((e) => {
-              const p = parcels.find((x) => x.id === e.id) as LayerParcel;
-              const cause = e.deps.map((d) => describe(byId.get(d) as LedgerEvent)).join('; ');
-              const forWhom = scene.events
-                .filter((c) => c.deps.includes(e.id))
-                .map((c) => describe(c))
-                .join('; ');
-              return `${describe(e)} · ${(e.route ?? []).join(' -> ')} · NOW ${p.from}->${p.to} · BECAUSE ${cause || 'THE LAYER STARTED'} · FOR ${forWhom || 'NO LATER EVENT'}`;
+    readout: [
+      { k: 'T', v: `${(s.tMs / 1000).toFixed(3)} s OF ${(scene.durationMs / 1000).toFixed(3)} s · ORDER, NOT LATENCY` },
+      { k: 'STAGE', v: window?.title ?? 'END OF THE DEPICTED LAYER' },
+      {
+        k: 'IN FLIGHT',
+        v:
+          parcels
+            .map((p) => {
+              const e = byId.get(p.id) as DrawnEvent;
+              return `${e.phrase} · ROUTE ${e.path} · NOW ${p.from}->${p.to} · AFTER ${e.after} · FOR ${e.into}`;
             })
-            .join('  ||  ')
-        : 'NOTHING ON THE LANE',
-    },
-    { k: 'BUFFERS', v: held.length ? `HOLDING ${held.join(', ')} FOR A CONSUMER THAT HAS NOT RUN` : 'EMPTY' },
-    {
-      k: 'COMPUTE',
-      v:
-        compute.state === 'active'
-          ? `RUNNING ${compute.label}`
-          : compute.state === 'waiting'
-            ? `NOT READY: ${compute.label} STILL NEEDS ${compute.needs.join(', ')}`
-            : compute.label,
-    },
-    {
-      k: 'KV',
-      v: `VALID POSITIONS THIS LAYER ${frame.kvBaseline} -> ${frame.kvValid}${kvPending ? ' (APPEND IN PROGRESS)' : ''}`,
-    },
-    { k: 'DEMAND', v: frame.demand },
-  ];
-  return frame;
+            .join(' || ') || 'NOTHING ON THE LANE',
+      },
+      { k: 'BUFFERS', v: bands[2]?.text ?? '' },
+      {
+        k: 'COMPUTE',
+        v:
+          compute.state === 'active'
+            ? `RUNNING ${compute.label}`
+            : compute.state === 'waiting'
+              ? `NOT READY · ${compute.label} STILL NEEDS ${compute.needs.join(', ')}`
+              : compute.label,
+      },
+      {
+        k: 'KV',
+        v: `VALID POSITIONS THIS LAYER ${scene.T0 + scene.stepIndex} -> ${s.kvValid}${
+          appending ? ' · APPEND IN PROGRESS' : ''
+        }`,
+      },
+      { k: 'DEMAND', v: window?.demand ?? 'NONE' },
+    ],
+  };
 }
 
 /* =========================================================================
@@ -436,6 +504,8 @@ export interface ProjectionSpec {
   rowPitch: number;
   /** y of the weight-buffer bar, and of the WROOT junction ticks. */
   wbufY: number;
+  /** x where the weight trunk leaves the WBUF label and becomes a line. */
+  wbufX: number;
   rootY: number;
   /** y of the accumulator boxes. */
   accY: number;
@@ -455,6 +525,7 @@ export const PROJECTION_WIDE: ProjectionSpec = {
   r0: 141,
   rowPitch: 86,
   wbufY: 54,
+  wbufX: 150,
   rootY: 84,
   accY: 286,
   ax: 8,
@@ -472,6 +543,7 @@ export const PROJECTION_NARROW: ProjectionSpec = {
   r0: 140,
   rowPitch: 84,
   wbufY: 54,
+  wbufX: 34,
   rootY: 84,
   accY: 284,
   ax: 0,
@@ -498,7 +570,7 @@ export function projectionLayout(scene: ProjectionScene, spec: ProjectionSpec): 
   const { R, C } = scene;
   const cx = (c: number): number => spec.c0 + c * spec.pitch;
   const ry = (r: number): number => spec.r0 + r * spec.rowPitch;
-  const anchor: Record<string, Pt> = { WBUF: { x: cx(0), y: spec.wbufY } };
+  const anchor: Record<string, Pt> = { WBUF: { x: spec.wbufX, y: spec.wbufY } };
   for (let c = 0; c < C; c++) {
     anchor[`WROOT${c}`] = { x: cx(c), y: spec.rootY };
     anchor[`ACC${c}`] = { x: cx(c), y: spec.accY };
@@ -547,8 +619,6 @@ export interface TileState {
   activationReady: boolean;
   localReady: boolean;
   computeActive: boolean;
-  /** Rows whose partial sums this tile has already absorbed. */
-  holds: number[];
 }
 
 export interface ColumnState {
@@ -571,37 +641,37 @@ export interface ProjectionFrame {
   readout: Row[];
 }
 
+/**
+ * @param layout Anything carrying the drawn edge polylines. The browser
+ *        passes the polylines it reads back off the rendered SVG, so a
+ *        parcel is interpolated along the very line the reader can see.
+ */
 export function sampleProjection(
-  scene: ProjectionScene,
-  layout: ProjectionLayout,
+  scene: DrawnProjectionScene,
+  layout: { path: Record<string, Pt[]> },
   tMs: number,
 ): ProjectionFrame {
   const s = stateAt(scene, tMs);
   const done = new Set(s.complete);
   const active = new Set(s.active.map((e) => e.id));
+  const byId = new Map(scene.events.map((e) => [e.id, e]));
   const { R, C } = scene;
 
-  const parcels: ProjectionParcel[] = s.active
+  const parcels: ProjectionParcel[] = (s.active as DrawnEvent[])
     .filter((e) => (e.route ?? []).length > 1)
     .map((e) => {
       const { from, to, f } = hopAt(e, s.tMs);
-      const poly = layout.path[key(from, to)];
-      if (!poly) throw new RangeError(`${e.id} rides ${from}->${to}, which is not a drawn edge`);
-      const p = alongPolyline(poly, f);
-      return { id: e.id, kind: e.kind, label: parcelLabel(e), x: p.x, y: p.y, from, to };
+      const line = layout.path[key(from, to)];
+      if (!line) throw new RangeError(`${e.id} rides ${from}->${to}, which is not a drawn edge`);
+      const p = alongPolyline(line, f);
+      return { id: e.id, kind: e.kind, label: e.tag, x: p.x, y: p.y, from, to };
     });
 
   const tiles: TileState[] = [];
   for (let r = 0; r < R; r++)
     for (let c = 0; c < C; c++) {
-      const id = `T${r}${c}`;
-      // Rows this tile has absorbed, taken from the ledger's own contributor
-      // list: its accumulate if that has run, otherwise just its own row.
-      const sum = scene.events.find((e) => e.id === `sum.${r}.${c}`);
-      const holds: number[] =
-        sum && done.has(sum.id) ? [...(sum.contributors ?? [])] : done.has(`local.${r}.${c}`) ? [r] : [];
       tiles.push({
-        id,
+        id: `T${r}${c}`,
         r,
         c,
         weight: `W[J${c},I${r}]`,
@@ -611,13 +681,12 @@ export function sampleProjection(
         activationReady: done.has(`activation.${r}.${c}`),
         localReady: done.has(`local.${r}.${c}`),
         computeActive: active.has(`local.${r}.${c}`) || active.has(`sum.${r}.${c}`),
-        holds: holds.sort((a, b) => a - b),
       });
     }
 
   const columns: ColumnState[] = [];
   for (let c = 0; c < C; c++) {
-    const out = scene.events.find((e) => e.id === `output.${c}`) as LedgerEvent;
+    const out = byId.get(`output.${c}`) as DrawnEvent;
     const delivered = done.has(out.id);
     // Before delivery, the column's running total is whatever the deepest
     // completed accumulate in it says it is; row 0's own product before that.
@@ -625,56 +694,50 @@ export function sampleProjection(
       .filter((e) => e.kind === 'accumulate' && e.column === c && done.has(e.id))
       .map((e) => e.contributors ?? [])
       .sort((a, b) => b.length - a.length)[0];
-    const running = accumulated ?? (done.has(`local.0.${c}`) ? [0] : []);
     columns.push({
       c,
       label: `y[J${c}]`,
       contributors: delivered ? (out.contributors ?? []) : [],
-      running,
+      running: accumulated ?? (done.has(`local.0.${c}`) ? [0] : []),
       delivered,
     });
   }
 
-  const readout: Row[] = [
-    { k: 'T', v: `${(s.tMs / 1000).toFixed(3)} s OF ${(scene.durationMs / 1000).toFixed(2)} s (DEPENDENCY ORDER)` },
-    {
-      k: 'IN FLIGHT',
-      v: parcels.length
-        ? parcels
+  return {
+    view: 'projection',
+    tMs: s.tMs,
+    durationMs: scene.durationMs,
+    parcels,
+    tiles,
+    columns,
+    readout: [
+      {
+        k: 'T',
+        v: `${(s.tMs / 1000).toFixed(3)} s OF ${(scene.durationMs / 1000).toFixed(3)} s · DEPENDENCY ORDER`,
+      },
+      {
+        k: 'IN FLIGHT',
+        v:
+          parcels
             .map((p) => {
-              const e = scene.events.find((x) => x.id === p.id) as LedgerEvent;
-              const forWhom = scene.events
-                .filter((c) => c.deps.includes(e.id))
-                .map((c) => describe(c))
-                .join('; ');
-              return `${describe(e)} · ${p.from}->${p.to} · FOR ${forWhom || 'NO LATER EVENT'}`;
+              const e = byId.get(p.id) as DrawnEvent;
+              return `${e.phrase} · ${p.from}->${p.to} · AFTER ${e.after} · FOR ${e.into}`;
             })
-            .join('  ||  ')
-        : 'NOTHING ON A LINK',
-    },
-    {
-      k: 'TILES',
-      v: tiles
-        .map(
-          (t) =>
-            `${t.id}[${t.weightReady ? 'W' : '-'}${t.activationReady ? 'x' : '-'}${t.localReady ? 'z' : '-'}]${t.computeActive ? '*' : ''}`,
-        )
-        .join(' '),
-    },
-    {
-      k: 'OUTPUT',
-      v: columns
-        .map((col) =>
-          col.delivered
-            ? `${col.label} DELIVERED FROM ROWS ${col.contributors.join(',')}`
-            : `${col.label} PENDING, COLUMN SUM HOLDS ROWS ${col.running.length ? col.running.join(',') : '-'}`,
-        )
-        .join(' · '),
-    },
-    { k: 'RULE', v: 'A TILE COMPUTES ONLY WITH ITS OWN W BLOCK AND ITS ROW ACTIVATION IN HAND' },
-  ];
-
-  return { view: 'projection', tMs: s.tMs, durationMs: scene.durationMs, parcels, tiles, columns, readout };
+            .join(' || ') || 'NOTHING ON A LINK',
+      },
+      {
+        k: 'OUTPUT',
+        v: columns
+          .map((col) =>
+            col.delivered
+              ? `${col.label} DELIVERED FROM ROWS ${col.contributors.join(',')}`
+              : `${col.label} PENDING · COLUMN SUM HOLDS ROWS ${col.running.join(',') || '-'}`,
+          )
+          .join(' · '),
+      },
+      { k: 'RULE', v: 'A TILE COMPUTES ONLY WITH ITS OWN W BLOCK AND ITS ROW ACTIVATION IN HAND' },
+    ],
+  };
 }
 
 /* -------------------------------------------------------------------------
@@ -682,7 +745,7 @@ export function sampleProjection(
    never to an arbitrary offset, so every stepped frame is an event edge.
 ------------------------------------------------------------------------- */
 
-export function boundaries(scene: LayerScene | ProjectionScene): number[] {
+export function boundaries(scene: { events: LedgerEvent[]; durationMs: number }): number[] {
   const set = new Set<number>([0, scene.durationMs]);
   for (const e of scene.events) {
     set.add(e.startMs);
@@ -691,6 +754,10 @@ export function boundaries(scene: LayerScene | ProjectionScene): number[] {
   return [...set].sort((a, b) => a - b);
 }
 
-export function nextBoundary(scene: LayerScene | ProjectionScene, tMs: number): number {
-  return boundaries(scene).find((b) => b > tMs + 1e-6) ?? 0;
+export function nextBoundary(scene: { events: LedgerEvent[]; durationMs: number }, tMs: number): number {
+  let next = Infinity;
+  for (const e of scene.events)
+    for (const b of [e.startMs, e.endMs]) if (b > tMs + 1e-6 && b < next) next = b;
+  if (scene.durationMs > tMs + 1e-6 && scene.durationMs < next) next = scene.durationMs;
+  return next === Infinity ? 0 : next;
 }
