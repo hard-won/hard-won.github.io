@@ -134,7 +134,11 @@ const narrow: Spec = {
 
 const CAPTION = `FIG. 02 — ONE ADDRESS-MAPPING POLICY, TWO ASSUMED RANGES · ${POLICY}, G = 256 B`;
 
-const LABEL = `Physical address mapping example for HBM3. A stated policy, channel of address a equals floor of a divided by G, modulo 16, with G an illustrative 256-byte chunk that is not a JEDEC burst or a device line size. The top band is an assumed contiguous range of matrix weights from base 0G: its seventeen consecutive chunks, 0G to 16G, map to channels 0 through 15 and then back to 0, so a full cycle is sixteen channels and the wrap happens on the seventeenth chunk. The middle band is an assumed range holding one layer's KV tensors, based at 37G; the same function sends its chunks to channels 5, 6, 7 and onward. Both bases are assumed: physical layout is implementation-dependent, a head is a tensor dimension rather than a separate allocation, and either range could be contiguous, strided, blocked or paged. The digits are address order, not the order in which a channel serves requests; queues, scheduling and bank state decide that. The bottom band is HBM3's channel structure, drawn separately from the mapping: four of the sixteen channels, each split into two pseudo-channels with a 32-bit data bus each, sharing a command bus and executing commands separately.`;
+const WORD: Record<number, string> = { 2: 'two', 4: 'four' };
+
+/** One label per drawing: the narrow plate shows fewer channel boxes than
+ *  the wide one, and the accessible description has to say which. */
+const labelFor = (shown: number) => `Physical address mapping example for HBM3. A stated policy, channel of address a equals floor of a divided by G, modulo 16, with G an illustrative 256-byte chunk that is not a JEDEC burst or a device line size. The top band is an assumed contiguous range of matrix weights from base 0G: its seventeen consecutive chunks, 0G to 16G, map to channels 0 through 15 and then back to 0, so a full cycle is sixteen channels and the wrap happens on the seventeenth chunk. The middle band is an assumed range holding one layer's KV tensors, based at 37G; the same function sends its chunks to channels 5, 6, 7 and onward. Both bases are assumed: physical layout is implementation-dependent, a head is a tensor dimension rather than a separate allocation, and either range could be contiguous, strided, blocked or paged. The digits are address order, not the order in which a channel serves requests; queues, scheduling and bank state decide that. The bottom band is HBM3's channel structure, drawn separately from the mapping: ${WORD[shown] ?? shown} of the sixteen channels, each split into two pseudo-channels with a 32-bit data bus each, sharing a command bus and executing commands separately.`;
 
 const plates = [wide, narrow];
 
@@ -160,9 +164,9 @@ function laid(s: Spec, chunks: Chunk[]) {
             class:list={['plate__svg', `plate__svg--${s.id}`]}
             viewBox={`0 0 ${s.w} ${s.h}`}
             role="img"
-            aria-label={LABEL}
+            aria-label={labelFor(s.shown)}
           >
-            <title>{LABEL}</title>
+            <title>{labelFor(s.shown)}</title>
 
             <g aria-hidden="true">
               {/* the policy, printed above the thing it produces */}

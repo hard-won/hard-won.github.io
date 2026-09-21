@@ -100,9 +100,11 @@ per step. That is not quite true, and the gap is worth naming rather than
 hiding. An input embedding lookup reads the row it indexes, not the whole
 embedding table. Norm scale vectors are parameters that the matrix count leaves
 out. For the configuration in the next section the two differ by about two per
-cent — `P_mat` is 6,607,077,376 of the model's 6,738,415,616 parameters — so
-`P_mat · b_w ≈ P · b_w` survives as a first-order statement, but it is an
-approximation with a known sign, not an identity.
+cent: `P_mat` is 6,607,077,376, and adding the embedding table `V · d` =
+131,072,000 and the 65 norm scale vectors, 65 × 4096 = 266,240, gives
+6,738,415,616 parameters in total. So `P_mat · b_w ≈ P · b_w` survives as a
+first-order statement, but it is an approximation with a known sign, not an
+identity.
 
 `P_mat · b_w` is a nominal payload. Treating it as device-memory traffic
 assumes the dominant matrices are streamed once per pass and not retained on
@@ -405,12 +407,12 @@ count and with weight precision. It falls with layer count, with KV heads, with
 head dimension and with KV precision. Grouped-query attention cuts `n_kv` and
 quantising the cache cuts `b_kv`, so both push the crossover out.
 
-Grouped-query attention is worth stating in full, because it has two
+Grouped-query attention [10] is worth stating in full, because it has two
 consequences and only one of them is usually quoted. Fewer KV heads cut the KV
 payload, since `C` is proportional to `n_kv`. They do not cut the attention
 work, which follows the query heads: the two attention matmuls stay at
-`4 · L · n_q · T · d_h` FLOP, so the KV-only intensity rises to
-`2 · (n_q / n_kv) / b_kv` under ideal reuse [10]. And fewer KV heads also
+`4 · L · n_q · T · d_h` FLOP, so under ideal reuse the KV-only intensity
+works out to `2 · (n_q / n_kv) / b_kv`. And fewer KV heads also
 shrink the K and V projection matrices, so `P_mat` moves too. A partial
 derivative in one symbol is fine as algebra; an actual model change moves
 correlated dimensions together, and both sides have to be recomputed.
