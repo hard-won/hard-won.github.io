@@ -89,7 +89,7 @@ When the data link layer sends a packet, it uses a carefully designed mechanism 
 
 ### Reception
 
-On the receive side of the data link layer, handling an incoming packet is indeed the reverse of the transmit side: check the packet's sequence number and CRC, and send an Ack or a Nak accordingly.
+On the receive side of the data link layer, handling an incoming packet is the reverse of the transmit side: check the packet's sequence number and CRC, and send an Ack or a Nak accordingly.
 
 1.  **Receiving the packet**:
     -   **First steps**: the receiver takes the packet from the physical layer and does some initial decapsulation, such as stripping off any token or header the physical layer added.

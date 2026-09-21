@@ -18,7 +18,7 @@ originalUrl: "/2024/04/17/Encoding/"
 
 ### Purpose one: embedding the clock in the data
 
-What you have described centres on how 8b/10b encoding embeds a clock signal by way of the edges in the data stream, and on the advantages and potential limits of that approach in high-speed serial transmission. I will explain it more specifically, following your description.
+8b/10b encoding embeds a clock in the data stream by way of the edges it guarantees. What follows is how that works, and where it runs out.
 
 #### 8b/10b encoding and clock recovery
 
@@ -90,7 +90,7 @@ In an AC-coupled system, the impedance of the coupling capacitor changes as the 
 
 #### Controlling polarity disparity
 
-Polarity disparity is the difference between the number of "1"s and the number of "0"s in the encoded data. As you said, a positive disparity means more "1"s than "0"s, and a negative disparity the reverse. Controlling this disparity is a further way of guaranteeing that the encoded data stays DC balanced and avoids long stretches at one level. For example, keeping the difference between the number of "0"s and "1"s in a 10-bit word to no more than 2 effectively maintains signal integrity and prevents the disparity from growing too large.
+Polarity disparity is the difference between the number of "1"s and the number of "0"s in the encoded data. A positive disparity means more "1"s than "0"s, and a negative disparity the reverse. Controlling this disparity is a further way of guaranteeing that the encoded data stays DC balanced and avoids long stretches at one level. For example, keeping the difference between the number of "0"s and "1"s in a 10-bit word to no more than 2 effectively maintains signal integrity and prevents the disparity from growing too large.
 
 ### Purpose three: stronger error detection
 
