@@ -4,7 +4,7 @@ date: 2024-06-02T03:30:22-07:00
 displayDate: "2024-06-02"
 slug: "TechQA"
 lang: zh
-categories: ["技术", "Soft Skill"]
+category: "practice"
 tags: []
 originalUrl: "/2024/06/02/TechQA/"
 ---

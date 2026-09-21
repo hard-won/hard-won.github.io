@@ -4,8 +4,11 @@ date: 2024-04-02T20:35:07-07:00
 displayDate: "2024-04-02"
 slug: "PCIe-1"
 lang: zh
-categories: ["技术", "数字IC", "高速IO"]
+category: "interconnect"
 tags: []
+source:
+  title: "PCIe扫盲系列博文连载目录篇（第一阶段）"
+  url: "http://blog.chinaaet.com/justlxy/p/5100053251"
 originalUrl: "/2024/04/02/PCIe-1/"
 ---
 Reference: [http://blog.chinaaet.com/justlxy/p/5100053251](http://blog.chinaaet.com/justlxy/p/5100053251)

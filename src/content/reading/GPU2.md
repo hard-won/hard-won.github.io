@@ -4,8 +4,11 @@ date: 2024-06-04T23:03:29-07:00
 displayDate: "2024-06-04"
 slug: "GPU2"
 lang: zh
-categories: ["技术", "数字IC", "GPU"]
+category: "gpu"
 tags: []
+source:
+  title: "adam-maj/tiny-gpu"
+  url: "https://github.com/adam-maj/tiny-gpu"
 originalUrl: "/2024/06/04/GPU2/"
 ---
 上篇介绍了GPU的架构和顶层设计。还有整个simulation的workflow。下面介绍各个部分。

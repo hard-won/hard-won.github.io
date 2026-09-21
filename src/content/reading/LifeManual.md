@@ -4,8 +4,11 @@ date: 2024-05-29T10:31:30-07:00
 displayDate: "2024-05-29"
 slug: "LifeManual"
 lang: zh
-categories: ["阅读", "思考"]
+category: "notebook"
 tags: []
+source:
+  title: "Ultra Mindset – Lessons from Ultrarunners"
+  url: "https://uphillathlete.com/trail-running/ultra-mindset-lessons-ultrarunners/"
 originalUrl: "/2024/05/29/LifeManual/"
 ---
 从别人处取来观点，进行总结。

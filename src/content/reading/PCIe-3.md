@@ -4,8 +4,18 @@ date: 2024-04-14T19:20:18-07:00
 displayDate: "2024-04-14"
 slug: "PCIe-3"
 lang: zh
-categories: ["技术", "数字IC", "高速IO"]
+category: "interconnect"
 tags: []
+source:
+  title: "PCI Express Base Specification"
+  url: "https://pcisig.com/specifications/pciexpress/"
+furtherReading:
+  - title: "OSDev Wiki — PCI"
+    url: "https://wiki.osdev.org/PCI"
+  - title: "MindShare — An Introduction to PCI Express"
+    url: "https://www.mindshare.com/files/resources/MindShare_Intro_to_PCIe.pdf"
+  - title: "Wikipedia — PCI Express"
+    url: "https://en.wikipedia.org/wiki/PCI_Express"
 originalUrl: "/2024/04/14/PCIe-3/"
 ---
 # 数据链路层 Data Link Layer

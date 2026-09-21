@@ -4,7 +4,7 @@ date: 2024-05-23T18:19:35-07:00
 displayDate: "2024-05-23"
 slug: "RTL-style"
 lang: zh
-categories: ["技术", "数字IC", "如何成为RTL工程师"]
+category: "rtl"
 tags: []
 originalUrl: "/2024/05/23/RTL-style/"
 ---

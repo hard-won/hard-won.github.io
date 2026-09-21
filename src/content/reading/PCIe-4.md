@@ -4,8 +4,20 @@ date: 2024-04-15T21:08:30-07:00
 displayDate: "2024-04-15"
 slug: "PCIe-4"
 lang: zh
-categories: ["技术", "数字IC", "高速IO"]
+category: "interconnect"
 tags: []
+source:
+  title: "PCIe（四）—— 物理层"
+  url: "https://r12f.com/posts/pcie-4-phy/"
+furtherReading:
+  - title: "PCIe扫盲——物理层逻辑部分基础（一）"
+    url: "http://blog.chinaaet.com/justlxy/p/5100053476"
+  - title: "8B/10B Encode/Decode详解"
+    url: "http://blog.chinaaet.com/justlxy/p/5100052814"
+  - title: "USB3.0硬件编码格式-8B/10B编码"
+    url: "https://www.usbzh.com/article/detail-233.html"
+  - title: "【计算机】使用LFSR线性反馈移位寄存器的随机数！"
+    url: "https://www.bilibili.com/video/BV1kA411f76v/"
 originalUrl: "/2024/04/15/PCIe-4/"
 ---
 PHY层就有点痛了。

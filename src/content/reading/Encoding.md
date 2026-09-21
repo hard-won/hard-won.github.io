@@ -4,8 +4,11 @@ date: 2024-04-17T15:37:11-07:00
 displayDate: "2024-04-17"
 slug: "Encoding"
 lang: zh
-categories: ["技术", "数字IC", "高速IO"]
+category: "interconnect"
 tags: []
+source:
+  title: "高速串行通信编码8b/10b（一）"
+  url: "https://zhuanlan.zhihu.com/p/560350350"
 originalUrl: "/2024/04/17/Encoding/"
 ---
 # 8B/10B编码

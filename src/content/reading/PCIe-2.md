@@ -4,8 +4,11 @@ date: 2024-04-14T12:42:40-07:00
 displayDate: "2024-04-14"
 slug: "PCIe-2"
 lang: zh
-categories: ["技术", "数字IC", "高速IO"]
+category: "interconnect"
 tags: []
+source:
+  title: "PCIe（三）—— PCIe协议栈，事务层和数据链路层"
+  url: "https://r12f.com/posts/pcie-3-tl-dll/"
 originalUrl: "/2024/04/14/PCIe-2/"
 ---
 Reference：[https://r12f.com/posts/pcie-3-tl-dll/](https://r12f.com/posts/pcie-3-tl-dll/)
