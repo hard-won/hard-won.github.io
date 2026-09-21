@@ -98,9 +98,13 @@ One layer's query projection holds `d²` = 16.8M weights, so 34M bytes read and
 One layer's attention reads `T · n_kv · d_h · b_kv` = 2048 × 32 × 128 × 2, or
 17M bytes of keys, and the same again of values. The QK product does two FLOP
 per stored key element per query head, 2 × 2048 × 32 × 128 = 17M FLOP. The
-table's `qk_matmul` row reads 17M, 17M, intensity 0.99. It is 0.99 rather than 1
-because the query vector itself is also read, and it sits in the denominator
-beside the keys.
+table's `qk_matmul` row reads 17M, 17M, intensity 0.99. It is 0.99 rather than 1 under an
+accounting that charges the operator its full standalone I/O: the keys, the
+query vector, and the scores written out. The query is 32 x 128 x 2 = 8K bytes
+and moves the ratio to 0.9995, which rounds to 1.00. The scores are 32 x 2048 x
+2 = 131K bytes, and adding them gives 0.9918. Which bytes a profile charges to
+an operator is a convention, and the decimal is a consequence of that
+convention rather than of the algorithm.
 
 The MLP's gate projection holds 4096 × 11008 = 45M weights, so 90M bytes and
 90M FLOP. The table's `gate_proj` row reads 90M, 90M, intensity 1.
