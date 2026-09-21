@@ -917,9 +917,22 @@ const LABEL_B =
     margin-top: 0.5rem;
   }
 
+  /* The wide plate's 696-unit viewBox is 1:1 once the page shell reaches its
+     46rem cap, which is where the figure stops growing. Below that the narrow
+     plate takes over rather than letting a 10px label scale down. */
   .dfg__svg--narrow {
     display: none;
     max-width: 21rem;
+  }
+
+  @media (max-width: 45.99rem) {
+    .dfg__svg--wide {
+      display: none;
+    }
+
+    .dfg__svg--narrow {
+      display: block;
+    }
   }
 
   .dfg-ln {
@@ -1053,14 +1066,6 @@ const LABEL_B =
   /* ---- narrow ---- */
 
   @media (max-width: 48rem) {
-    .dfg__svg--wide {
-      display: none;
-    }
-
-    .dfg__svg--narrow {
-      display: block;
-    }
-
     .dfg__bands {
       grid-template-columns: minmax(0, 1fr) 7.5rem;
       gap: 0 0.5rem;
