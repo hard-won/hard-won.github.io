@@ -1100,6 +1100,15 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+/* Same rule as the archived tables: the 11px letter-spaced mono label is a
+   Latin idiom, so a Chinese source title takes the body face at a size that
+   can actually be read. */
+.from-line__source:lang(zh-CN) {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+}
+
 .from-line__source:hover,
 .from-line__source:focus-visible {
   color: var(--fg);
