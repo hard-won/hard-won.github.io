@@ -1,197 +1,196 @@
 ---
-title: "高速串行通信编码 Encoding"
+title: "Encoding for high-speed serial links"
 date: 2024-04-17T15:37:11-07:00
 displayDate: "2024-04-17"
 slug: "Encoding"
-lang: zh
+lang: en
 category: "interconnect"
 tags: []
 source:
   title: "高速串行通信编码8b/10b（一）"
   url: "https://zhuanlan.zhihu.com/p/560350350"
+description: "Notes on 8b/10b encoding: why it exists (embedded clock, DC balance, error detection), how the 5b/6b and 3b/4b split works, running disparity, comma characters, and three ways to build the codec."
 originalUrl: "/2024/04/17/Encoding/"
 ---
-# 8B/10B编码
+# 8b/10b encoding
 
-Reference：[https://zhuanlan.zhihu.com/p/560350350](https://zhuanlan.zhihu.com/p/560350350)
+## What the encoding is for
 
-## 编码的目的
+### Purpose one: embedding the clock in the data
 
-### 目的一：在数据里嵌入时钟
+What you have described centres on how 8b/10b encoding embeds a clock signal by way of the edges in the data stream, and on the advantages and potential limits of that approach in high-speed serial transmission. I will explain it more specifically, following your description.
 
-你提到的内容集中在8b/10b编码如何通过数据流中的边沿来嵌入时钟信号，并且探讨了这种方式在高速串行传输中的优势及潜在的限制。我会依据你的描述进行更具体的解释。
+#### 8b/10b encoding and clock recovery
 
-#### 8b/10b编码与时钟恢复
+8b/10b is a data encoding method that encodes 8 bits of data into a 10-bit code. The encoding guarantees enough signal transitions — edges — in the data stream, and those edges are what let the receiver correctly recover the transmitter's clock. Normally the transmitter's clock controls when data is sent, and the receiver has to synchronise to that clock accurately to read the data correctly. With 8b/10b encoding the receiver can recover that clock from the data it receives continuously, without a separate clock line. This is called a self-recovered clock, or an embedded clock.
 
-8b/10b编码是一种数据编码方法，用于将8位数据编码为10位代码。这种编码确保了数据流中具有足够的信号变化（或称边沿），这些边沿对于接收端正确恢复发送端的时钟信号至关重要。通常，发送端的时钟信号用于控制数据何时被发送，而接收端必须能准确地同步这个时钟以正确读取数据。通过8b/10b编码，接收端可以从连续接收的数据中恢复出这一时钟，而不需要单独的时钟线，这称为“自恢复时钟”或“嵌入式时钟”。
+#### The advantages of serial communication
 
-#### 串行通信的优势
+Serial communication using 8b/10b encoding avoids several problems common in parallel communication:
 
-使用8b/10b编码的串行通信技术，可以克服并行通信中常见的几个问题：
+-   **Flight time limits and clock skew**: in a parallel bus at high speed, differences in the length and quality of the individual data lines can make data arrive at different times — clock skew. This is basically not an issue in serial transmission, because the data is sent continuously down a single channel.
+-   **EMI and routing**: a high-frequency clock on a parallel bus can cause serious electromagnetic interference, and a parallel bus needs many lines routed together, which is a challenge for the physical design. Serial communication reduces the number of physical connections needed, which lowers the EMI risk and simplifies the routing.
 
--   **飞行时间限制和时钟偏斜**：并行总线在高速传输时，不同的数据线长度和质量可能导致数据到达的时间不同，即时钟偏斜。这在串行传输中基本不是问题，因为数据是连续通过单一通道发送。
--   **电磁干扰（EMI）和布线问题**：高频时钟在并行总线中可能导致严重的电磁干扰，同时并行总线需要多条线同时布线，这在物理设计上是一个挑战。串行通信通过减少所需的物理连接，降低了EMI的风险，简化了布线需求。
+Note here that a serial bus is the mainstream choice for today's high-speed interfaces, but that does not mean a serial scheme can entirely avoid effects such as **skew**. If everything were carried on one lane there would of course be no effect, but for bandwidth reasons it is generally not one lane. PCIe's x1, x4, x16 and x32 still have skew between the individual lanes, although the transceiver itself handles that skew — which is out of scope here.
 
-这里请注意，串行总线是当前高速接口的主流方案，但并不意味着串行方案能完全避免例如“**Skew**”问题的影响，如果传输都是一个lane那当然没影响，但为了提高带宽，一般都不会是一个lane。比如PCIe中的X1，X4，X16，X32这些各个lane仍然会存在偏斜的问题，但收发器本身会处理这些偏斜，当然这不在本文讨论范围。
+##### Parallel communication
 
-##### Parallel Communication 并行通信
-
-下图的**并行通信** **Parallel Communication**做对比：
+Below is **parallel communication**, for comparison:
 
 ![parallel\_communication](/2024/04/17/Encoding/parallel_communication.png)
 
-提到的通用时钟（common clock）、时钟偏斜（clock skew）、数据偏斜（data skew）、飞行时间（flight time）、电磁干扰（EMI, Electromagnetic Interference）、以及时钟布线问题，都是并行传输中需要解决的关键技术点。下面我会逐一简单解释这些概念及其带来的挑战：
+Common clock, clock skew, data skew, flight time, EMI (electromagnetic interference) and clock routing are all key technical problems that have to be solved in parallel transmission. Here is a short explanation of each concept and the challenge it brings.
 
-###### 通用时钟与时钟偏斜
+###### Common clock and clock skew
 
-在并行传输系统中，所有的数据线通常都由一个通用时钟控制，以确保数据的同步发送和接收。时钟偏斜指的是由于布线长度不一、环境影响或其他物理特性差异导致的时钟信号在不同数据线上到达接收端的时间不同。这种Skew会导致数据同步问题，从而影响整个系统的性能和可靠性。
+In a parallel transmission system, all the data lines are normally driven by one common clock, so that data is sent and received in step. Clock skew means the clock signal arriving at the receiver at different times on different data lines, because of differences in trace length, environment or other physical characteristics. That skew causes synchronisation problems, which affect the performance and reliability of the whole system.
 
-###### 数据偏斜
+###### Data skew
 
-数据偏斜类似于时钟偏斜，但它指的是数据本身在不同的线路上到达时间的差异。即使时钟完全同步，数据线之间的物理或电气差异也可能导致数据偏斜，同样影响数据的正确接收。
+Data skew is like clock skew, but it refers to the data itself arriving at different times on different lines. Even with the clock perfectly synchronised, physical or electrical differences between the data lines can still cause data skew, which likewise affects correct reception.
 
-###### 飞行时间
+###### Flight time
 
-飞行时间是指信号从发送端到接收端所需要的时间。随着通用时钟频率的增加，要求每一次钟周期内信号必须被正确接收和处理。如果飞行时间超过了一个时钟周期，那么信号将不会在正确的时钟边沿到达接收端，导致数据错误或丢失。
+Flight time is how long a signal takes to get from transmitter to receiver. As the common clock frequency goes up, the signal has to be correctly received and processed within each clock period. If the flight time exceeds one clock period, the signal will not arrive at the receiver on the right clock edge, and the data will be wrong or lost.
 
-###### EMI与时钟布线问题
+###### EMI and clock routing
 
-高频时钟信号容易产生电磁干扰，这不仅影响并行传输线路本身，还可能影响到周围的电子设备。此外，高速 Parallel 传输需要大量的布线以支持多个数据线和时钟线，这在Physical Design上是一个挑战，尤其是在空间受限或布线密度高的设备中更为复杂。
+A high-frequency clock signal readily produces electromagnetic interference, which affects not only the parallel lines themselves but also the electronic devices around them. On top of that, high-speed parallel transmission needs a great deal of routing to support all the data lines and the clock lines, which is a challenge in physical design — especially in devices where space is tight or routing density is high.
 
-###### 应对策略
+###### What to do about it
 
-为了解决这些问题，设计师可能采用多种策略：
+To solve these problems, a designer may use several strategies:
 
--   **使用差分信号**：通过差分信号技术减少EMI并提高信号的抗干扰能力。
--   **优化布线设计**：通过精心设计布线来尽量减少时钟偏斜和数据偏斜。
--   **采用更高级的时钟技术**：如使用源同步时钟（source synchronous clocking）或采用嵌入式时钟恢复技术，如上文提到的8b/10b编码。
+-   **Use differential signalling**: differential signalling reduces EMI and improves the signal's immunity to interference.
+-   **Optimise the routing**: careful routing design to minimise clock skew and data skew.
+-   **Use more advanced clocking**: source synchronous clocking, or an embedded clock recovery technique such as the 8b/10b encoding above.
 
-### 目的二：保持DC平衡
+### Purpose two: maintaining DC balance
 
-这里结合PCIe（Peripheral Component Interconnect Express）的例子来详细解释：
+Here it is explained in detail with PCIe (Peripheral Component Interconnect Express) as the example:
 
-#### DC 平衡 DC Balance 的重要性
+#### Why DC balance matters
 
-在高速数据传输中，保持DC平衡指的是在传输的数据流中，“0”和“1”的数量保持大致相等。这一平衡有助于：
+In a high-speed transfer, DC balance means keeping the number of "0"s and "1"s in the transmitted data stream roughly equal. That balance helps:
 
-1.  **减少电磁干扰（EMI）**：因为频繁的电平变换可以抑制信号长时间在高或低状态，降低干扰。
-2.  **便于信号的AC耦合**：在使用AC耦合的通信系统中（比如PCI Express），如果信号中的“0”和“1”长时间不平衡（即没有DC平衡），那么信号会逐渐向一个电平偏移，造成累积的直流成分。信号可能因直流成分过大而不能通过AC耦合电容，导致信号失真或丢失。
+1.  **Reduce EMI**: frequent level transitions stop the signal sitting high or low for a long time, which lowers interference.
+2.  **Make AC coupling work**: in an AC-coupled communication system (PCI Express, for instance), if the "0"s and "1"s in the signal are unbalanced for a long time — that is, no DC balance — the signal drifts gradually towards one level, building up a DC component. If that DC component gets large enough, the signal cannot pass through the AC coupling capacitor, and it is distorted or lost.
 
 ![DC](/2024/04/17/Encoding/DC.jpg)
 
-#### 编码方式
+#### The encoding
 
-为了实现DC平衡，常用的一种方法是采用特殊的编码方式，如8b/10b编码，该编码规则确保了数据中“0”和“1”的平衡，并限制了连续相同数字的长度。在这种编码中，每5个连续的“1”或“0”后必须插入一位相反的数字，从而防止信号在一个电平上持续太久，导致链路上的直流偏移 DC Offset。
+A common way of achieving DC balance is to use a special encoding, such as 8b/10b. The coding rules guarantee a balance of "0"s and "1"s in the data and bound the length of a run of identical digits. In this encoding, a bit of the opposite value must be inserted after every five consecutive "1"s or "0"s, which stops the signal staying at one level long enough to create a DC offset on the link.
 
-#### AC耦合 AC Coupling 和频率的影响
+#### AC coupling and the effect of frequency
 
-在传输高速信号时，AC耦合通过使用电容来连接信号路径，这样做的目的是只允许交变信号（AC，即变化的信号部分）通过，而阻挡直流成分（DC，即恒定的信号部分）。AC耦合的主要优点是能够消除直流偏移（DC Offset）。直流偏移是指信号平均电平的偏离，这种偏移可能会对电子系统的性能产生负面影响，比如使放大器饱和或者使信号处理更加复杂。通过电容连接，任何的直流偏移都被电容阻挡，因此不会影响到接收端的电路。
+When transmitting a high-speed signal, AC coupling uses a capacitor in the signal path so that only the alternating part of the signal (AC, the part that changes) passes and the DC component (the constant part) is blocked. The main advantage of AC coupling is that it removes DC offset. DC offset is a deviation in the signal's average level, and it can hurt the performance of an electronic system — saturating an amplifier, say, or making signal processing more complicated. With a capacitor in the path, any DC offset is blocked and so never reaches the receiver's circuitry.
 
-在AC耦合系统中，当信号频率变化时，通过耦合电容的阻抗也会变化。频率越高，电容的阻抗越低，信号更容易通过；频率越低，电容的阻抗越高，信号传输就更困难。因此，如果数据流中出现**长序列的连续“0”或“1”**，相当于**降低了信号的频率**，可能导致信号无法有效传输。
+In an AC-coupled system, the impedance of the coupling capacitor changes as the signal frequency changes. The higher the frequency, the lower the capacitor's impedance and the more easily the signal passes; the lower the frequency, the higher the impedance and the harder the signal is to transmit. So a **long run of consecutive "0"s or "1"s** in the data stream amounts to **lowering the signal frequency**, and may leave the signal unable to get through.
 
-#### 极性偏差 Polarity Disparity 的控制
+#### Controlling polarity disparity
 
-极性偏差是指在编码的数据中“1”的数量与“0”的数量的差异。如你所述，正极性偏差表示“1”多于“0”，副极性偏差则相反。通过控制这种偏差，可以进一步保证编码后的数据既保持DC平衡，又避免长时间的电平连续性。例如，在10位数据中，通过确保“0”和“1”的数量差不超过2，可以有效地维持信号完整性 Signal Integrity 和防止偏差过大。
+Polarity disparity is the difference between the number of "1"s and the number of "0"s in the encoded data. As you said, a positive disparity means more "1"s than "0"s, and a negative disparity the reverse. Controlling this disparity is a further way of guaranteeing that the encoded data stays DC balanced and avoids long stretches at one level. For example, keeping the difference between the number of "0"s and "1"s in a 10-bit word to no more than 2 effectively maintains signal integrity and prevents the disparity from growing too large.
 
-### 目的三：加强错误检测
+### Purpose three: stronger error detection
 
-原始的8位数据，因为是8 bits，所以有 $2^8 = 256$ 个可能的值。而在10位的编码中，可以有 $2^{10} = 1024$ 个可能的编码。在理想的情况下，如果是1对1映射，我们会从这1024个可能的10位编码中选出256个来直接对应256个8位的原始数据。但8b/10b编码采用了不同的策略来优化信号传输和错误控制。
+Original 8-bit data, being 8 bits, has $2^8 = 256$ possible values. A 10-bit code has $2^{10} = 1024$ possible values. Ideally, with a one-to-one mapping, we would pick 256 of those 1024 possible 10-bit codes to correspond directly to the 256 possible 8-bit values. But 8b/10b takes a different approach, to optimise transmission and error control.
 
-为了保持 DC 平衡（即使数据中的0和1的数量尽量平衡），避免极性偏差，一些8位数据在映射到10位时不仅仅是对应一个10位的值，而是可以对应两个不同的值，分别用来适应正极性偏差和负极性偏差。这种方式实际上使得某些8位数据通过两种不同的10位编码来表达，以此来调整信号的 DC 级别。
+To maintain DC balance (keeping the numbers of 0s and 1s in the data as even as possible) and avoid polarity disparity, some 8-bit values map not to one 10-bit value but to two, one suited to a positive disparity and one to a negative one. This means certain 8-bit values are expressed by two different 10-bit codes, which is how the DC level of the signal is adjusted.
 
-因此，每个8位的数据单元实际上可以映射到两个10位的数据单元中，导致512个8位数据单元的编码。此外，10位编码中还包括一些专门用于控制信号的编码，比如帧开始、帧结束标志等，这些也是非数据编码，用于数据传输的控制和管理。
+So each 8-bit unit can in fact map into two 10-bit units, which comes to 512 encodings of 8-bit data units. On top of that, the 10-bit codes include some reserved specifically for control signalling — start of frame, end of frame and so on — which are non-data codes used to control and manage the transfer.
 
-由于总共1024个可能的10位编码中，只有部分被用作有效数据和控制信号的映射，剩余的编码就成为了非法编码。在接收端，如果检测到了这些非法的编码，就可以认为传输过程中发生了错误，从而利用这一机制进行错误检测。
+Since only some of the 1024 possible 10-bit codes are used as valid data and control mappings, the rest are illegal codes. If the receiver detects one of those illegal codes, it can conclude that an error occurred in transit, and that is the mechanism used for error detection.
 
-总结来说，8b/10b 编码通过增加每个数据单元的位数，并通过复杂的映射策略来改善信号的DC平衡和提高错误检测的能力。
+To sum up: 8b/10b encoding improves the signal's DC balance and its error detection capability by adding bits to each data unit and mapping them with an intricate strategy.
 
-## 编码的基本原理
+## How the encoding works
 
-8b/10b 编码确实为数字通信提供了诸多优点，如改善DC平衡和提升错误检测能力，但同时也带来了一定的缺点，尤其是在数据传输效率上。具体来说，将8位（8 bit）数据编码成10位（10 bit）数据，确实引入了20%的额外开销，因为每发送8位的实际数据，就需要发送10位的编码数据，其中2位用于确保编码的特性和目标，而非直接承载用户数据。
+8b/10b encoding does bring real advantages to digital communication — better DC balance and better error detection — but it also brings a cost, particularly in transfer efficiency. Specifically, encoding 8 bits of data into 10 bits introduces 20% of overhead, because every 8 bits of real data means 10 bits of encoded data sent, of which 2 bits serve the properties and goals of the encoding rather than carrying user data directly.
 
-为了更好地理解这个开销及其影响，可以比较不同的编码方案。例如，在高速通信协议如 PCIe 3.0 中，使用的是64b/66b 或 128b/130b 编码方式，这些编码方式通过增加原始数据的比特数来减少相对的额外开销，从而提高了数据传输效率。
+To get a better sense of that overhead and its effect, compare different coding schemes. A high-speed protocol such as PCIe 3.0 uses 64b/66b or 128b/130b encoding, which reduce the relative overhead by increasing the number of raw data bits, and so improve transfer efficiency.
 
-具体到8b/10b编码的实现，这种编码方案并不是简单地将8位数据直接转换为10位数据。实际上，这种编码通过将8位数据分为两部分进行处理以优化编码效率：
+As for how 8b/10b is actually implemented, the scheme does not simply convert 8 bits straight into 10. In practice it splits the 8 bits into two parts and handles them separately, to make the encoding more efficient:
 
--   **低5位（Lower 5 bits）**：采用5b/6b编码
--   **高3位（Upper 3 bits）**：采用3b/4b编码
+-   **The lower 5 bits**: 5b/6b encoding
+-   **The upper 3 bits**: 3b/4b encoding
 
-最终，这两部分编码结果被合并成一个10位的数据单元。这种分割和重组的方法可以减少编码的复杂性，并优化对芯片面积的需求。
+The two encoded results are then combined into one 10-bit unit. Splitting and recombining like this reduces the complexity of the encoding and helps with the silicon area it needs.
 
 ![3:5](/2024/04/17/Encoding/3-5.png)
 
 ![send](/2024/04/17/Encoding/send.png)
 
-8b/10b编码定义了256种数据映射和12种特殊控制字符的编码，分别用Dx.y和Kx.y来标识，其中“x”代表高3位，而“y”代表低5位。这些特殊控制字符编码通常用于帧的起始与终止，以及其他特定功能，如逗号序列的检测。以PCIe 2.0为例，K27.7和K28.2分别标记了不同类型的数据包的开始。
+8b/10b encoding defines 256 data mappings and 12 special control character encodings, identified as Dx.y and Kx.y respectively, where "x" is the upper 3 bits and "y" the lower 5. The special control character encodings are normally used for the start and end of a frame, and for other specific functions such as comma sequence detection. Taking PCIe 2.0 as an example, K27.7 and K28.2 mark the start of different kinds of packet.
 
-在 8b/10b 编码中，“Dx.y”和“Kx.y”的格式用来描述不同的10位码字：
+In 8b/10b encoding, the "Dx.y" and "Kx.y" notations describe the different 10-bit code words:
 
--   **Dx.y** (Data) 代表普通的数据码字。这些码字用于传输实际的数据负载。这里的“x”和“y”指的是码字的组成，其中“x”代表高3位，而“y”代表低5位，一起决定了具体的10位码字的形式。
--   **Kx.y** (Control) 代表控制码字，这些特殊的码字用于传输控制信息而不是数据。控制码字常用于帧定界、错误指示、同步等控制功能。和数据码字一样，“x”和“y”指的是码字的具体组成
+-   **Dx.y** (Data) is an ordinary data code word. These carry the actual data payload. Here "x" and "y" refer to the make-up of the code word, where "x" is the upper 3 bits and "y" the lower 5; together they determine the exact form of the 10-bit code word.
+-   **Kx.y** (Control) is a control code word. These special code words carry control information rather than data. Control code words are commonly used for framing, error indication, synchronisation and other control functions. As with the data code words, "x" and "y" refer to the make-up of the code word.
 
-总结而言，尽管8b/10b编码带来了一定的数据开销，但它通过精巧的编码策略优化了数据传输的质量和可靠性。对于需要高效率和低开销的应用，可以考虑使用更高比特率的编码方案，如64b/66b或128b/130b。
+In summary, 8b/10b encoding does bring a data overhead, but its carefully constructed coding strategy improves the quality and reliability of the transfer. For an application that needs high efficiency and low overhead, consider a coding scheme at a higher bit rate, such as 64b/66b or 128b/130b.
 
 ![8-10-decode](/2024/04/17/Encoding/8-10-decode.png)
 
-**直流平衡（DC balance）** 是衡量在一段时间内二进制信号中“0”和“1”数量之间差异的一种方法。理想的直流平衡是“0”和“1”数量完全相等，这有助于减少信号传输过程中的功率损耗和提高信号的完整性。
+**DC balance** is a way of measuring the difference, over a period of time, between the number of "0"s and "1"s in a binary signal. Perfect DC balance is exactly equal numbers of "0"s and "1"s, which helps reduce power loss during transmission and improves signal integrity.
 
-在8b/10b编码中，直流平衡的控制非常关键：
+Controlling DC balance is critical in 8b/10b encoding:
 
--   **4位子分组（来自原始数据的3位）**：尽管有16种可能的编码（因为 $2^4=16$），但只有6种编码能实现完美的平衡，即每种编码中“0”和“1”的数量相等。这对于映射3位数据的8种可能值是不够的。
--   **6位子分组（来自原始数据的5位）**：在 $2^6=64$ 种可能的编码中，仅有20种编码是完美平衡的。这同样不足以覆盖5位数据的32种可能性。
+-   **The 4-bit sub-group (from 3 bits of the original data)**: there are 16 possible codes ($2^4=16$), but only 6 of them are perfectly balanced, that is, have equal numbers of "0"s and "1"s. That is not enough to map the 8 possible values of 3 bits of data.
+-   **The 6-bit sub-group (from 5 bits of the original data)**: of the $2^6=64$ possible codes, only 20 are perfectly balanced. Again, not enough to cover the 32 possibilities of 5 bits of data.
 
-由于理想的平衡状态是**不可能**的，8b/10b编码采用了一种叫做\*\*极性偏差（Running Disparity, RD）\*\*的机制来管理和补偿这种不平衡。极性偏差是一个实时计算的参数，用于记录当前传输过程中“0”和“1”的不平衡度。
+Because the ideal balanced state is **impossible**, 8b/10b uses a mechanism called **running disparity (RD)** to manage and compensate for the imbalance. Running disparity is a parameter computed on the fly, recording how unbalanced the "0"s and "1"s have been so far in the transfer.
 
-在实际编码过程中：
+In the encoding itself:
 
--   如果某个10位编码的不平衡度为+2（即“1”的个数比“0”的个数多2），则该编码被标记为**RD-**。
--   相对地，如果不平衡度为-2（即“0”的个数比“1”的个数多2），则该编码被标记为**RD+**。
+-   If a 10-bit code has an imbalance of +2 (two more "1"s than "0"s), that code is marked **RD-**.
+-   Conversely, if the imbalance is -2 (two more "0"s than "1"s), the code is marked **RD+**.
 
-在传输数据时，根据前一个编码后的极性偏差状态，选择适合的10位编码来继续保持信号的平衡性或进行必要的调整。这种方法虽然增加了编码的复杂性，但也显著提高了数据传输的质量和可靠性。
+When transmitting, the 10-bit code chosen is the one appropriate to the disparity state left by the previous code, so that the signal stays balanced or is corrected as necessary. This adds complexity to the encoding, but it markedly improves the quality and reliability of the transfer.
 
-不一致性（Disparity）
+Disparity
 
--   **不一致性**描述的是编码中“1”的数量与“0”的数量之间的差异。标准化的不一致性包括+2、0、-2三种状态：
-    -   **+2**：表示0的数量比1多两个。
-    -   **0**：表示0和1的数量相等。
-    -   **\-2**：表示1的数量比0多两个。
+-   **Disparity** describes the difference between the number of "1"s and the number of "0"s in a code. The standardised disparity values are +2, 0 and -2:
+    -   **+2**: two more 0s than 1s.
+    -   **0**: equal numbers of 0s and 1s.
+    -   **\-2**: two more 1s than 0s.
 
-运行不一致性（Running Disparity, RD）
+Running disparity (RD)
 
--   **运行不一致性**是指在数据传输过程中，由于前面所有已发送数据的不一致性累积而产生的状态。
--   RD仅有+1和-1两种状态，这分别代表：
-    -   **+1**：表示1的数量比0多。
-    -   **\-1**：表示0的数量比1多。
--   RD的初始值通常设为-1，表明最开始0的数量比1多。
--   下一个RD（Next RD）的值取决于当前的RD和当前6B码或4B码的不一致性。基于当前的RD值，系统会决定使用哪种5B/6B或3B/4B编码映射。
+-   **Running disparity** is the state produced by accumulating the disparity of all the data sent so far during a transfer.
+-   RD has only two states, +1 and -1, meaning:
+    -   **+1**: more 1s than 0s.
+    -   **\-1**: more 0s than 1s.
+-   RD's initial value is normally -1, meaning that at the start there are more 0s than 1s.
+-   The next RD depends on the current RD and the disparity of the current 6B or 4B code. Based on the current RD, the system decides which 5b/6b or 3b/4b mapping to use.
 
-为了实现这种编码方式，通常会使用一张查找表。这张表预先定义了所有可能的输入比特序列及其对应的编码输出，包括它们的不一致性和如何影响RD。
+This encoding is normally implemented with a lookup table. The table pre-defines every possible input bit sequence and its encoded output, including their disparity and how they affect RD.
 
-根据当前的RD和即将发送的数据比特序列，发送端可以从查找表中找到合适的编码序列，确保数据的正确传输并维持信号的电气平衡。
+From the current RD and the data bit sequence about to be sent, the transmitter can find the right code sequence in the lookup table, which keeps the data correct and the signal electrically balanced.
 
-### 编码映射表
+### The encoding map
 
-将低5位EDCBA按其十进制数值记为x，将高3位按其十进制数值记为y，将原始8bit数据记为D.x.y，依次查表得到相应的转换结果。
+Write the lower 5 bits EDCBA as their decimal value x, and the upper 3 bits as their decimal value y, and write the original 8-bit data as D.x.y; then look up the table in order to get the corresponding conversion.
 
-在8B/10B编码系统中，D.x.7、D.x.P7、D.x.A7和K.x.7这些符号都有特定的用途和规则，用以确保数据流的完整性和可靠性。下面我会解释这些符号的具体用途和它们如何帮助避免编码错误。
+In 8b/10b, the symbols D.x.7, D.x.P7, D.x.A7 and K.x.7 each have a specific use and specific rules, which together keep the data stream intact and reliable. Here is what they are for and how they help avoid encoding errors.
 
-#### 8B/10B编码中的特殊码组
+#### Special code groups in 8b/10b
 
--   **D.x.7**: 这表示一种数据编码，其中"x"代表8位数据的十进制值，"7"代表这是10位编码中的一种形式。
--   **D.x.P7** 和 **D.x.A7**: 这些是D.x.7的变种，用来解决特定的编码问题。具体来说，当原始编码可能导致连续出现五个相同的位（0或1）时，会采用这些变种编码来避免此问题。连续的相同位会影响数据的物理层传输效果，例如信号的时钟恢复。
+-   **D.x.7**: a data encoding, where "x" is the decimal value of the 8-bit data and "7" indicates that this is one form of the 10-bit code.
+-   **D.x.P7** and **D.x.A7**: variants of D.x.7, used to solve a particular encoding problem. Specifically, they are used where the original encoding could produce five consecutive identical bits (0 or 1). Consecutive identical bits affect how the data is carried at the physical layer, clock recovery for instance.
 
-#### 使用逗号码进行校准
+#### Using comma codes for alignment
 
--   **逗号码（comma codes）**：如K.28.1、K.28.5、K.28.7，这些是预设的控制字符，用于数据流的同步和校准。逗号码的设计确保它们在数据流中的表现形式是唯一的，不会与数据负载中的任何正常数据序列混淆。
+-   **Comma codes**: K.28.1, K.28.5 and K.28.7 are predefined control characters used to synchronise and align the data stream. They are designed so that their appearance in the data stream is unique and cannot be confused with any normal data sequence in the payload.
 
-#### 编码决策和限制
+#### Encoding decisions and constraints
 
--   **D.x.A7的选择**：依据RD（Running Disparity，运行不一致性）的当前值选择D.x.A7的形式。例如，当RD为-1时，在某些特定的"x"值（如17, 18, 20）下使用D.x.A7，而当RD为+1时，在另外一些"x"值（如11, 13, 14）下使用。这样的选择帮助维持电气平衡，防止信号劣化。
--   **避免冲突**：在某些情况下，使用D.x.A7可能会与预定义的逗号序列产生冲突，从而导致错误的数据解释。在这些情况下（如"x"为23, 27, 29, 30），会改用K.x.7进行编码。
+-   **Choosing D.x.A7**: which form of D.x.A7 to use is chosen according to the current RD (running disparity). For example, when RD is -1, D.x.A7 is used for certain values of "x" (17, 18, 20); when RD is +1, it is used for others (11, 13, 14). Choosing this way maintains electrical balance and prevents the signal degrading.
+-   **Avoiding collisions**: in some cases, using D.x.A7 would collide with a predefined comma sequence and lead to the data being interpreted wrongly. In those cases ("x" of 23, 27, 29, 30), K.x.7 is used for the encoding instead.
 
-> **†** ：在控制代码中，K.28.1 K.28.5 K.28.7 是逗号序列，逗号序列是用来校准用的，如果K.28.7没有被使用，序列0011111 或者 1100000 是不会出现在任何编码中的。
+> **†**: among the control codes, K.28.1, K.28.5 and K.28.7 are the comma sequences, used for alignment. If K.28.7 is not used, the sequences 0011111 and 1100000 will not appear in any encoding.
 
-> **‡** ：在实际编码中如果K.28.7可以被使用，一种更复杂的校准规范需要 **†** 被使用，它们能组合成各种“原语”，在任何情况下多个K.28.7序列不允许被同时使用，它将导致不可探测的逗号序列。
+> **‡**: in a real encoding, if K.28.7 can be used, a more complicated alignment specification requires **†** to be used. They can be combined into various "primitives". In no case may several K.28.7 sequences be used at the same time, as that would produce an undetectable comma sequence.
 
 ![LUT1](/2024/04/17/Encoding/LUT1.png)
 
@@ -199,64 +198,64 @@ Reference：[https://zhuanlan.zhihu.com/p/560350350](https://zhuanlan.zhihu.com/
 
 ![LUT3](/2024/04/17/Encoding/LUT3.png)
 
-### K码和comma字符
+### K codes and comma characters
 
--   **K码**：在8B/10B编码中，某些10比特的组合被指定为控制字符，称为K码。这些字符不用来表示数据，而是用来控制传输过程中的特定功能，如帧同步或信号对齐。
--   **comma字符**：在K码中，特定的序列如K28.1、K28.5和K28.7被称为comma字符。这些特定的K码具有独特的比特模式，使得它们在数据流中容易被识别。
+-   **K codes**: in 8b/10b, certain 10-bit combinations are designated as control characters, called K codes. They do not represent data; they control specific functions during the transfer, such as frame synchronisation or signal alignment.
+-   **Comma characters**: among the K codes, particular sequences — K28.1, K28.5 and K28.7 — are called comma characters. These K codes have a distinctive bit pattern that makes them easy to recognise in the data stream.
 
-#### comma字符的作用
+#### What comma characters are for
 
--   **帧的开始和结束**：comma字符由于其独特的模式，在数据流中很容易识别。因此，它们经常被用来标示数据帧的开始和结束，帮助接收端确定数据包的边界。
--   **信号对齐**：comma字符还用于帮助接收设备校正和对齐数据流，确保数据的正确读取。
+-   **Start and end of frame**: because their pattern is distinctive, comma characters are easy to spot in the data stream. They are therefore often used to mark the start and end of a data frame, which helps the receiver find the packet boundaries.
+-   **Signal alignment**: comma characters are also used to help the receiving device correct and align the data stream, so the data is read correctly.
 
-#### 为什么comma字符不会出现在数据负荷中
+#### Why comma characters never appear in the payload
 
--   在设计8B/10B编码时，comma字符的比特模式被选择为不会在正常的数据负荷中出现。这是通过编码规则确保的，即没有任何正常的8比特数据块会被编码为comma字符的10比特模式。这样做的目的是为了避免在数据传输中对comma字符的误识别，从而确保comma字符的作用仅限于控制信号。
+-   When 8b/10b was designed, the comma characters' bit patterns were chosen so that they would not occur in normal payload data. The coding rules guarantee it: no normal 8-bit data block is encoded into the 10-bit pattern of a comma character. The point is to avoid mistaking payload data for a comma character during a transfer, so that comma characters only ever act as control signals.
 
-编解码设计是在数字通信和存储系统中常用的技术，用于转换数据格式以便更高效地传输和存储。在设计编解码器时，通常会采用以下几种方法：
+Codec design is a technique commonly used in digital communication and storage systems, to convert the data format so that it can be transmitted and stored more efficiently. There are several usual approaches to designing a codec:
 
-### 方法一：查找表法
+### Approach one: the lookup table
 
-这种方法通过预先设定的查找表来实现编码和解码。具体做法是：
+This approach implements encoding and decoding with a pre-built lookup table:
 
--   将8位信号映射成10位信号。
--   将输入的8位码组转换为存储地址，然后在查找表中找到相应的10位码组进行输出。
+-   Map the 8-bit signal to a 10-bit signal.
+-   Turn the input 8-bit code group into a storage address, then look up the corresponding 10-bit code group in the table and output it.
 
-**优点**：
+**Advantages**:
 
--   设计简单，开发周期短。
+-   Simple to design, short development cycle.
 
-**缺点**：
+**Disadvantages**:
 
--   受到FPGA（现场可编程门阵列）内部存储器读取速度的限制，可能影响编解码速度。
--   增加了芯片的面积和功耗。
+-   Bounded by the read speed of the memory inside the FPGA, which may limit the codec's speed.
+-   Costs die area and power.
 
-### 方法二：逻辑运算法
+### Approach two: logic
 
-直接通过逻辑运算来完成编码和解码的方法。可能涉及复杂的逻辑表达式，例如使用卡诺图（Karnaugh map）化简逻辑。
+Doing the encoding and decoding directly in logic. This may involve complicated logic expressions — simplifying the logic with a Karnaugh map, for instance.
 
-**优点**：
+**Advantages**:
 
--   可以减小芯片内部使用的面积。
+-   Can reduce the area used inside the chip.
 
-**缺点**：
+**Disadvantages**:
 
--   逻辑关系复杂，可能导致大扇入逻辑表达式，限制电路的最高工作速度。
--   增大了对逻辑电路的驱动需求，从而可能增加功耗。
+-   The logic relationships are complicated, which can produce high-fan-in logic expressions and limit the circuit's maximum operating speed.
+-   Increases the drive requirement on the logic, which may increase power.
 
-### 方法三：模块化实现法
+### Approach three: a modular implementation
 
-这种方法特别适用于8B/10B编码，通过模块化的设计来实现编解码。实现步骤如下：
+This approach suits 8b/10b encoding particularly well, implementing the codec through a modular design. The steps are:
 
-1.  判断输入是特殊字符还是普通数据。
-2.  如果是特殊字符，根据当前的RD（Running Disparity，运行不一致性）值直接从预设的表中选择对应的编码。
-3.  如果是数据，将8位数据拆分为3位和5位，然后在RD控制器的控制下并行处理这两部分数据。
+1.  Decide whether the input is a special character or ordinary data.
+2.  If it is a special character, pick the corresponding encoding straight out of the predefined table, based on the current RD (running disparity).
+3.  If it is data, split the 8 bits into a 3-bit part and a 5-bit part, then process the two parts in parallel under the control of the RD controller.
 
-**优点**：
+**Advantages**:
 
--   清晰的实现流程，易于管理和优化。
--   减小了电路板的面积，提高了工作速度，同时显著降低功耗。
+-   A clear implementation flow, easy to manage and optimise.
+-   Reduces board area, raises operating speed, and cuts power significantly.
 
 ![8b:10b\_structure](/2024/04/17/Encoding/8b-10b_structure.png)
 
-总的来说，选择哪种方法取决于具体的应用需求，包括速度、功耗、芯片面积和开发复杂度等因素。每种方法都有其优势和限制，设计时需要根据实际情况做出权衡。
+Overall, which approach to choose depends on the specific requirements of the application — speed, power, die area and development complexity. Each has its advantages and its limits, and the design has to trade them off against the actual situation.
