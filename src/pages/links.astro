@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { LINK_GROUPS, host } from '../data/links';
 import { entryCount } from '../lib/date';
+import { titleLang } from '../lib/reading';
 ---
 
 <BaseLayout
@@ -13,8 +14,9 @@ import { entryCount } from '../lib/date';
     <p class="page-head__kicker">DIGITAL IC · PCIE</p>
     <p class="page-head__lede">
       References collected while learning the material behind the <a href="/reading">reading notes</a
-      >. Kept as a list rather than a note, because that is all it ever was. Titles are the original
-      Chinese.
+      >. Kept as a list rather than a note, because that is all it ever was. Most of what is linked
+      is written in Chinese; the titles here are translated, except where the page publishes a title
+      of its own.
     </p>
   </header>
 
@@ -33,7 +35,7 @@ import { entryCount } from '../lib/date';
           {group.links.map((link) => (
             <li>
               <a href={link.url}>
-                <span class="links__title" lang="zh-CN">
+                <span class="links__title" lang={titleLang(link.title)}>
                   {link.starred && (
                     <span class="links__star" title="Singled out in the original list">
                       *
