@@ -535,7 +535,7 @@ export const PROJECTION_WIDE: ProjectionSpec = {
 export const PROJECTION_NARROW: ProjectionSpec = {
   id: 'narrow',
   w: 292,
-  h: 318,
+  h: 332,
   tw: 40,
   th: 28,
   c0: 64,
@@ -545,7 +545,7 @@ export const PROJECTION_NARROW: ProjectionSpec = {
   wbufY: 54,
   wbufX: 34,
   rootY: 84,
-  accY: 284,
+  accY: 276,
   ax: 0,
   aw: 16,
 };

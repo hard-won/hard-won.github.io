@@ -412,10 +412,10 @@ const LABEL_B =
               )}
               {spec.id === 'narrow' && (
                 <>
-                  <text class="dfg-t dfg-t--foot" x="0" y={spec.h - 18}>
+                  <text class="dfg-t dfg-t--foot" x="0" y={spec.h - 19}>
                     A0 CARRIES x[I0] · A1 CARRIES x[I1]
                   </text>
-                  <text class="dfg-t dfg-t--foot" x="0" y={spec.h - 5}>
+                  <text class="dfg-t dfg-t--foot" x="0" y={spec.h - 6}>
                     ONE OWNER TILE PER W BLOCK
                   </text>
                 </>
@@ -629,6 +629,12 @@ const LABEL_B =
     color: var(--accent);
   }
 
+  /* The separator for work this view does not show runs the full width, so
+     it reads as an end-of-layer rule rather than an eleventh stage box. */
+  .dfg__stage:last-child {
+    grid-column: 1 / -1;
+  }
+
   .dfg__foot,
   .dfg__kvnote {
     font-size: var(--sz);
@@ -646,7 +652,12 @@ const LABEL_B =
     align-items: stretch;
   }
 
+  /* Explicit placement on both children: the lane spans the whole height,
+     and an item with a definite row is placed before auto-placed ones, so
+     leaving the rows to auto-placement puts them in the wrong column. */
   .dfg__rows {
+    grid-column: 1;
+    grid-row: 1;
     display: grid;
     grid-template-rows: repeat(4, 3.5rem);
   }
@@ -726,7 +737,8 @@ const LABEL_B =
 
   .dfg__lane {
     position: relative;
-    grid-row: 1 / -1;
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .dfg__lane-rule {
