@@ -1,9 +1,9 @@
 ---
-title: "高速接口PCIe无痛入门（四）物理层（1）"
+title: "PCIe, part 4: the physical layer (1)"
 date: 2024-04-15T21:08:30-07:00
 displayDate: "2024-04-15"
 slug: "PCIe-4"
-lang: zh
+lang: en
 category: "interconnect"
 tags: []
 source:
@@ -18,216 +18,215 @@ furtherReading:
     url: "https://www.usbzh.com/article/detail-233.html"
   - title: "【计算机】使用LFSR线性反馈移位寄存器的随机数！"
     url: "https://www.bilibili.com/video/BV1kA411f76v/"
+description: "Notes on the PCIe physical layer: the logical and electrical sub-blocks, links and lanes, slot pinout, link serialisation, LFSR scrambling, and the encoding schemes."
 originalUrl: "/2024/04/15/PCIe-4/"
 ---
-PHY层就有点痛了。
+The PHY layer is where it starts to hurt.
 
-Reference: [https://r12f.com/posts/pcie-4-phy/，http://blog.chinaaet.com/justlxy/p/5100053476](https://r12f.com/posts/pcie-4-phy/%EF%BC%8Chttp://blog.chinaaet.com/justlxy/p/5100053476)
+# The PHY layer
 
-# PHY层
+In the PCIe spec the physical layer is presented as two separate parts: the physical layer logical sub-block and the physical layer electrical sub-block, the latter normally built out of a SerDes.
 
-在PCIe Spec中，物理层是被分为两个部分单独介绍的，分别是物理层逻辑子层和物理层电气子层，其中后者一般都是基于SerDes来实现的。
+The PHY sits at the very bottom of the PCIe architecture, so both TLPs and DLLPs have to go through it to be transmitted and received. TLPs and DLLPs coming down from the data link layer are held temporarily in the physical layer's buffer and get start and end characters added; these are sometimes also called frame characters.
 
-PHY处于PCIe体系结构中的最底层，所以无论是TLP还是DLLP都必须通过PHY完成收发操作。来自数据链路层的TLP和DLLP都会被临时放入物理层的Buffer中，并被加上起始字符（Start & End Characters），这些起始字符有的时候也被称为帧字符（Frame Characters）。
-
-这里所说的TLP和DLLP指的是包的原始发送者发的包，即TLP表示这个包的原始发送者为事务层，而DLLP则为数据链路层。但是TLP仍然会被数据链路层转发，并添加Sequence和LCRC。
+TLP and DLLP here refer to who originally sent the packet: a TLP is a packet whose original sender was the transaction layer, a DLLP one whose original sender was the data link layer. But a TLP still passes through the data link layer, which adds the sequence number and LCRC.
 
 ![PHYP](/2024/04/15/PCIe-4/PHYP.png)
 
 ![pcie-phy-blocks](/2024/04/15/PCIe-4/pcie-phy-blocks.png)
 
-PCIe PHY层主要分为两个子块：
+The PCIe PHY layer splits into two sub-blocks:
 
-1.  **逻辑子块（Logical Sub-Block）**
-    -   **数据编码和解码**：
-        -   **数据完整性**：逻辑子块通过先进的编码技术（如8b/10b编码或128b/130b编码）来增强数据传输的完整性。这种编码帮助在接收端正确地检测和校正可能的错误，是高速数据传输中不可或缺的部分。
-        -   **带宽优化**：适当的编码可以减少所需的信号带宽，通过降低比特错误率来优化整体系统性能。
-    -   **时钟恢复和数据同步**：
-        -   **时钟管理**：在没有独立时钟线的情况下，逻辑子块必须从传入的数据信号中恢复时钟，这是高速串行通信的一个技术挑战。时钟恢复确保数据在正确的时间点被采样，从而减少时序错误。
-        -   **数据流对齐和同步**：逻辑子块还负责数据流的对齐，确保数据包在链路层的正确处理。这涉及到处理任何可能的位移错或数据流中的时序偏差，是保证数据准确性和一致性的关键环节。
-2.  **电气子块（Electrical Sub-Block）**
-    -   **数据传输**：电气子块将逻辑子块编码后的数据转换为电信号，通过物理媒介（如电缆或电路板的导线）传输。这涉及到将数字信号转换为模拟信号的过程，确保信号在物理层上传输的可靠性。
-    -   **信号接收和转换**：在数据接收端，电气子块负责将从物理媒介收到的电信号转换回数字编码数据，然后传送给逻辑子块进行解码处理。
-    -   **处理电气特性**：电气子块还需要处理诸如电平调整（使信号保持在适当的电压范围内）、差分信号传输（使用两个相反电平的信号以减少噪音干扰）等物理链路的电气特性相关的任务。
+1.  **The logical sub-block**
+    -   **Encoding and decoding**:
+        -   **Data integrity**: the logical sub-block uses advanced coding techniques (8b/10b encoding, or 128b/130b encoding) to strengthen the integrity of the transfer. That coding helps the receiver correctly detect and correct possible errors, and is indispensable at high speed.
+        -   **Bandwidth optimisation**: appropriate coding can reduce the signal bandwidth needed, optimising overall system performance by lowering the bit error rate.
+    -   **Clock recovery and data synchronisation**:
+        -   **Clock management**: with no separate clock line, the logical sub-block has to recover the clock from the incoming data signal, which is one of the technical challenges of high-speed serial communication. Clock recovery is what makes the data get sampled at the right moment, reducing timing errors.
+        -   **Alignment and synchronisation of the data stream**: the logical sub-block is also responsible for aligning the data stream, so packets are handled correctly at the link layer. That means handling any bit-shift errors or timing skew in the stream, which is essential to keeping the data accurate and consistent.
+2.  **The electrical sub-block**
+    -   **Transmission**: the electrical sub-block turns the data encoded by the logical sub-block into electrical signals and sends them over the physical medium (a cable, or the traces on a board). This is the digital-to-analogue step, and it is what makes transmission at the physical layer reliable.
+    -   **Reception and conversion**: at the receiving end, the electrical sub-block turns the electrical signals coming off the physical medium back into digital encoded data, which it then passes up to the logical sub-block to be decoded.
+    -   **Handling the electrical characteristics**: the electrical sub-block also deals with the electrical properties of the physical link — level adjustment (keeping the signal within the right voltage range), differential signalling (using two signals at opposite levels to reduce noise), and so on.
 
 ![PHY](/2024/04/15/PCIe-4/PHY.png)
 
-如上图所示，PCIe物理层实现了一对收发差分对，因此可以实现全双工的通信方式。需要注意的是，PCIe Spec只是规定了物理层需要实现的功能、性能与参数等，至于如何实现这些却并没有明确的说明。也就是说，厂商可以根据自己的需要和实际情况，来设计PCIe的物理层。下面将以**Mindshare**书中的例子来简要的介绍PCIe的物理层逻辑部分，可能会与其他的厂商的设备的物理层实现方式有所差异，但是设计的目标和最终的功能是基本一致的。
+As the figure above shows, the PCIe physical layer implements a transmit and a receive differential pair, so communication is full duplex. Note that the PCIe spec only specifies what the physical layer has to do, how well, and to what parameters — it does not state how to implement any of it. In other words, a vendor can design its PCIe physical layer to suit its own needs and circumstances. What follows uses the example from the **Mindshare** book to sketch the logical part of the PCIe physical layer. It may differ from how other vendors' devices implement it, but the design goals and the eventual function are basically the same.
 
-PCIe的信号特点是：高频和短距，而这些事情都是为了帮助我们稳定的传输这样的信号而设计的，其设计目标主要有：
+The character of PCIe signalling is high frequency and short distance, and all of this is designed to help transmit such signals stably. The main design goals are:
 
-1.  **DC均衡（DC-Balanced）**
+1.  **DC balance**
 
--   **定义与目的**：DC均衡是确保在传输数据中，逻辑"0"和"1"的数量大致相等。这一设计减少了信号的直流偏置，有助于维持电路中的电压平衡，避免信号电平的长时间偏移。
--   **实现方式**：通过使用特定的编码方案，如8b/10b或128b/130b编码，可以实现DC均衡。这些编码方案不仅确保了数据比特之间的平衡，还增加了额外的控制位来帮助监控和维护信号的整体质量。
+-   **Definition and purpose**: DC balance means keeping the number of logic "0"s and "1"s in the transmitted data roughly equal. This reduces the signal's DC bias, helps keep the voltage in the circuit balanced, and avoids a long-term drift in the signal level.
+-   **How it is done**: DC balance is achieved by using a particular coding scheme, such as 8b/10b or 128b/130b. These schemes not only balance the data bits against each other but also add extra control bits that help monitor and maintain the overall quality of the signal.
 
-2.  **稳定的高频传输**
+2.  **Stable transmission at high frequency**
 
--   **目的**
-    
-    ：在高频环境下稳定传输数据，需要解决多个潜在问题：
-    
-    -   **信号变形**：在高频传输时，如果电平的上升和下降速度不足，可能导致信号形状变形，影响数据的准确解读。
-    -   **信号抖动（Jitter）**：信号在传输线上的时间变化不一致，可能由线路质量或外部干扰引起，影响信号的时序精度。
-    -   **滤波器问题**：连续相同的bit序列可能导致信号无法正常通过接收端的滤波器，这需要特定的编码技术来避免长串相同bit的出现。
--   **实现方式**：采用差分信号传输（如PCIe的主要物理接口采用的是差分对），通过在两条线路上传输互为反相的信号，大大减少了外部噪声的影响并提高了信号的完整性。
-    
+-   **Purpose**
 
-3.  **最小化EMI（Electromagnetic Interference）**
+    : several potential problems have to be solved to transmit data stably at high frequency:
 
--   **目的**：在高频操作中，重复的数据模式容易产生电磁干扰，影响周边设备的正常工作。同时，PCIe设备也需要抵抗来自其他设备的电磁干扰。
--   **实现方式**：采用屏蔽技术和设计布局优化，减少EMI的产生和影响。编码技术（如上述的DC均衡编码）也有助于打乱可能形成重复模式的数据序列，减少了EMI的风险。
+    -   **Signal distortion**: at high frequency, if the level cannot rise and fall fast enough, the shape of the signal may be distorted, affecting how accurately the data is read.
+    -   **Jitter**: the timing of the signal on the transmission line varies, possibly because of line quality or external interference, which affects the timing accuracy of the signal.
+    -   **Filter problems**: a long run of identical bits may keep the signal from passing through the receiver's filter properly, which is why a specific coding technique is needed to avoid long runs of the same bit.
+-   **How it is done**: use differential signalling (PCIe's main physical interface is a differential pair). Carrying two signals of opposite polarity on two lines greatly reduces the effect of external noise and improves signal integrity.
 
-逐个的看看物理层的设计吧！
 
-> 物理层还会负责一些其他的工作，比如：链路（Link）初始化，传输速率协商（Data Rate Negotiation）等等等等。这些内容由于和我们的主线 —— 数据传输的关系不大，所以就不在这里展开了，可以自行查阅相关资料。
+3.  **Minimising EMI (electromagnetic interference)**
 
-## 链路（Link）和通道（Lane）
+-   **Purpose**: at high frequency, a repeating data pattern easily produces electromagnetic interference, which disturbs the equipment around it. PCIe devices also need to resist interference coming from other devices.
+-   **How it is done**: shielding and careful layout, to reduce both the generation and the effect of EMI. Coding techniques (such as the DC-balancing codes above) also help, by breaking up data sequences that could form a repeating pattern, which lowers the EMI risk.
 
-这里对设计来说不重要，是物理插口。
+Let's go through the physical layer design piece by piece.
 
-在了解物理层的具体内容之前，我们先来看看PCIe物理上到底长什么样子，还有它链路（Link）和通道（Lane）的概念。
+> The physical layer also handles a number of other things, such as link initialisation, data rate negotiation, and plenty more. They have little to do with the main thread here — moving data — so they are not covered; look them up if you need them.
 
-PCIe的插槽，在主板上都见过，最短的是PCIe x1，很少用到，最长的是PCIe x16，可以用来插显卡，另外其实还有x32的插槽，但是仅仅在大型服务器上才会使用。如下图：[https://www.ccboot.com/correct-pcie-slot.htm](https://www.ccboot.com/correct-pcie-slot.htm)
+## Links and lanes
+
+Not important to the design; this is the physical connector.
+
+Before getting into the detail of the physical layer, let's look at what PCIe actually looks like physically, and at the concepts of link and lane.
+
+You have seen PCIe slots on a motherboard. The shortest is PCIe x1, which is rarely used; the longest is PCIe x16, which takes a graphics card. There is also an x32 slot, but only in large servers. As shown here: [https://www.ccboot.com/correct-pcie-slot.htm](https://www.ccboot.com/correct-pcie-slot.htm)
 
 ![pcie-phy-slots](/2024/04/15/PCIe-4/pcie-phy-slots.jpg)
 
-### 多通道（Lane）与单链路（Link）
+### Multiple lanes, one link
 
-1.  **通道（Lane）**：
-    -   在PCIe架构中，一个通道由两对差分信号组成，分别用于发送和接收数据。每对差分信号包括两条线路：一条用于正信号，一条用于负信号。这种设计有助于减少噪声和提高信号完整性。
-    -   在16通道（x16）的PCIe设备中，实际上有16对这样的差分信号对，即32条物理线路。
-2.  **链路（Link）**：
-    -   链路是多个通道的集合，用于在两个PCIe设备之间建立连接。尽管一个x16链路拥有16个通道，这些通道共同作用于同一数据传输任务，为一个单一的设备提供服务。
-    -   数据在链路上的传输是通过并行方式在多个通道上同时进行的，但在每个通道内部，数据是串行传输的。这意味着数据被拆分成多个部分，每部分通过一个通道串行发送，从而大幅提高了总体数据传输速率。
-3.  **数据汇总**：
-    -   在接收端，来自所有通道的数据会被重新组合或汇总，以恢复成原始的数据流。这个过程确保了高数据传输效率的同时，还能保证数据的完整性和顺序。
+1.  **Lane**:
+    -   In the PCIe architecture, a lane is made of two differential pairs, one for transmit and one for receive. Each differential pair is two wires: one for the positive signal, one for the negative. This arrangement helps reduce noise and improve signal integrity.
+    -   A 16-lane (x16) PCIe device therefore has 16 such differential pairs, that is, 32 physical wires.
+2.  **Link**:
+    -   A link is a collection of lanes, used to connect two PCIe devices. Although an x16 link has 16 lanes, those lanes all work together on the same transfer, serving a single device.
+    -   Data travels over the link in parallel across multiple lanes at once, but within each lane the data is serial. The data is split into pieces, each piece sent serially over one lane, which raises the overall transfer rate substantially.
+3.  **Recombining the data**:
+    -   At the receiving end, the data from all the lanes is recombined into the original data stream. This keeps the transfer efficient while preserving the data's integrity and order.
 
-### 插槽兼容性与Mechanical Key
+### Slot compatibility and the mechanical key
 
--   **插槽设计**：
-    -   PCIe插槽的设计允许不同长度的卡适配进相应长度的插槽。例如，一个具有更少通道的短卡（如x1、x4或x8卡）可以插入到一个x16插槽中，这得益于PCIe的灵活和向下兼容的设计。
-    -   插槽中的Pin被分为两部分：公共部分和专门用于数据传输的通道部分。公共部分包含电源、地线和一些必要的控制信号。
--   **Mechanical Key**：
-    -   Mechanical Key是插槽中的一个物理特征，它通过一个小挡板的形式出现，用于防止错误类型的卡插入不兼容的插槽。这个设计不仅确保物理兼容性，还避免了潜在的电气错误。
-    -   Key的位置和形状根据插槽的类型（如x1、x4、x8、x16）有所不同，帮助用户区分并正确安装PCIe卡。
+-   **Slot design**:
+    -   PCIe slots are designed so that cards of different lengths fit into slots of the corresponding length. A short card with fewer lanes (an x1, x4 or x8 card) can be plugged into an x16 slot, thanks to PCIe's flexible, backwards-compatible design.
+    -   The pins in a slot are divided into two parts: the common part and the part dedicated to data lanes. The common part carries power, ground and some necessary control signals.
+-   **Mechanical key**:
+    -   The mechanical key is a physical feature of the slot, a small divider, which prevents the wrong type of card being plugged into an incompatible slot. It ensures physical compatibility and also avoids potential electrical faults.
+    -   The key's position and shape vary by slot type (x1, x4, x8, x16), which helps the user tell them apart and install a PCIe card correctly.
 
 ![pcie-phy-pinout](/2024/04/15/PCIe-4/pcie-phy-pinout.png)
 
-PCI Express (PCIe) 插槽的设计包含了精心分配的引脚排列，这使得PCIe插槽能够支持从x1到x16等不同配置的卡，同时保持高兼容性和灵活性。这里我们将详细解释PCIe插槽中的“公共部分”和“数据通道”，以及它们如何支持不同设备的工作和互操作性。
+The PCIe slot's pin arrangement is carefully allocated, which is what lets one slot design support anything from x1 to x16 while staying compatible and flexible. Here is a closer look at the "common part" and the "data lanes" of a PCIe slot, and how they support different devices and interoperation.
 
-### 公共部分
+### The common part
 
-公共部分位于PCIe插槽的前部，不论插槽的大小（x1、x4、x8、x16等），这一部分的引脚配置都是相同的。公共部分包括以下主要功能：
+The common part sits at the front of the PCIe slot, and its pinout is the same whatever the slot size (x1, x4, x8, x16). It covers these main functions:
 
-1.  **电源供应**：
-    
-    -   提供大量的12V和3.3V电压输入和接地。这样的设计帮助分散单个接触点的电流负载，从而避免电流过载，确保设备稳定运行。
-2.  **JTAG调试接口**：
-    
-    -   JTAG接口用于测试、监控和调试电路板。它是工程师在设计和生产过程中用于查找问题、验证设计和测试硬件性能的重要工具。
-3.  **SMBus（System Management Bus）**：
-    
-    -   SMBus用于传输设备信息，例如传感器数据等。这允许系统读取温度、电压等关键性能参数，用于监控和管理硬件。
-4.  **WAKE# 和 PREST# 引脚**：
-    
-    -   WAKE# 用于从低功耗状态唤醒设备。
-    -   PREST# 用于硬件重置，这在系统需要快速重启或恢复正常工作状态时非常有用。
+1.  **Power**:
 
-### 数据通道
+    -   It supplies plenty of 12 V and 3.3 V inputs and grounds. Spreading the current across several contacts avoids overloading any one of them and keeps the device running stably.
+2.  **JTAG debug interface**:
 
-数据通道位于插槽的后部，由Mechanical Key（机械钥匙，一个物理分隔块）隔开。这部分引脚的数量和配置根据PCIe插槽的类型（x1、x4、x8、x16）而变化。数据通道包括：
+    -   JTAG is used to test, monitor and debug the board. It is an important tool for engineers finding problems, validating designs and testing hardware performance during design and production.
+3.  **SMBus (System Management Bus)**:
 
-1.  **地线**：
-    
-    -   每个功能引脚的两侧都配有接地引脚，这有助于维持信号的清晰度，减少信号间的干扰和电磁干扰（EMI）。
-2.  **时钟线**：
-    
-    -   提供时钟信号，用于同步数据传输。
-3.  **发送和接收通道**：
-    
-    -   这些通道分别负责数据的发送和接收。在x16配置中，这些通道的数量是x1配置的16倍，提供了更高的数据传输率。
-4.  **热插拔检测引脚**：
-    
-    -   用于检测卡的插入和移除，确保设备可以安全地热插拔，即在不关闭电源的情况下插入或拔出设备。
+    -   SMBus carries device information, such as sensor data. It lets the system read key parameters such as temperature and voltage, for monitoring and management.
+4.  **WAKE# and PREST# pins**:
 
-### 扩展的“魔法”
+    -   WAKE# wakes the device from a low-power state.
+    -   PREST# is a hardware reset, which is useful when the system needs to restart quickly or return to normal operation.
 
-PCIe的设计允许物理层通过检测使用的通道数来适配不同大小的卡。例如，一个x1卡可以插入任何大小的插槽（x1, x4, x8, x16），因为所有这些插槽都有相同的公共部分和至少一个完整的数据通道集。这种设计极大地提高了PCIe设备的互操作性和系统的灵活性。
+### The data lanes
 
-通过这种方式，PCIe技术不仅确保了硬件间的高效数据传输，还提供了系统设计的高度兼容性和扩展性，使得用户和系统设计者可以根据需要灵活地升级或更换硬件。
+The data lanes are at the back of the slot, separated by the mechanical key (a physical divider). How many of these pins there are, and how they are arranged, depends on the slot type (x1, x4, x8, x16). The data lanes include:
 
-## 逻辑子块
+1.  **Grounds**:
 
-当数据链路层将打包好的数据传下来之后，首先到达的就是逻辑子块（Logical Sub-Block）了，在这里，我们会对数据进行一些处理，比如：打乱（Scrambling），编码（Encoding），以及插入控制字符（Control Character）等等。
+    -   Each functional pin has ground pins on both sides, which helps keep the signal clean and reduces crosstalk and EMI.
+2.  **Clock lines**:
 
-## 链路串行化 Link Serializer
+    -   Supply the clock signal used to synchronise the transfer.
+3.  **Transmit and receive lanes**:
 
-我们可以看到一个PCI Express (PCIe) 的数据包在x4链路上的分布。这张图展示了一个事务层数据包（TLP，Transaction Layer Packet）是如何在多个通道上进行分割和传输的。下面详细解释这个过程：
+    -   These carry data out and in respectively. In an x16 configuration there are 16 times as many of them as in x1, which gives a much higher transfer rate.
+4.  **Hot-plug detect pins**:
+
+    -   Detect the card being inserted or removed, so a device can be hot-plugged safely — plugged in or pulled out without powering down.
+
+### The "magic" of scaling
+
+PCIe is designed so the physical layer adapts to cards of different sizes by detecting how many lanes are in use. An x1 card can go into a slot of any size (x1, x4, x8, x16), because all of those slots have the same common part and at least one complete set of data lane pins. This design greatly improves the interoperability of PCIe devices and the flexibility of the system.
+
+In this way PCIe not only makes data transfer between hardware efficient, but also gives the system design a high degree of compatibility and room to grow, so users and system designers can upgrade or swap hardware as they need to.
+
+## The logical sub-block
+
+When the data link layer passes the packaged data down, the first thing it reaches is the logical sub-block. Here we do some processing on the data: scrambling, encoding, inserting control characters, and so on.
+
+## Link serialisation
+
+Here we can see how a PCIe packet is spread across an x4 link. The figure shows how a Transaction Layer Packet (TLP) is split up and transmitted over several lanes. In detail:
 
 ![pcie-phy-link-serializer](/2024/04/15/PCIe-4/pcie-phy-link-serializer.png)
 
-### 数据在链路上的分配
+### Distributing the data across the link
 
-1.  **数据包的组成**：
-    -   TLP：这是在事务层的数据包，它包含实际要传输的数据或命令。
-    -   序列号/LCRC（Sequence Number/LCRC）：数据链路层会为每个TLP添加一个序列号，用于确保数据包的完整性和正确的顺序。LCRC（Link CRC）是一个检错码，用于检测在传输过程中数据是否出现错误。
-    -   STP/END（Start of Packet/End of Packet）：这是物理层的帧定界符号，标记数据包的开始和结束。
-2.  **数据在通道上的分配**：
-    -   在发送方，数据链路层将一个较大的数据包（如TLP）拆分成多个较小的片段。
-    -   这些片段根据链路上通道的数量（在这个例子中是4个通道），均匀地分配到各个通道上。
-    -   物理层随后会将这些数据片段序列化，即将它们转换为串行的比特流以在通道上发送。
+1.  **What the packet contains**:
+    -   TLP: the transaction layer's packet, containing the actual data or command to be transmitted.
+    -   Sequence number / LCRC: the data link layer adds a sequence number to each TLP, to guarantee the packet's integrity and correct ordering. The LCRC (Link CRC) is an error-detecting code used to find errors that occurred in transit.
+    -   STP/END (Start of Packet / End of Packet): the physical layer's framing symbols, marking the start and end of the packet.
+2.  **Distributing across the lanes**:
+    -   On the transmit side, the data link layer splits a larger packet (a TLP) into several smaller fragments.
+    -   Those fragments are distributed evenly across the lanes, according to how many lanes the link has (four in this example).
+    -   The physical layer then serialises those fragments, that is, turns them into a serial bit stream to be sent over the lane.
 
-### 数据在接收方的合并
+### Recombining the data at the receiver
 
-1.  **数据接收**：
-    -   在接收方，物理层首先将各个通道上串行的比特流反序列化，恢复成数据片段。
-    -   然后根据片段中的序列号和LCRC，数据链路层会检测数据的完整性并重新组装这些片段，恢复成原始的TLP。
-2.  **数据处理**：
-    -   一旦TLP被完整地重组，它会被传送到更高层次进行进一步处理。例如，读写请求会被送到相应的目标，而接收到的数据可能会被送到处理器或存储器。
+1.  **Reception**:
+    -   At the receiver, the physical layer first deserialises the serial bit stream on each lane back into data fragments.
+    -   The data link layer then uses the sequence number and LCRC in the fragments to check the data's integrity and reassemble the fragments back into the original TLP.
+2.  **Processing**:
+    -   Once the TLP has been fully reassembled, it is passed up for further processing. A read or write request goes to the appropriate target, for example, and received data may go to the processor or to memory.
 
-这个过程确保了PCIe可以在一个x4链路上高效地利用所有通道来传输数据，有效地提高了带宽和数据吞吐量。每个通道上的串行传输使得信号能够在高速上准确无误地传输，而多通道的并行工作则大大提升了整体传输性能。通过这样的设计，PCIe可以支持从x1到x16不等的不同配置，为各种应用和需求提供了强大的灵活性和扩展性。
+This process is what lets PCIe use all the lanes on an x4 link efficiently, raising bandwidth and throughput. Serial transmission on each lane is what allows the signal to be carried accurately at high speed, while the lanes working in parallel greatly improves overall performance. This design is why PCIe can support configurations from x1 to x16, giving it flexibility and headroom across a wide range of applications and requirements.
 
-## 数据加扰 Data Scrambling
+## Data scrambling
 
-加扰（Scrambling）是通信系统中常用的一种技术，它的目的是打乱原有的数据顺序，将其变为看似随机的序列，以此来改善传输信号的频谱特性。这个过程类似于伪随机数生成器（pseudo-random number generator），因为它将规整的数据流转变成随机数一样的形式。通过这样的技术手段，通信系统能够提高传输质量，减少干扰，同时优化频谱的使用效率。加扰不仅是改善传输效果的一种方法，同时也是满足特定通信标准和要求的必要过程。
+Scrambling is a technique commonly used in communication systems. Its purpose is to break up the original order of the data and turn it into what looks like a random sequence, in order to improve the spectral characteristics of the transmitted signal. The process is like a pseudo-random number generator, in that it turns a regular data stream into something that looks like random numbers. With this technique a communication system can improve transmission quality, reduce interference, and make better use of the spectrum. Scrambling is not just a way of improving transmission; it is also a necessary step in meeting particular communication standards and requirements.
 
-### 加扰的目的和原理
+### What scrambling is for, and how it works
 
-1.  **避免能量集中**：在数字通信中，若连续传输的数据具有一定的规律性或重复性（如连续的0或1），这会导致信号的频谱在某些特定频率上有能量集中现象。能量集中会增强电磁干扰（EMI，Electro-Magnetic Interference），这对通信系统是不利的。
-2.  **频谱扁平化**：加扰能打破数据的规律性，使得转换后的信号在频谱上更为均匀分布。当数据以更加随机的形式存在时，其通过傅里叶变换（Fourier Transform）得到的频谱会更加均匀，从而降低了在特定频率上的能量峰值。
-3.  **改善信道利用效率**：通过使信号频谱更加均匀，加扰有助于通信系统更有效地利用信道，因为它减少了由于频谱集中而可能引起的信道非线性效应，如干扰和信号失真。
+1.  **Avoiding concentrated energy**: in digital communication, if the data being transmitted has some regularity or repetition (a run of 0s or 1s, say), the signal's spectrum ends up with its energy concentrated at certain frequencies. Concentrated energy increases electromagnetic interference (EMI), which is bad for the system.
+2.  **Flattening the spectrum**: scrambling breaks up the regularity of the data, so the resulting signal is spread more evenly across the spectrum. When the data is in a more random form, the spectrum obtained from its Fourier transform is more uniform, which lowers the energy peaks at particular frequencies.
+3.  **Better channel utilisation**: by making the signal's spectrum more uniform, scrambling helps the system use the channel more effectively, because it reduces the non-linear channel effects — interference and distortion — that a concentrated spectrum can cause.
 
-### 加扰的实现
+### How scrambling is implemented
 
-在实际的数字通信系统中，加扰通常通过一个线性反馈移位寄存器（LFSR, Linear Feedback Shift Register）实现，该寄存器生成看似随机的序列，并与原始数据进行异或（XOR）操作，从而产生加扰后的数据。这种加扰后的数据在传输过程中减少了周期性和规律性，使得信号在整个传输频带上更加均匀。
+In a real digital communication system, scrambling is usually implemented with a linear feedback shift register (LFSR), which generates a sequence that looks random and is XORed with the original data to produce the scrambled data. The scrambled data carries less periodicity and regularity in transit, so the signal is more uniform across the whole transmission band.
 
 ![pcie-phy-lfsr](/2024/04/15/PCIe-4/pcie-phy-lfsr.png)
 
-PCIe 1.0和2.0的16位LFSR公式
+The 16-bit LFSR polynomial for PCIe 1.0 and 2.0
 
-如果PCIe 1.0和2.0使用的是16位的LFSR，多项式通常会是这样表示的（假设为一种常见的多项式）：
+If PCIe 1.0 and 2.0 use a 16-bit LFSR, the polynomial is normally written like this (assuming one of the common polynomials):
 $$
 f(x) = x^{16} + x^5 + x^4 + x^3 + 1
 $$
-PCIe 3.0及以后版本的23位LFSR公式
+The 23-bit LFSR polynomial for PCIe 3.0 and later
 
-对于PCIe 3.0以及之后的版本，如果使用了更长的23位LFSR，多项式可能会这样表示（假设为一种常见的多项式）：
+For PCIe 3.0 and later, if a longer 23-bit LFSR is used, the polynomial might be written like this (assuming one of the common polynomials):
 $$
 f(x) = x^{23} + x^{21} + x^{16} + x^{8} + x^{5} + x^{2} + 1
 $$
 
-LFSR 写一个新博客详细解释
+LFSR — write a new post explaining this in detail.
 
-视频解释：[https://www.bilibili.com/video/BV1kA411f76v/?vd\_source=480dd1a439e1115a7b44c747b41734f4](https://www.bilibili.com/video/BV1kA411f76v/?vd_source=480dd1a439e1115a7b44c747b41734f4)
+Video explanation: [https://www.bilibili.com/video/BV1kA411f76v/?vd\_source=480dd1a439e1115a7b44c747b41734f4](https://www.bilibili.com/video/BV1kA411f76v/?vd_source=480dd1a439e1115a7b44c747b41734f4)
 
-其计算方法用动画表示如下：
+The calculation, animated:
 
 ![pcie-phy-lfsr-galois](/2024/04/15/PCIe-4/pcie-phy-lfsr-galois.gif)
 
-这样，每一次时钟，LFSR就会产生一个伪随机的bit，然后我们用这个bit和数据再进行一次XOR运算，就可以达到数据加扰的目的了。
+So on every clock the LFSR produces one pseudo-random bit, and XORing that bit with the data scrambles it.
 
-另外，PCIe1.0和2.0中，数据加扰用的LFSR的初始值（Seed）都是0xFFFF，但是在PCIe3.0之后，为了避免不同的Lane上出现相似的数据，每条Lane上的LFSR的初始值（Seed）都不一样（大于等于8的Lane ID需要对8取模）：
+One more thing: in PCIe 1.0 and 2.0 the seed of the scrambling LFSR is 0xFFFF, but from PCIe 3.0 on, to avoid similar data appearing on different lanes, each lane's LFSR has a different seed (lane IDs of 8 and above are taken modulo 8):
 
 | **Lane** | **Seed** |
 | --- | --- |
@@ -240,77 +239,75 @@ LFSR 写一个新博客详细解释
 | 6 | 0277CEh |
 | 7 | 1BB807h |
 
-这个方法聪明的地方在于，通过XOR产生的伪随机数是可以恢复的！因为只要操作数一样，两次XOR操作的效果会被抵消，所以只要发送方和接收方的Seed一样，那么接收方就可以通过执行完全一样的LFSR操作，来恢复出原始的数据。
+The clever part of this approach is that the pseudo-random number produced by the XOR is recoverable: as long as the operand is the same, two XOR operations cancel out. So as long as transmitter and receiver use the same seed, the receiver can run exactly the same LFSR and recover the original data.
 
-最后，为了方便我们用示波器调试，数据加扰是可以被关闭的。
+Finally, scrambling can be turned off, to make debugging with a scope easier.
 
 ## Encoding
 
-打乱数据后，就是要对数据进行Encoding了。
+Once the data has been scrambled, the next step is to encode it.
 
-在数字通信中，编码（Encoding）是一个关键步骤，其主要目的是为了确保数据在传输过程中的可靠性和效率。在讨论PCIe（Peripheral Component Interconnect Express）的编码方法之前，先来解释一下为什么需要进行编码以及**编码的目的**。
+Encoding is a key step in digital communication, and its main purpose is to make the transfer reliable and efficient. Before getting to PCIe's encoding methods, here is why encoding is needed at all — **what encoding is for**.
 
-### Encoding的目的
+### What encoding is for
 
-#### **DC平衡（DC Balance）**
+#### **DC balance**
 
-DC平衡指的是在数据信号中保持0和1的比例大致相等，这有助于减少信号的直流偏移。直流偏移是由于信号中0和1的长时间不平衡导致的累积效应，这可能会影响接收设备正确解读信号。通过编码来保持DC平衡，可以确保信号的完整性，并减少电源和信号的干扰。
+DC balance means keeping the proportion of 0s and 1s in the data signal roughly equal, which helps reduce the signal's DC offset. DC offset is the accumulated effect of a long-term imbalance between 0s and 1s in the signal, and it can stop the receiving device reading the signal correctly. Maintaining DC balance through encoding keeps the signal intact and reduces interference between power and signal.
 
-#### **时钟恢复（Clock Recovery）**
+#### **Clock recovery**
 
-在没有单独的时钟信号线的传输系统中，接收设备需要从数据信号本身恢复出时钟信号。这要求数据流中必须有足够的边缘（即0到1或1到0的转变），以便从中提取时钟信息。通过适当的编码策略，可以在数据中引入这些必要的边缘，使时钟恢复变得可行。
+In a transmission system with no separate clock line, the receiving device has to recover the clock from the data signal itself. That requires enough edges in the data stream — transitions from 0 to 1 or 1 to 0 — for the clock to be extracted from. An appropriate coding strategy introduces those necessary edges into the data and so makes clock recovery possible.
 
-### **PCIe的编码方法**
+### **PCIe's encoding methods**
 
-PCIe使用了几种不同的编码方法来满足其高速数据传输的需求：
+PCIe uses several different encoding methods to meet the demands of high-speed transfer:
 
-1.  **8b/10b编码**：这种编码方式每8位原始数据转换为10位传输数据。它通过增加额外的两位，有效地嵌入了足够的转换来支持时钟恢复，并尝试维持DC平衡。
-    
-2.  **128b/130b编码**：此编码技术在PCIe的更高版本中使用，它每128位原始数据转换成130位传输数据。与8b/10b相比，128b/130b编码在提高数据传输效率的同时，减少了开销（由原来的25%降到了1.6%左右）。
-    
-3.  **242B/256B FLIT编码**：这是在PCIe 6.0中引入的一种新编码方式，它主要用于支持更高的数据传输率和更复杂的通信需求。每242位原始数据转换为256位传输数据，同样提供高效的时钟恢复和DC平衡。
-    
+1.  **8b/10b encoding**: turns every 8 bits of original data into 10 bits for transmission. Those two extra bits embed enough transitions to support clock recovery, and attempt to maintain DC balance.
 
-### **计算传输速率**
+2.  **128b/130b encoding**: used in the later versions of PCIe, this turns every 128 bits of original data into 130 bits. Compared with 8b/10b, 128b/130b raises transfer efficiency while cutting overhead (from 25% down to around 1.6%).
 
-了解了PCIe的编码方式和总线时钟频率后，可以计算每条Lane（通道）的传输速率。传输速率的计算基于以下公式：
+3.  **242B/256B FLIT encoding**: a new scheme introduced in PCIe 6.0, used mainly to support higher data rates and more complex communication requirements. It turns every 242 bits of original data into 256 bits, and likewise provides efficient clock recovery and DC balance.
 
-用PCIe 1.0 8b/10b来举例子，这个代表8bit的数据会被编码为10b的数据进行传输，所以，最后每条Lane的传输速率就是：
+
+### **Calculating the transfer rate**
+
+Once you know PCIe's encoding scheme and the bus clock frequency, you can calculate the per-lane transfer rate. The calculation is based on the formula below:
+
+Take PCIe 1.0 with 8b/10b as the example. This means 8 bits of data are encoded as 10 bits for transmission, so the per-lane rate comes out as:
 $$
 \\text{Throughput} = \\frac{\\text{Transfer Rate} \\times \\text{Effective Payload Percentage}}{8 \\text{ bits}} = \\frac{2.5 \\text{ GT/s} \\times \\frac{8}{10}}{8} = \\frac{2.5 \\times 10^9 \\text{ transfers/s} \\times 0.8}{8} = 250 \\times 10^6 \\text{ B/s} = 250 \\text{ MB/s}
 $$
-这里的计算考虑了通过PCIe传输的实际数据量，扣除了编码引入的额外比特。250 MB/s是PCIe 1.0标准下，每个Lane的有效数据传输速率。
+This calculation accounts for the actual amount of data carried over PCIe, with the extra bits introduced by the encoding taken out. 250 MB/s is the effective per-lane data rate under PCIe 1.0.
 
-**GT/s** 是指每秒的传输操作（Transfer）次数，每次传输操作可能包含多个比特。在某些接口中，如PCIe，一个传输操作可能包含一个或多个数据比特，取决于编码方案。
+**GT/s** means transfers per second, where each transfer may carry several bits. In some interfaces, PCIe among them, one transfer may carry one or more data bits, depending on the coding scheme.
 
-在8b/10b编码中，每10个传输bit才包含8个实际数据bit。因此，如果你有2.5 GT/s的传输速率，实际的数据传输速率会低于25 Gbps，因为每10个比特中有2个是为了编码而使用的额外比特。
+Under 8b/10b, every 10 transmitted bits contain only 8 real data bits. So at a transfer rate of 2.5 GT/s, the actual data rate is below 25 Gbps, because 2 bits out of every 10 are extra bits used by the encoding.
 
-### ？b / ？b Encoding 方式
+### ?b/?b encoding schemes
 
-Reference: [http://blog.chinaaet.com/justlxy/p/5100052814，https://www.usbzh.com/article/detail-233.html](http://blog.chinaaet.com/justlxy/p/5100052814%EF%BC%8Chttps://www.usbzh.com/article/detail-233.html)
+Written up separately, here: [https://hard-won.github.io/2024/04/17/Encoding/](https://hard-won.github.io/2024/04/17/Encoding/)
 
-单独写了一篇，导航：[https://hard-won.github.io/2024/04/17/Encoding/](https://hard-won.github.io/2024/04/17/Encoding/)
+The electrical layer gets its own post.
 
-电气层单独开一篇。
-
-**发射端：**
+**Transmitter:**
 
 ![Logic\_S](/2024/04/15/PCIe-4/Logic_S.png)
 
-在进行8b/10b编码之前，Mux会对来自数据链路层的数据中插入一些内容，如用于标记包边界或者Ordered Sets的控制字符和数据字符。为了区分这些字符，Mux为其对应上一个D/K#位（Data or Kontrol）。
+Before 8b/10b encoding, the Mux inserts some things into the data coming from the data link layer — control characters and data characters, used to mark packet boundaries or Ordered Sets. To tell those characters apart, the Mux attaches a D/K# bit to each one (Data or Kontrol).
 
-\*\*注：\*\*图中还包含了Gen3的一些实现，不过这里只介绍Gen1 & Gen2，并不会介绍Gen3。如果大家感兴趣的，可以去阅读Mindshare的书籍或者参考PCIe Gen3的Spec。
+**Note:** the figure also includes some Gen3 implementation, but only Gen1 and Gen2 are covered here; Gen3 is not. If you are interested, read the Mindshare book or the PCIe Gen3 spec.
 
-Byte Striping将来自Mux的并行数据按照一定的规则（后面会详细地说）分配到各个Lane上去。随后进行扰码（Scrambler）、8b/10b编码、串行化（Serializer），然后是差分发送对。
+Byte striping distributes the parallel data from the Mux across the lanes according to a set of rules (detailed later). After that come the scrambler, 8b/10b encoding and the serialiser, and then the differential transmit pair.
 
-其中扰码器（Scrambler）是基于伪随机码（Pesudo-Random）的异或逻辑（XOR），由于是伪随机码，所以只要发送端和接收端采用相同的算法和种子，接收端便可以轻松地恢复出数据。但是，如果发送端和接收端由于某些原因导致其节拍不一致了，此时便会产生错误，因此Gen1和Gen2的扰码器（Scrambler）会周期性地被复位。
+The scrambler is XOR logic based on a pseudo-random code. Because the code is pseudo-random, the receiver can easily recover the data as long as transmitter and receiver use the same algorithm and the same seed. But if transmitter and receiver fall out of step for some reason, errors follow — which is why the Gen1 and Gen2 scramblers are reset periodically.
 
-**接收端：**
+**Receiver:**
 
 ![Logic\_R](/2024/04/15/PCIe-4/Logic_R.png)
 
-由于PCIe采用的是一种Embeded Clock（借助8b/10b）机制，因此接收端在接收到数据流时，首先要从中恢复出时钟信号，这正是通过CDR逻辑来实现的。如上图所示，接收端的逻辑基本上都是与发送端相对应的相反的操作。这里就不在详细地介绍了。
+Because PCIe uses an embedded clock (by way of 8b/10b), the receiver's first job on receiving the data stream is to recover the clock from it, which is what the CDR logic does. As the figure above shows, the receiver's logic is basically the inverse of the transmitter's, step for step. No need to go through it in detail.
 
-**整体架构：**
+**The architecture as a whole:**
 
 ![pcie-physical-layer-arch](/2024/04/15/PCIe-4/pcie-physical-layer-arch.png)

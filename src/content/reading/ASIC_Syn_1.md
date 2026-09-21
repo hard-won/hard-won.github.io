@@ -1,79 +1,66 @@
 ---
-title: "速读ASIC综合（一）"
+title: "Skimming ASIC synthesis (1)"
 date: 2022-01-01T00:00:00-08:00
 displayDate: "2022-01-01"
 slug: "ASIC_Syn_1"
-lang: zh
+lang: en
 category: "rtl"
 tags: []
+description: "Notes on the opening chapter of a Design Compiler book: the twenty-three-step flow from specification to tape-out, and what synthesis, formal verification, STA, floorplanning and clock tree insertion each contribute to it."
 originalUrl: "/2022/01/01/ASIC_Syn_1/"
 ---
-# ASIC Synthesis前言
+# ASIC synthesis: foreword
 
-后面要找工作，上完课没事干就多看看书吧。这个系列是为了速读ASIC Synthesis的整体流程，完整的ASIC设计流程。从概念到芯片的tapout。并且也基于Design Compiler提供了各种真实工作会用到的实践而非理论。书一共六章。纸上得来终觉浅，hands on很宝贵。
+I will be job-hunting soon, and with classes over and nothing much to do, I may as well read. This series is a quick read through the overall ASIC synthesis flow — the whole ASIC design flow, from concept to the chip's tape-out. It is also built on Design Compiler, so what it offers is the practice you actually use at work rather than theory. The book has six chapters. What you get off the page is always shallow; hands-on is worth a lot.
 
-# 第一章 你该怎么设计一款ASIC
+# Chapter 1: how you should design an ASIC
 
 ![image-20240325220534218](/2022/01/01/ASIC_Syn_1/image-20240325220534218.png)
 
-1.  写规范和结构，architect的任务
-2.  RTL编码
-3.  有些设计有memory，需要插入DFT memory BIST
-4.  verification
-5.  工艺库等环境设置
-6.  用Design Compiler对具有扫描插入（和可选择的JTAG）设计进行约束和综合设计
-7.  用DC进行module level的STA
-8.  formal verification，对比RTL和Netlist
-9.  用PrimeTime进行system level的STA
-10.  对layout工具进行时序约束前的标注
-11.  全局布线的初始layout划分
-12.  时钟树转Netlist
-13.  用DC做设计的layout optimization
-14.  在Netlist和clk tree插入的Netlist之间用Formality进行formal verification
-15.  全局布线后（第11步）从layout提取估计的delay
-16.  得到estimated delay 反标注到PrimeTime
-17.  使用estimated delay进行STA
-18.  design的详细布局
-19.  extract 详细布局设计的实际delay
-20.  实际delay反标注到PrimeTime
-21.  使用真实的delay进行STA
-22.  gate level 的功能仿真（optional）
-23.  LVS和DRC之后就tape out了
+1.  Write the specification and the architecture — the architect's job.
+2.  RTL coding.
+3.  Some designs have memory and need DFT memory BIST inserted.
+4.  Verification.
+5.  Environment setup: technology libraries and so on.
+6.  Constrain and synthesise the design, with scan inserted (and optionally JTAG), using Design Compiler.
+7.  Module-level STA with DC.
+8.  Formal verification, comparing the RTL against the netlist.
+9.  System-level STA with PrimeTime.
+10.  Annotate the layout tool ahead of timing constraint.
+11.  Initial layout partitioning for global routing.
+12.  Clock tree into the netlist.
+13.  Layout optimisation of the design with DC.
+14.  Formal verification with Formality between the netlist and the netlist with the clock tree inserted.
+15.  After global routing (step 11), extract estimated delays from the layout.
+16.  Back-annotate the estimated delays into PrimeTime.
+17.  STA using the estimated delays.
+18.  Detailed placement of the design.
+19.  Extract the actual delays of the detail-placed design.
+20.  Back-annotate the actual delays into PrimeTime.
+21.  STA using the real delays.
+22.  Gate-level functional simulation (optional).
+23.  After LVS and DRC, tape out.
 
-设计就是三种：behavioral，RTL，structural。行为级就是想实现什么就写什么。RTL是会转换成Netlist，所以写RTL不如说是在画logic module的连接图，心里一定要有数字设计图。
+There are three kinds of design: behavioural, RTL and structural. At the behavioural level you just write whatever it is you want to build. RTL is what gets converted into a netlist, so writing RTL is less writing than drawing a connection diagram of logic modules; you have to hold the digital design picture in your head.
 
-然后就是动态simulation，检查设计的功能。现在的simulator都能仿真behavioral和RTL的了，有时也会仿真映射后gate level的设计。RTL的仿真不考虑元件或门的时序，所以为了最小化RTL仿真和综合后gate level的仿真之间的差异，通常在具有时序单元的RTL coding时就加入delay。
+Then comes dynamic simulation, to check the design's function. Simulators today can all simulate behavioural and RTL, and sometimes the mapped gate-level design too. RTL simulation does not account for component or gate timing, so to minimise the difference between RTL simulation and post-synthesis gate-level simulation, delays are usually put in while coding RTL that has sequential elements.
 
-以前人们都是手工将HDL画成逻辑电路图，现在都是用synthesis工具。Synthesis是一个反复迭代的过程，先为设计中每个模块定义时序constraint（规定了每个信号和特定module的clk input的联系）。除了constraint，还要定义synthesis环境的文件，这个文件说明了工艺library和DC在使用中的相关信息。
+People used to turn HDL into logic schematics by hand; now it is all done with synthesis tools. Synthesis is an iterative process. First you define timing constraints for every module in the design (they state how each signal relates to a particular module's clock input). Besides the constraints, you also define a file for the synthesis environment, which states the technology library and the relevant information about DC's use.
 
-DC应用时序constraint读取RTL code后，synthesis到structural level，从而产生一个映射后的gate level netlist。一般小模块的设计，DC有内置的STA工具。如果不满足再需要继续优化。
+With the timing constraints applied, DC reads the RTL code and synthesises it to the structural level, producing a mapped gate-level netlist. For small module designs, DC has a built-in STA tool. If timing is not met, optimisation has to continue.
 
-目前设计都会结合DFT的逻辑，以便测试。可测性设计。
+Designs today all fold in DFT logic so they can be tested. Design for testability.
 
-formal verification是用数学方法来确认一个设计，不考虑工艺因素（时序或物理效应）。用来跟设计对比来检查逻辑。与simulation不同，formal是要证明两个设计的结构和功能是逻辑等价的；simulation是只能检查敏感路径，所以不可能找到其他出现的问题。formal verification很快很快，相比simulation。
+Formal verification confirms a design by mathematical means, without regard to process factors (timing or physical effects). It is used to check the logic by comparison against a design. Unlike simulation, formal is about proving that two designs are logically equivalent in structure and function; simulation can only check the paths it sensitises, so it cannot possibly find the other problems that turn up. Formal verification is very, very fast next to simulation.
 
-formal verification就是验证RTL和RTL，netlist和RTL之间的关系。可能会增加附加性能，要经常修改设计，当特性增加到RTL上时，可能会改变正确的逻辑功能。还有在RTL和有扫描插入的门级之间，为了保证门级也有一样的功能。如果用simulation，太久（数天数星期），formal verification只需要几小时。还有门级和门级的，也就是layout输入和输出的，中间后插入clk tree的netlist，也是一种修改，所以要验证逻辑是否等价。
+What formal verification verifies is the relationship between RTL and RTL, and between netlist and RTL. Extra features may get added and the design modified often, and when a feature is added on top of the RTL it may change logic function that was correct. There is also RTL against the scan-inserted gate level, to make sure the gate level has the same function. With simulation this takes too long (days, weeks); formal verification takes only hours. And there is gate level against gate level — the input and the output of layout — where the netlist with the clock tree inserted in between is a modification too, so logical equivalence has to be verified.
 
-STA可以详细分析报告所有critical path也包含fanout或每个线网的容性负载。对layout前后的gate level netlist进行STA。layout前，用PrimeTime由工艺library指定的线载模型estimate线网delay，这个过程中先前输入到DC的时序constraint也输入到PrimeTime中并详细说明input output和clk的关系。如果对于所有critical path是可接受的，则可以得到一个constraint文件（.SDF），预标注到layout工具，这个文件详细描述了layout工具使用的每个逻辑组之间的时序。
+STA can analyse and report every critical path in detail, including fanout and the capacitive load of each net. STA is run on the gate-level netlist both before and after layout. Before layout, PrimeTime estimates net delays from the wire-load model that the technology library specifies; in the process, the timing constraints fed earlier to DC are also fed to PrimeTime, spelling out the relationship between inputs, outputs and the clock. If all the critical paths are acceptable, the result is a constraint file (.SDF), forward-annotated to the layout tool, which describes in detail the timing between each logic group the layout tool uses.
 
-layout后，实际extract的delay被反标注到PrimeTime用来提供真实的delay计算，这些delay都是连线电容和互连RC的delay。
+After layout, the actually extracted delays are back-annotated into PrimeTime to give a real delay calculation; these delays are all wire capacitance and interconnect RC delays.
 
-STA也是一个反复迭代的过程，和placement和routing联系很紧密，需要搞很多次，累。
+STA is an iterative process too, tied closely to placement and routing. It takes many passes. It is tiring.
 
-floorplan和layout质量比实际的布线更重要。好的floorplan，不但能加速最终的布线，而且也能更好的满足timing constraint并且减少blocking。constraint文件用来进行时序驱动布局。时序驱动布局方法可以让layout工具根据unit之间的timing关键程度放置unit。
+Floorplan and layout quality matter more than the routing itself. A good floorplan not only speeds up the final routing but also meets timing constraints better and reduces blocking. The constraint file is what drives timing-driven placement. A timing-driven placement approach lets the layout tool place units according to how timing-critical the paths between them are.
 
-在unit layout后，clk tree通过layout工具插入设计。CT的插入是可以选择的，依赖于设计需求和用户偏爱。用户可以选择传统的方法比如，为了减少总时间delay和clk skew使用fishbone/spine结构的clk网络。当工艺尺寸缩小，互连线电阻的增加（RC delay增加），spine方法实现变得困难。我把重点放在clk tree synthesis方法。
-
----
-
----
-
----
-
----
-
----
-
----
-
----
+After unit layout, the clock tree is inserted into the design by the layout tool. Clock tree insertion is optional, depending on what the design needs and what the user prefers. The user can choose a traditional approach — for instance a fishbone/spine clock network, to cut total delay and clock skew. As process dimensions shrink and interconnect resistance rises (RC delay rises with it), the spine approach becomes hard to implement. I am putting the emphasis on the clock tree synthesis approach.
