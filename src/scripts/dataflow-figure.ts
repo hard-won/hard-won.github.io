@@ -28,11 +28,11 @@ import type {
 type ViewId = 'layer' | 'projection';
 
 /**
- * Display rate per view. This scales the one clock; it does not give any
+ * Display rate for a view. This scales the one clock; it does not give any
  * element a period of its own. The projection view runs at half speed
  * because it has several parcels in flight at once to read.
  */
-const RATE: Record<ViewId, number> = { layer: 1, projection: 0.5 };
+const rate = (view: ViewId): number => (view === 'layer' ? 1 : 0.5);
 
 function init(root: HTMLElement): void {
   const json = root.querySelector('script[data-dfg-scenes]');
@@ -79,7 +79,10 @@ function init(root: HTMLElement): void {
   /* ---- the clock ---- */
 
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const t: Record<ViewId, number> = { layer: Number(root.dataset.t ?? 0), projection: 3600 };
+  const t: Record<ViewId, number> = {
+    layer: Number(root.dataset.t ?? 0),
+    projection: Number(root.dataset.tProjection ?? 0),
+  };
   let view: ViewId = 'layer';
   let userPaused = reduced.matches;
   let offscreen = false;
@@ -133,7 +136,7 @@ function init(root: HTMLElement): void {
       el.dataset.state = s.computeActive ? 'active' : s.localReady ? 'ready' : 'idle';
     }
     for (const el of accEls) {
-      const col = f.columns.find((c) => `ACC${c.c}` === el.dataset.nodeId);
+      const col = f.columns[Number((el.dataset.nodeId as string).slice(3))];
       el.dataset.state = col?.delivered ? 'ready' : 'idle';
     }
     for (const plate of plates) {
@@ -173,13 +176,14 @@ function init(root: HTMLElement): void {
     }
   }
 
-  function setView(next: ViewId): void {
+  /** `announce` is false on the initial call: nothing was asked for yet. */
+  function setView(next: ViewId, announce = true): void {
     view = next;
     root.dataset.view = next;
     for (const b of $<HTMLButtonElement>('[data-view-btn]'))
       b.setAttribute('aria-pressed', String(b.dataset.viewBtn === next));
     paint();
-    say(root.querySelector(`.dfg__view[data-view="${next}"]`)?.getAttribute('aria-label') ?? next);
+    if (announce) say(root.querySelector(`.dfg__view[data-view="${next}"] .dfg__title`)?.textContent ?? next);
   }
 
   root.addEventListener('click', (ev) => {
@@ -210,7 +214,7 @@ function init(root: HTMLElement): void {
     last = now;
     if (!userPaused && !offscreen && !hidden) {
       const scene = view === 'layer' ? scenes.layer : scenes.projection;
-      t[view] += dt * RATE[view];
+      t[view] += dt * rate(view);
       if (t[view] >= scene.durationMs) t[view] = 0;
       paint();
     }
@@ -255,7 +259,7 @@ function init(root: HTMLElement): void {
 
   root.dataset.js = 'on';
   setPaused(userPaused);
-  setView('layer');
+  setView('layer', false);
   requestAnimationFrame(tick);
 }
 

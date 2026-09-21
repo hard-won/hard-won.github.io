@@ -49,7 +49,14 @@ export const NODE_NAME: Record<string, string> = {
   COMPUTE: 'COMPUTE',
 };
 
-/** Event kinds that are arithmetic. Everything else is traffic or state. */
+/**
+ * Event kinds that are arithmetic. Everything else is traffic or state.
+ *
+ * `unshown-work` is deliberately absent. It stands for the rest of the
+ * forward pass, which this view does not depict; lighting the compute band
+ * for it would claim that this layer's arithmetic is running on work the
+ * figure does not show.
+ */
 const COMPUTE_KINDS = new Set([
   'norm',
   'linear-compute',
@@ -60,7 +67,6 @@ const COMPUTE_KINDS = new Set([
   'pv',
   'silu-multiply',
   'residual',
-  'unshown-work',
   'local-partial',
   'accumulate',
 ]);

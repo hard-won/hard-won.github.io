@@ -12,9 +12,11 @@ parts:
 - **[C. Omissions and simplifications](#c-omissions-and-simplifications)** —
   what is absent, so nobody mistakes a schematic for a model.
 
-The figure prints no number carrying a unit: no GB/s, no FLOP/byte, no latency,
-no percentage, no bar whose length stands for a rate. The one integer it does
-print is a count of valid KV positions. Every quantitative statement about this
+The figure prints no number carrying a physical unit: no GB/s, no FLOP/byte,
+no measured latency, no percentage, no bar whose length stands for a rate. It
+prints two things: a count of valid KV positions for one layer, and a position
+in the depicted sequence, in seconds of display time, on a line that also says
+`ORDER, NOT LATENCY`. Every quantitative statement about this
 workload lives in the Note, [*A decode step, as
 traffic*](../src/content/notes/decode-step-as-traffic.mdx), and is derived in
 `src/lib/decode-traffic/traffic-model.ts`.

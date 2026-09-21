@@ -140,35 +140,51 @@ const CAPTION_B =
   'PARTIAL SUMS REDUCE DOWN THE COLUMN INTO THE OUTPUT SLICE y[J_c]. ' +
   'DEPENDENCY-VALID ORDER, NOT A CYCLE-ACCURATE NOC SIMULATION: NO ARBITRATION, BANDWIDTH OR CONTENTION IS MODELLED.';
 
+/*
+ * The two `aria-label`s describe the drawing's structure, never a moment in
+ * it: with JavaScript the clock moves, and a label that named one instant
+ * would be false at every other. The instant is carried by the readout
+ * below each view, which is ordinary text outside the image role, so it is
+ * read directly and updates with the frame.
+ */
 const LABEL_A =
-  'Layer traffic. One transformer layer during one decode step at batch size one, at ' +
-  (T_STATIC_LAYER / 1000).toFixed(1) +
-  ' seconds of a ' +
-  (layer.durationMs / 1000).toFixed(1) +
-  ' second event order. The ten semantic stages run RMSNorm, Q/K/V projections, RoPE on Q and K, KV append, ' +
-  'attention, O projection, a residual add of the layer input, RMSNorm, MLP, and a residual add of the ' +
-  'post-attention state, followed by a marker for the model work this view does not show. ' +
-  'Four endpoints are drawn in a line: device memory, the memory controller, local buffers and compute; ' +
-  'every parcel travels only between adjacent endpoints. At the frame shown, the attention stage is ' +
-  'highlighted, the key block K[0:T] is returning from device memory to the local buffers, and compute is ' +
-  'not running: it is waiting for those keys. Valid KV positions for this layer read 2048 to 2049, the ' +
-  'increment having happened when the appended position became visible. Stage highlight and compute-active ' +
-  'are different states and are drawn differently. Timings are a legibility scale for event order, not latency.';
+  'Layer traffic. One transformer layer during one decode step at batch size one, drawn from an event ' +
+  'ledger. Across the top, the ten semantic stages in order: RMSNorm, Q/K/V projections, RoPE on Q and K, ' +
+  'KV append, attention, O projection, a residual add of the layer input, RMSNorm, MLP, and a residual add ' +
+  'of the post-attention state, followed by a separator for the model work this view does not show. Below ' +
+  'them, four endpoints in a line — device memory, the memory controller, local buffers and compute — and ' +
+  'one lane between them, on which every parcel travels only between adjacent endpoints. Three states are ' +
+  'drawn differently and mean different things: a highlighted stage is the phase being explained and may ' +
+  'be waiting; a dashed marker on the compute band means the arithmetic is not running and the band names ' +
+  'the operand it is short of; a filled band means the arithmetic is running with its operands in hand. A ' +
+  'request parcel carries no payload and is drawn hollow; a read return and a KV write are drawn filled ' +
+  'and differ in shape. The counter states how many KV positions are valid for this layer, counting up ' +
+  'from a prefilled baseline of 2048 by one, at the moment the appended position becomes visible. ' +
+  'Positions along the lane show order, not latency or propagation speed. The readout below states what ' +
+  'is in flight at the current instant, where it came from, what it is for, and whether its consumer can ' +
+  'compute.';
 
 const LABEL_B =
-  'Projection mapping. One block matrix–vector product y = W x on a two-row by three-column array of tiles, ' +
-  'at ' +
-  (T_STATIC_PROJECTION / 1000).toFixed(1) +
-  ' seconds. A weight buffer feeds a trunk per column; tile (r,c) owns the weight block W[J_c, I_r] and no ' +
-  'other tile consumes it, even when it passes through one on the way. Each row source carries the ' +
-  'activation slice x[I_r], delivered to the first tile of the row and forwarded along it, so the same ' +
-  'slice is reused by every tile in that row. A tile forms its local product z[r,c] only once both its own ' +
-  'weight block and its row activation have arrived. Partial sums travel down their column and are added ' +
-  'into the tile below, and each column delivers its own distinct output slice y[J_0], y[J_1] and y[J_2] ' +
-  'into its own accumulator. The array never collapses to a single scalar.';
+  'Projection mapping. One block matrix-vector product y = W x on a two-row by three-column array of ' +
+  'tiles. A weight buffer runs across the top and feeds one trunk per column. Tile (r,c) owns the weight ' +
+  'block W[J_c, I_r] and no other tile consumes it, even when the block passes through one on its way ' +
+  'down the column. Each row has its own source carrying the activation slice x[I_r], delivered to the ' +
+  'first tile of the row and forwarded along it, so one slice is reused by every tile in that row. A tile ' +
+  'forms its local product z[r,c] only once both its own weight block and its row activation have ' +
+  'arrived, and an outlined tile means it is computing. Partial sums travel down their column and are ' +
+  'added into the tile below. Each column ends in its own accumulator holding its own distinct output ' +
+  'slice, y[J_0], y[J_1] and y[J_2]; the array never collapses to a single scalar. This is a dependency ' +
+  'order, not a cycle-accurate network simulation. The readout below states what is on a link at the ' +
+  'current instant and which rows each column has so far.';
 ---
 
-<figure class="dfg" data-figure="dataflow" data-view="layer" data-t={T_STATIC_LAYER}>
+<figure
+  class="dfg"
+  data-figure="dataflow"
+  data-view="layer"
+  data-t={T_STATIC_LAYER}
+  data-t-projection={T_STATIC_PROJECTION}
+>
   <div class="dfg__frame">
     <div class="dfg__bar">
       <div class="dfg__group" role="group" aria-label="Figure view">
@@ -805,6 +821,16 @@ const LABEL_B =
 
   .dfg__parcel[data-kind='request'] .dfg__tag {
     color: var(--fg-muted);
+  }
+
+  /* Which way the parcel is going, from the same sampled `dir`. Text, so it
+     survives a monochrome print and does not add a fourth colour. */
+  .dfg__parcel[data-dir='up'] .dfg__tag::before {
+    content: '\2191\a0';
+  }
+
+  .dfg__parcel[data-dir='down'] .dfg__tag::before {
+    content: '\2193\a0';
   }
 
   .dfg__legend {
