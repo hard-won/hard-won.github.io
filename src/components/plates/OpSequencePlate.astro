@@ -2,93 +2,186 @@
 /**
  * FIG. 01 — ONE DECODE STEP, ONE LAYER.
  *
- * A static plate. The operator column in document order, with two annotation
- * columns: which operators read weights, and which touch the KV cache. The
+ * The ten semantic stages in document order, with two annotation columns:
+ * which stages read large matrix weights, and which touch KV state. The
  * point of the layout is that weights and KV are *columns*, not rows — they
- * are operand traffic attached to an operator, never an operator themselves.
+ * are operand traffic attached to a stage, never a stage themselves.
+ *
+ * Every row is derived from the validated ledger in
+ * src/lib/decode-traffic/, not typed in here: the stage order comes from
+ * STAGES, the weight tags from the ledger's memory-read events, the KV tags
+ * from its write-transfer and K/V read events, the RoPE targets from the
+ * event that records which tensors it rotates, and the residual suffixes
+ * from each residual's recorded skip source. If the model changes, this
+ * plate changes with it, and tests/reference.test.ts covers the model.
  *
  * Two drawings, swapped by one media query. A viewBox cannot reflow, and an
- * 8px label does not survive being scaled to 0.5, so the narrow plate is drawn
- * at its own size rather than squeezed. Both keep their labels at or above
- * 10px across the whole width range the prose column can take.
+ * 8px label does not survive being scaled to 0.5, so the narrow plate is
+ * drawn at its own size rather than squeezed.
  *
- * Pure SVG. No JavaScript, no animation. Only the global design tokens are
- * borrowed; everything else is scoped here.
+ * Pure SVG. No JavaScript, no animation.
  */
+import { STAGES, makeLayerLedger } from '../../lib/decode-traffic/index.ts';
 
-/** Wide and narrow carry the same ten rows with different tag spellings. */
-const ROWS: { op: string; w: boolean; kv: '' | 'write' | 'read' }[] = [
-  { op: 'RMSNORM', w: false, kv: '' },
-  { op: 'QKV PROJECTION', w: true, kv: '' },
-  { op: 'ROPE', w: false, kv: '' },
-  { op: 'KV APPEND', w: false, kv: 'write' },
-  { op: 'ATTENTION', w: false, kv: 'read' },
-  { op: 'O PROJECTION', w: true, kv: '' },
-  { op: 'RESIDUAL ADD', w: false, kv: '' },
-  { op: 'RMSNORM', w: false, kv: '' },
-  { op: 'MLP', w: true, kv: '' },
-  { op: 'RESIDUAL ADD', w: false, kv: '' },
-];
+const scene = makeLayerLedger();
+const at = (stage: string) => scene.events.filter((e) => e.stage === stage);
+
+/** Large matrix weights this stage streams in, in ledger order. */
+function matrices(stage: string): string[] {
+  return at(stage)
+    .filter((e) => e.kind === 'memory-read' && e.tensor?.startsWith('W'))
+    .map((e) => e.tensor as string);
+}
+
+/** A stage with resident scale coefficients has parameters, but not a matrix. */
+const hasScale = (stage: string) => at(stage).some((e) => e.coefficients !== undefined);
+
+/** KV state touched by this stage, taken from the ledger's own event kinds. */
+function kv(stage: string): 'write' | 'read' | '' {
+  const e = at(stage);
+  if (e.some((x) => x.kind === 'write-transfer')) return 'write';
+  if (e.some((x) => x.kind === 'memory-read' && x.tensor?.startsWith('K['))) return 'read';
+  return '';
+}
+
+/**
+ * The second residual adds the state after the first one, not the layer
+ * input. The wide plate says so in the row label; the narrow one is too
+ * tight for that, so it says the same thing in a footer line generated from
+ * the same two ledger values.
+ */
+const SKIP: Record<string, { wide: string; source: string }> = {
+  layer_input: { wide: ' + LAYER INPUT', source: 'THE LAYER INPUT' },
+  after_attention_residual: { wide: ' + POST-ATTN STATE', source: 'THE POST-ATTN STATE' },
+};
+
+function skipOf(stage: string): { wide: string; source: string } {
+  const s = at(stage).find((e) => e.skip !== undefined)?.skip;
+  return s !== undefined && s in SKIP ? (SKIP[s] as { wide: string; source: string }) : { wide: '', source: '' };
+}
+
+/** "RESIDUAL 1 ADDS THE LAYER INPUT", etc., for the narrow footer. */
+const RESIDUAL_NOTES = ['res1', 'res2']
+  .map((id, i) => ({ n: i + 1, source: skipOf(id).source }))
+  .filter((r) => r.source !== '')
+  .map((r) => `RESIDUAL ${r.n} ADDS ${r.source}`);
+
+const rope = scene.events.find((e) => e.kind === 'rope');
+/** "ROPE (Q,K)" is the plate saying, in its label, that V is not rotated. */
+const ropeSuffix = ` (${(rope?.targets ?? []).join(',').toUpperCase()})`;
+
+interface Row {
+  wide: string;
+  narrow: string;
+  w: 'matrix' | 'scale' | '';
+  kv: 'write' | 'read' | '';
+}
+
+const NARROW_OP: Record<string, string> = {
+  norm1: 'RMSNORM',
+  qkv: 'Q/K/V PROJ',
+  rope: 'ROPE',
+  append: 'KV APPEND',
+  attention: 'ATTENTION',
+  o: 'O PROJ',
+  res1: 'RESIDUAL 1',
+  norm2: 'RMSNORM',
+  mlp: 'MLP',
+  res2: 'RESIDUAL 2',
+};
+
+const ROWS: Row[] = STAGES.filter(([id]) => id !== 'unshown').map(([id, label]) => {
+  const mats = matrices(id);
+  const skip = skipOf(id);
+  const tail = id === 'rope' ? ropeSuffix : '';
+  const mlp = id === 'mlp' && mats.length ? ` · ${mats.map((m) => m.replace(/^W/, '').toUpperCase()).join(', ')}` : '';
+  return {
+    wide: `${label.toUpperCase().replace(' (Q,K)', '')}${tail}${mlp}${skip.wide}`,
+    narrow: `${NARROW_OP[id] ?? label.toUpperCase()}${id === 'rope' ? ropeSuffix : ''}`,
+    w: mats.length ? 'matrix' : hasScale(id) ? 'scale' : '',
+    kv: kv(id),
+  };
+});
 
 interface Spec {
   id: 'wide' | 'narrow';
   w: number;
   h: number;
-  /** x of the step index, the spine, the operator name, and the two tags. */
+  /** x of the step index, the spine, the stage name, and the two tags. */
   ix: number;
   spine: number;
   opx: number;
   wx: number;
   kvx: number;
   node: number;
-  /** Column headers and the row of tags they sit over. */
   head: { op: string; w: string; kv: string };
-  tag: { read: string; write: string; kvread: string };
+  tag: { matrix: string; scale: string; write: string; read: string };
   row0: number;
   pitch: number;
   foot: string[];
+  op: (r: Row) => string;
 }
 
 const wide: Spec = {
   id: 'wide',
   w: 560,
-  h: 302,
+  h: 352,
   ix: 0,
   spine: 26,
   opx: 42,
-  wx: 330,
-  kvx: 430,
+  wx: 262,
+  kvx: 412,
   node: 7,
-  head: { op: 'OPERATOR', w: 'WEIGHTS', kv: 'KV CACHE' },
-  tag: { read: 'READ', write: 'WRITE', kvread: 'READ · ALL T' },
+  head: { op: 'SEMANTIC STAGE', w: 'MATRIX WEIGHTS', kv: 'KV STATE / PAYLOAD' },
+  tag: { matrix: 'READ', scale: 'SCALE VECTOR', write: 'WRITE 1 POSITION', read: 'READ T POSITIONS' },
   row0: 46,
   pitch: 24,
-  foot: ['WEIGHT AND KV BYTES ARE OPERAND TRAFFIC, NOT OPERATORS'],
+  foot: [
+    'T = KV POSITIONS VISIBLE TO THIS ATTENTION, THE NEW ONE INCLUDED',
+    'NORM SCALE VECTORS ARE PARAMETERS BUT NOT LARGE MATRICES',
+    'WEIGHT AND KV BYTES ARE OPERAND TRAFFIC, NOT STAGES OF THEIR OWN',
+    'OTHER LAYERS, FINAL NORM, LM HEAD AND SAMPLING ARE NOT SHOWN',
+  ],
+  op: (r) => r.wide,
 };
 
 const narrow: Spec = {
   id: 'narrow',
   w: 300,
-  h: 300,
+  h: 390,
   ix: 0,
-  spine: 20,
-  opx: 30,
-  wx: 196,
+  spine: 22,
+  opx: 32,
+  wx: 146,
   kvx: 222,
   node: 6,
-  head: { op: 'OPERATOR', w: 'W', kv: 'KV' },
-  tag: { read: 'RD', write: 'WR', kvread: 'RD ALL T' },
+  head: { op: 'STAGE', w: 'MATRIX W', kv: 'KV' },
+  tag: { matrix: 'RD', scale: 'SCALE', write: 'WR 1', read: 'RD T' },
   row0: 44,
   pitch: 24,
-  foot: ['OPERAND TRAFFIC, NOT OPERATORS'],
+  foot: [
+    'T = POSITIONS VISIBLE TO THIS',
+    'ATTENTION, THE NEW ONE INCLUDED',
+    ...RESIDUAL_NOTES,
+    'SCALE VECTORS ARE NOT MATRICES',
+    'OPERAND TRAFFIC, NOT STAGES',
+    'OTHER LAYERS AND LM HEAD: NOT SHOWN',
+  ],
+  op: (r) => r.narrow,
 };
 
-const CAPTION = 'FIG. 01 — ONE DECODE STEP, ONE LAYER · WHAT EACH OPERATOR READS';
+const CAPTION =
+  'FIG. 01 — ONE DECODE STEP, ONE LAYER · WHICH STAGE READS WHICH OPERANDS, AND WHAT IT WRITES';
 
 const LABEL =
-  'Table of the ten operators in one decode step of one transformer layer, in order: RMSNorm, QKV projection, RoPE, KV append, attention, O projection, residual add, RMSNorm, MLP, residual add. Two annotation columns mark operand traffic. The QKV projection, the O projection and the MLP read weights. The KV append writes one position into the KV cache and attention reads all T stored positions. Weight and KV traffic are columns on the table, not rows: they are operand traffic belonging to an operator, not operators in their own right.';
+  'Table of the ten semantic stages in one decode step of one transformer layer, in document order: RMSNorm, Q/K/V projections, RoPE on Q and K, KV append, attention, O projection, residual add plus the layer input, RMSNorm, MLP with its gate, up and down matrices, and residual add plus the post-attention state. Two annotation columns mark operand traffic. The Q/K/V projections, the O projection and the MLP read large matrix weights. The two RMSNorm stages have learned scale vectors: parameters, but not large matrices. RoPE rotates Q and K, not V. The KV append writes one position of key and value state; attention reads T positions, where T is the number of KV positions visible to this attention including the one just appended. Weight and KV traffic are columns on the table, not rows: they are operand traffic belonging to a stage, not stages in their own right. The rest of the forward pass — the other layers, the final norm, the LM head and sampling — is not shown.';
 
 const plates = [wide, narrow];
+
+function tagOf(s: Spec, r: Row, column: 'w' | 'kv'): string {
+  if (column === 'w') return r.w === 'matrix' ? s.tag.matrix : r.w === 'scale' ? s.tag.scale : '—';
+  return r.kv === 'write' ? s.tag.write : r.kv === 'read' ? s.tag.read : '—';
+}
 ---
 
 <figure class="plate">
@@ -126,7 +219,7 @@ const plates = [wide, narrow];
 
             {ROWS.map((r, i) => {
               const y = s.row0 + i * s.pitch;
-              const hot = r.w || r.kv !== '';
+              const hot = r.w === 'matrix' || r.kv !== '';
               return (
                 <>
                   <text class="idx" x={s.ix} y={y + 3}>
@@ -140,13 +233,13 @@ const plates = [wide, narrow];
                     height={s.node}
                   />
                   <text class="op" x={s.opx} y={y + 3}>
-                    {r.op}
+                    {s.op(r)}
                   </text>
-                  <text class:list={['tag', r.w && 'tag--on']} x={s.wx} y={y + 3}>
-                    {r.w ? s.tag.read : '—'}
+                  <text class:list={['tag', r.w === 'matrix' && 'tag--on']} x={s.wx} y={y + 3}>
+                    {tagOf(s, r, 'w')}
                   </text>
                   <text class:list={['tag', r.kv !== '' && 'tag--on']} x={s.kvx} y={y + 3}>
-                    {r.kv === 'write' ? s.tag.write : r.kv === 'read' ? s.tag.kvread : '—'}
+                    {tagOf(s, r, 'kv')}
                   </text>
                 </>
               );
@@ -160,11 +253,7 @@ const plates = [wide, narrow];
               y2={s.row0 + (ROWS.length - 1) * s.pitch + 20}
             />
             {s.foot.map((t, i) => (
-              <text
-                class="hdr"
-                x="0"
-                y={s.row0 + (ROWS.length - 1) * s.pitch + 36 + i * 14}
-              >
+              <text class="hdr" x="0" y={s.row0 + (ROWS.length - 1) * s.pitch + 36 + i * 14}>
                 {t}
               </text>
             ))}
@@ -208,7 +297,7 @@ const plates = [wide, narrow];
   .plate__svg--narrow {
     display: none;
     max-width: 21rem;
-    --sz: 10.5px;
+    --sz: 11px;
   }
 
   @media (max-width: 40rem) {

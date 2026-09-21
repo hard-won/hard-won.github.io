@@ -1,82 +1,161 @@
 ---
 /**
- * FIG. 03 — MULTICAST IN, REDUCTION OUT.
+ * FIG. 03 — WHERE THE BYTES GO ON CHIP.
  *
- * A tiled array with the two traffic shapes the workload actually produces
- * drawn as what they are: one operand entering a whole row of PEs at once,
- * and a column of partial sums collapsing into a single result on the way
- * out. Neither is a point-to-point transfer between a random pair of nodes.
+ * One block matrix–vector product, y = W x, mapped onto a 2x3 array of
+ * tiles. Rows partition the input/reduction index K into slices I_r;
+ * columns partition the output index M into slices J_c; tile (r,c) owns the
+ * block W[J_c, I_r] and nothing else.
  *
- * The buses run behind the PEs, which carry the page background, so a tile
- * reads as sitting on the network rather than inside a wire.
+ * Three movements, deliberately drawn as three different shapes:
+ *   - weight blocks descend to their single owning tile,
+ *   - one activation slice x[I_r] is reused by every tile along its row,
+ *   - partial products reduce down a column into one output slice y[J_c].
  *
- * Static SVG, two drawings swapped by one media query, same reasoning as the
- * other plates: an 8px label does not survive being scaled down.
+ * The third is the reason the array does not collapse to a scalar: three
+ * columns produce three different slices of y, and they are never added
+ * together.
+ *
+ * Tile identities, tensor names, accumulator nodes and the per-column
+ * contributor sets are read from makeProjectionLedger() in
+ * src/lib/decode-traffic/. tests/reference.test.ts checks that every weight
+ * block has exactly one owner, that each row carries a single activation
+ * identity, and that each output collects every row of its own column and
+ * no other column.
+ *
+ * Static SVG, two drawings swapped by one media query. No JavaScript.
  */
+import { makeProjectionLedger, blockedMatvec } from '../../lib/decode-traffic/index.ts';
+
+const R = 2;
+const C = 3;
+const scene = makeProjectionLedger(R, C);
+
+const weightOf = (r: number, c: number) => scene.events.find((e) => e.id === `weight.${r}.${c}`);
+const actOf = (r: number) => scene.events.find((e) => e.id === `activation.${r}.0`);
+const outOf = (c: number) => scene.events.find((e) => e.id === `output.${c}`);
+
+/** W[J_c,I_r] — the block this tile owns, straight from the ledger. */
+const tile = (r: number, c: number) => ({
+  owner: weightOf(r, c)?.owner ?? '',
+  block: weightOf(r, c)?.tensor ?? '',
+});
+
+/** x[I_r] — one identity per row, forwarded along it. */
+const rowActivation = (r: number) => actOf(r)?.tensor ?? '';
+
+/** The accumulator node each column delivers to, and the slice it holds. */
+const columnOutput = (c: number) => ({
+  node: outOf(c)?.route?.at(-1) ?? '',
+  slice: `y[J${c}]`,
+  rows: (outOf(c)?.contributors ?? []).length,
+});
+
+/** Same partition helper the model uses, so the index ranges shown are real. */
+const shape = blockedMatvec(
+  Array.from({ length: 6 }, () => Array<number>(4).fill(0)),
+  [0, 0, 0, 0],
+  R,
+  C,
+);
+const inputRange = (r: number) => `I${r} = K[${shape.I[r].start}:${shape.I[r].end}]`;
+const outputRange = (c: number) => `J${c} = M[${shape.J[c].start}:${shape.J[c].end}]`;
 
 interface Spec {
   id: 'wide' | 'narrow';
   w: number;
   h: number;
-  cols: number;
-  rows: number;
-  /** Operand source block. */
-  src: { x: number; w: number; y: number; h: number; lines: string[] };
-  pe: { x0: number; pitch: number; w: number; y0: number; vpitch: number; h: number };
-  /** Where the row bus and the column line stop. */
-  busEnd: number;
-  colEnd: number;
-  arrowX: number;
-  acc: { y: number; h: number; text: string };
+  /** Activation source column. */
+  srcX: number;
+  srcW: number;
+  /** Tile grid. */
+  x0: number;
+  pitch: number;
+  tw: number;
+  y0: number;
+  vpitch: number;
+  th: number;
+  /** Weight buffer band and the accumulator band. */
+  wbufY: number;
+  wbufH: number;
+  accY: number;
+  accH: number;
+  /** Rail offsets inside a tile column: weights in, partial sums out. */
+  wRail: number;
+  pRail: number;
   head: string;
+  wbuf: string;
   ruleY: number;
-  key: { x: number; y: number; text: string }[];
+  foot: string[];
+  /** Narrow drops the tile id and keeps only the block identity. */
+  showOwner: boolean;
 }
 
 const wide: Spec = {
   id: 'wide',
   w: 560,
-  h: 236,
-  cols: 6,
-  rows: 4,
-  src: { x: 0, w: 72, y: 40, h: 124, lines: ['OPERAND', 'SRAM'] },
-  pe: { x0: 120, pitch: 52, w: 40, y0: 40, vpitch: 32, h: 26 },
-  busEnd: 420,
-  colEnd: 186,
-  arrowX: 100,
-  acc: { y: 186, h: 20, text: 'ACCUMULATE' },
-  head: 'OPERAND DISTRIBUTION AND PARTIAL-SUM REDUCTION',
-  ruleY: 214,
-  key: [
-    { x: 0, y: 228, text: 'MULTICAST IN · ONE SOURCE, MANY PES' },
-    { x: 280, y: 228, text: 'REDUCTION OUT · MANY PES, ONE RESULT' },
+  h: 306,
+  srcX: 0,
+  srcW: 82,
+  x0: 110,
+  pitch: 150,
+  tw: 106,
+  y0: 66,
+  vpitch: 52,
+  th: 34,
+  wbufY: 30,
+  wbufH: 20,
+  accY: 186,
+  accH: 24,
+  wRail: 24,
+  pRail: 82,
+  head: 'ONE BLOCK MATRIX-VECTOR PRODUCT · y = W x · TILE (R,C) OWNS W[Jc,Ir]',
+  wbuf: 'WBUF · ONE OWNER TILE PER WEIGHT BLOCK',
+  ruleY: 224,
+  foot: [
+    'ROW: ONE ACTIVATION SLICE x[Ir], REUSED BY EVERY TILE IN THAT ROW',
+    'COLUMN: PARTIALS REDUCE INTO ONE OUTPUT SLICE, y[Jc] = SUM OVER r OF z[r,c]',
+    'DIFFERENT COLUMNS PRODUCE DIFFERENT SLICES OF y, NEVER ONE SCALAR',
+    'A CHOSEN MAPPING AND AN ILLUSTRATIVE 2x3 ARRAY, NOT A GPU FLOORPLAN',
   ],
+  showOwner: true,
 };
 
 const narrow: Spec = {
   id: 'narrow',
   w: 300,
-  h: 232,
-  cols: 4,
-  rows: 3,
-  src: { x: 0, w: 56, y: 40, h: 92, lines: ['SRAM'] },
-  pe: { x0: 76, pitch: 46, w: 36, y0: 40, vpitch: 32, h: 26 },
-  busEnd: 250,
-  colEnd: 154,
-  arrowX: 62,
-  acc: { y: 154, h: 20, text: 'ACCUM' },
-  head: 'MULTICAST IN, REDUCTION OUT',
-  ruleY: 184,
-  key: [
-    { x: 0, y: 198, text: 'MULTICAST IN · 1 SRC, MANY PES' },
-    { x: 0, y: 216, text: 'REDUCTION OUT · MANY PES, 1 RESULT' },
+  h: 306,
+  srcX: 0,
+  srcW: 46,
+  x0: 56,
+  pitch: 82,
+  tw: 74,
+  y0: 64,
+  vpitch: 50,
+  th: 32,
+  wbufY: 30,
+  wbufH: 18,
+  accY: 176,
+  accH: 22,
+  wRail: 16,
+  pRail: 58,
+  head: 'y = W x · TILE (R,C) OWNS W[Jc,Ir]',
+  wbuf: 'WBUF · ONE OWNER PER BLOCK',
+  ruleY: 212,
+  foot: [
+    'ROW: x[Ir] REUSED ALONG THE ROW',
+    'COLUMN: PARTIALS REDUCE TO y[Jc]',
+    'EACH COLUMN, A DIFFERENT SLICE OF y',
+    'NEVER ONE SCALAR',
+    'A CHOSEN 2x3 MAPPING, NOT A GPU',
   ],
+  showOwner: false,
 };
 
-const CAPTION = 'FIG. 03 — TRAFFIC SHAPE ON A TILED ARRAY (SCHEMATIC)';
+const CAPTION =
+  'FIG. 03 — ONE PROJECTION, MAPPED: BLOCK OWNERSHIP, ROW REUSE, COLUMN REDUCTION (SCHEMATIC)';
 
-const LABEL =
-  'Schematic of on-chip traffic in a tiled accelerator array. An operand source on the left feeds a horizontal bus along each row of processing elements, so one value reaches every processing element in that row: a multicast, not a point-to-point transfer. Partial sums travel down each column through the processing elements, accumulating as they go, and leave at the bottom edge into an accumulator: a reduction, not a set of independent replies. Neither shape resembles uniform-random traffic between arbitrary pairs of nodes.';
+const LABEL = `Mapping of one block matrix-vector product, y equals W times x, onto a two by three array of tiles. Rows partition the input and reduction index K into slices I0 and I1; columns partition the output index M into slices J0, J1 and J2. Tile (r,c) owns exactly one weight block, W[Jc,Ir], delivered from the weight buffer to that one tile: the six blocks are different blocks, not one matrix broadcast to every tile. Along each row, a single activation slice x[Ir] enters at the left and is reused by all three tiles in that row, which is a one-to-many delivery however it is implemented. Down each column, local partial products reduce into one accumulator, because all ${R} rows of a column contribute to the same output slice: column 0 produces y[J0], column 1 produces y[J1] and column 2 produces y[J2]. Different columns produce different slices of the output vector and are never summed together, so the array does not collapse to a single scalar. This is a chosen mapping on an illustrative two by three array of tiles with local storage and local arithmetic, not a GPU floorplan, not a certified network-on-chip layout, and not a claim about every weight-stationary machine.`;
 
 const plates = [wide, narrow];
 
@@ -93,8 +172,9 @@ function down(x: number, y: number): string {
   <div class="plate__frame">
     {
       plates.map((s) => {
-        const rowY = Array.from({ length: s.rows }, (_, r) => s.pe.y0 + r * s.pe.vpitch);
-        const colX = Array.from({ length: s.cols }, (_, c) => s.pe.x0 + c * s.pe.pitch);
+        const colX = Array.from({ length: C }, (_, c) => s.x0 + c * s.pitch);
+        const rowY = Array.from({ length: R }, (_, r) => s.y0 + r * s.vpitch);
+        const lastX = (colX[C - 1] as number) + s.tw;
         return (
           <svg
             class:list={['plate__svg', `plate__svg--${s.id}`]}
@@ -110,82 +190,97 @@ function down(x: number, y: number): string {
               </text>
               <line class="ln" x1="0" y1="20" x2={s.w - 4} y2="20" />
 
-              {/* one operand, delivered to a whole row at once */}
-              {rowY.map((y) => (
-                <>
-                  <line
-                    class="bus bus--mc"
-                    x1={s.src.x + s.src.w}
-                    y1={y + s.pe.h / 2}
-                    x2={s.busEnd}
-                    y2={y + s.pe.h / 2}
-                  />
-                  <polygon class="tip tip--mc" points={right(s.arrowX, y + s.pe.h / 2)} />
-                </>
-              ))}
-
-              {/* partial sums, accumulating down each column */}
+              {/* the weight buffer, and one rail per column carrying blocks down */}
+              <rect class="box" x={s.x0} y={s.wbufY} width={lastX - s.x0} height={s.wbufH} />
+              <text class="lbl lbl--faint" x={s.x0 + 7} y={s.wbufY + s.wbufH / 2 + 3.5}>
+                {s.wbuf}
+              </text>
               {colX.map((x) => (
                 <>
                   <line
-                    class="bus bus--rd"
-                    x1={x + s.pe.w / 2}
-                    y1={s.pe.y0}
-                    x2={x + s.pe.w / 2}
-                    y2={s.colEnd}
-                    />
-                  <polygon class="tip tip--rd" points={down(x + s.pe.w / 2, s.colEnd - 12)} />
+                    class="rail rail--w"
+                    x1={x + s.wRail}
+                    y1={s.wbufY + s.wbufH}
+                    x2={x + s.wRail}
+                    y2={(rowY[R - 1] as number) + 4}
+                  />
+                  {rowY.map((y) => (
+                    <polygon class="tip tip--w" points={down(x + s.wRail, y - 9)} />
+                  ))}
                 </>
               ))}
 
-              {/* the tiles sit on the network, not inside it */}
-              {rowY.map((y) =>
-                colX.map((x) => (
+              {/* one activation slice per row, reused by every tile on it */}
+              {rowY.map((y, r) => (
+                <>
+                  <line
+                    class="rail rail--a"
+                    x1={s.srcX + s.srcW}
+                    y1={y + s.th / 2}
+                    x2={lastX - 6}
+                    y2={y + s.th / 2}
+                  />
+                  {colX.map((x) => (
+                    <polygon class="tip tip--a" points={right(x - 9, y + s.th / 2)} />
+                  ))}
+                  <rect class="box" x={s.srcX} y={y} width={s.srcW} height={s.th} />
+                  <text class="lbl lbl--mid" x={s.srcX + s.srcW / 2} y={y + s.th / 2 + 3.5}>
+                    {rowActivation(r)}
+                  </text>
+                </>
+              ))}
+
+              {/* partial sums, reducing down each column into its own slice */}
+              {colX.map((x) => (
+                <>
+                  <line
+                    class="rail rail--p"
+                    x1={x + s.pRail}
+                    y1={(rowY[0] as number) + s.th}
+                    x2={x + s.pRail}
+                    y2={s.accY}
+                  />
+                  <polygon class="tip tip--p" points={down(x + s.pRail, s.accY - 9)} />
+                </>
+              ))}
+
+              {/* the tiles sit on the rails, not inside them */}
+              {rowY.map((y, r) =>
+                colX.map((x, c) => (
                   <>
-                    <rect class="pe" x={x} y={y} width={s.pe.w} height={s.pe.h} />
-                    <text class="lbl lbl--mid" x={x + s.pe.w / 2} y={y + s.pe.h / 2 + 3.5}>
-                      PE
+                    <rect class="pe" x={x} y={y} width={s.tw} height={s.th} />
+                    {s.showOwner && (
+                      <text class="lbl lbl--faint lbl--mid" x={x + s.tw / 2} y={y + 13}>
+                        {tile(r, c).owner}
+                      </text>
+                    )}
+                    <text class="lbl lbl--mid" x={x + s.tw / 2} y={y + (s.showOwner ? 26 : s.th / 2 + 3.5)}>
+                      {tile(r, c).block}
                     </text>
                   </>
                 )),
               )}
 
-              <rect class="box" x={s.src.x} y={s.src.y} width={s.src.w} height={s.src.h} />
-              {s.src.lines.map((t, i) => (
-                <text
-                  class="lbl"
-                  x={s.src.x + 8}
-                  y={s.src.y + s.src.h / 2 - 3 + i * 14}
-                >
-                  {t}
-                </text>
-              ))}
-
-              <rect
-                class="box"
-                x={s.pe.x0}
-                y={s.acc.y}
-                width={colX[s.cols - 1] + s.pe.w - s.pe.x0}
-                height={s.acc.h}
-              />
-              <text class="lbl" x={s.pe.x0 + 8} y={s.acc.y + s.acc.h / 2 + 3.5}>
-                {s.acc.text}
-              </text>
-
-              <line class="ln" x1="0" y1={s.ruleY} x2={s.w - 4} y2={s.ruleY} />
-              {s.key.map((k, i) => (
+              {/* one accumulator per column: a different output slice each */}
+              {colX.map((x, c) => (
                 <>
-                  <rect
-                    class:list={['sw', i === 0 ? 'sw--mc' : 'sw--rd']}
-                    x={k.x}
-                    y={k.y - 7}
-                    width="10"
-                    height="3"
-                  />
-                  <text class="hdr" x={k.x + 16} y={k.y}>
-                    {k.text}
+                  <rect class="box" x={x} y={s.accY} width={s.tw} height={s.accH} />
+                  <text class="lbl lbl--mid" x={x + s.tw / 2} y={s.accY + s.accH / 2 + 3.5}>
+                    {s.showOwner ? `${columnOutput(c).node} ${columnOutput(c).slice}` : columnOutput(c).slice}
                   </text>
                 </>
+              ))}
+
+              <line class="ln" x1="0" y1={s.ruleY} x2={s.w - 4} y2={s.ruleY} />
+              <text class="hdr" x="0" y={s.ruleY + 14}>
+                {s.id === 'wide'
+                  ? `${inputRange(0)} · ${inputRange(1)} · ${outputRange(0)} · ${outputRange(1)} · ${outputRange(2)}`
+                  : `${inputRange(0)} · ${inputRange(1)}`}
+              </text>
+              {s.foot.map((t, i) => (
+                <text class="hdr" x="0" y={s.ruleY + 28 + i * 14}>
+                  {t}
+                </text>
               ))}
             </g>
           </svg>
@@ -228,7 +323,7 @@ function down(x: number, y: number): string {
     display: none;
     max-width: 21rem;
     --sz: 10.5px;
-    --foot: 10.5px;
+    --foot: 10px;
   }
 
   @media (max-width: 40rem) {
@@ -262,28 +357,34 @@ function down(x: number, y: number): string {
     vector-effect: non-scaling-stroke;
   }
 
-  .bus {
+  .rail {
     fill: none;
     stroke-width: 1;
     vector-effect: non-scaling-stroke;
   }
 
-  .bus--mc,
-  .tip--mc,
-  .sw--mc {
+  /* One accent, on the one shape the section is about: an operand slice that
+     has to reach several tiles at once. Weights and partial sums are plain. */
+  .rail--a,
+  .tip--a {
     stroke: var(--accent);
     fill: var(--accent);
   }
 
-  .bus--rd,
-  .tip--rd,
-  .sw--rd {
+  .rail--a {
+    fill: none;
+  }
+
+  .rail--w,
+  .rail--p,
+  .tip--w,
+  .tip--p {
     stroke: var(--fg-muted);
     fill: var(--fg-muted);
   }
 
-  .bus--mc,
-  .bus--rd {
+  .rail--w,
+  .rail--p {
     fill: none;
   }
 
@@ -304,8 +405,11 @@ function down(x: number, y: number): string {
     fill: var(--fg);
   }
 
+  .lbl--faint {
+    fill: var(--fg-faint);
+  }
+
   .lbl--mid {
-    fill: var(--fg-muted);
     text-anchor: middle;
   }
 </style>
