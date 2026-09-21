@@ -1,7 +1,7 @@
 ---
 title: "A decode step, as traffic"
 date: 2026-09-20
-description: "When an LLM generates one token, what actually moves and from where. One decode step at batch size one, derived in bytes: weight traffic, KV traffic, why the step is memory-bound, and what the HBM channels and the on-chip network see."
+description: "When an LLM generates one token, what actually moves and from where. One decode step at batch size one, derived in bytes: matrix-weight traffic, KV traffic, why the step is memory-bound, and what an address map and an on-chip mapping do with those bytes."
 tags: ["architecture", "memory", "interconnect"]
 ---
 
@@ -9,25 +9,41 @@ import OpSequencePlate from '../../components/plates/OpSequencePlate.astro';
 import ChannelStripePlate from '../../components/plates/ChannelStripePlate.astro';
 import MulticastReducePlate from '../../components/plates/MulticastReducePlate.astro';
 
-One decode step. Batch size one. A dense, pre-norm, decoder-only transformer
-with its weights and its KV cache both resident in HBM. The prompt has already
-been processed and the model is producing the next token.
+One decode step. Batch size one. A dense, Llama-style pre-norm decoder:
+RMSNorm, RoPE, full causal attention over every valid position, a gated MLP
+[8]. The prompt has already been processed, so this is one more forward pass
+over one token, and both the weights and the KV cache live in device memory.
 
 Batch one because it is the starkest case. Every byte of weight read during
 this step is used by exactly one token. Nothing amortises.
+
+Four questions get mistaken for each other, so they are worth separating up
+front. Which operands does the arithmetic need? How much unique tensor payload
+is that? How many bytes actually cross a named memory boundary? And which
+on-chip links carry them? The first two have exact answers from tensor shapes
+alone. The third and fourth do not, and every claim below about them names the
+assumption it rests on.
 
 ## The sequence
 
 For that one token, each layer runs:
 
 ```
-RMSNorm → QKV proj → RoPE → KV append → attention
-        → O proj → residual → RMSNorm → MLP → residual
+RMSNorm → Q/K/V proj → RoPE(Q,K) → KV append
+  → attention → O proj → residual
+  → RMSNorm → MLP → residual
 ```
 
-Three of those read weights: the QKV projection, the O projection and the MLP.
-Two touch the KV cache. The append writes this token's key and value into it.
-Attention reads every key and value already there.
+Three of those stages read large matrix weights: the Q/K/V projections, the O
+projection and the MLP's gate, up and down matrices. The two norms have learned
+scale vectors, which are parameters too, but vectors rather than matrices, and
+the byte model below tracks the matrices. RoPE rotates Q and K; V is not
+rotated. Two stages touch the KV cache: the append writes this token's key and
+value, and attention reads the valid positions.
+
+These are semantic stages, not a claim that an implementation launches ten
+kernels in this order, and not the whole forward pass either. After this layer
+come the other layers, a final norm, the output head and sampling.
 
 It is common to see "KV read" drawn as a box in that sequence, a peer of the
 projections. That is the wrong shape. A projection is an operator and its
@@ -39,113 +55,210 @@ their own.
 
 <OpSequencePlate />
 
+The token being processed contributes a key and a value to its own attention.
+In the reference implementation the cache is updated first, and attention then
+runs over the enlarged valid range [8]. That is a statement about logical
+visibility. It does not follow that an implementation must write the new key
+and value out to memory and read them straight back; it can keep them on chip
+and forward them. The counts below assume a cold, read-once cache and say so
+where it matters.
+
 ## What moves
 
-Symbols, all per model unless stated:
+Symbols, per model unless stated:
 
 - `P` — parameters in the model
+- `P_mat` — matrix elements used by the dense linear operations one forward
+  pass executes
 - `b_w` — bytes per weight element
 - `L` — layers
-- `n_kv` — key/value heads per layer
+- `n_q`, `n_kv` — query and key/value heads per layer
 - `d_h` — head dimension
-- `d` — hidden size
-- `T` — positions already in the KV cache
+- `d` — hidden size, `d = n_q · d_h`
+- `d_ff` — gated MLP intermediate width
+- `V` — vocabulary size
+- `T` — KV positions visible to this attention, including the one just
+  appended
 - `b_kv` — bytes per KV element
 - `b_a` — bytes per activation element
 
-**Weights.** Each weight-reading operator performs a matrix–vector product at
-batch one. A matrix–vector product touches each weight element exactly once.
-There is no second token in flight to reuse it for and no tile of the matrix is
-visited twice, so every parameter in the model is read once per step:
+**Matrix weights.** Each weight-reading operator performs a matrix–vector
+product at batch one. A matrix–vector product touches each weight element
+exactly once. There is no second token in flight to reuse it for and no tile of
+the matrix is visited twice, so for a bias-free model of uniform layers:
 
 ```
-weight bytes per step  =  P · b_w
+P_mat = L · (2d² + 2·d·n_kv·d_h + 3·d·d_ff) + V · d
+
+matrix-weight bytes per pass = P_mat · b_w
 ```
+
+The terms are Q and O, K and V, the three MLP matrices, and the output head.
+
+It is tempting to write `P · b_w` instead and say every parameter is read once
+per step. That is not quite true, and the gap is worth naming rather than
+hiding. An input embedding lookup reads the row it indexes, not the whole
+embedding table. Norm scale vectors are parameters that the matrix count leaves
+out. For the configuration in the next section the two differ by about two per
+cent: `P_mat` is 6,607,077,376, and adding the embedding table `V · d` =
+131,072,000 and the 65 norm scale vectors, 65 × 4096 = 266,240, gives
+6,738,415,616 parameters in total. So `P_mat · b_w ≈ P · b_w` survives as a
+first-order statement, but it is an approximation with a known sign, not an
+identity.
+
+`P_mat · b_w` is a nominal payload. Treating it as device-memory traffic
+assumes the dominant matrices are streamed once per pass and not retained on
+chip between passes. Cache residency, rereads, packing and metadata all move
+the physical count.
 
 Nothing in that expression contains `T`.
 
-**KV cache.** Attention in one layer reads every stored key and every stored
+**KV cache.** Attention in one layer reads every valid key and every valid
 value: `T` positions, `n_kv` heads, `d_h` elements, twice over for K and V.
-Across `L` layers:
+Assuming ideal reuse across the query heads that share a KV head, across `L`
+layers:
 
 ```
-KV bytes read per step         =  2 · L · T · n_kv · d_h · b_kv
-KV bytes written back per step =  2 · L · n_kv · d_h · b_kv
+C = 2 · L · n_kv · d_h · b_kv
+
+unique KV payload read per pass = C · T
+KV payload appended per pass    = C
 ```
 
-The write goes the other way. This token's key and value come out of the QKV
-projection on the compute side and are written back to the cache in memory.
+The append is the read with `T` set to one, which is the cleanest way to see
+the asymmetry. A pass appends one position and uses all of them.
 
-The write is the read with `T` set to one, which is the cleanest way to see the
-asymmetry. A step appends one position and reads all of them.
+Because `T` counts the position just appended, `C · T` is the operand set, not
+a claim about where each operand came from. If the new key and value stay on
+chip, the old-cache read is `C · (T − 1)` and the last position is supplied
+locally. In the other direction, rereads or imperfect sharing between query
+heads raise the physical count above `C · T`. The shape formula does not decide
+which case a kernel realises.
 
 **Activations.** One token's hidden state is `d` elements, so `d · b_a` bytes.
-The weights in a single layer number `O(d²)` elements. The ratio of weight
-bytes to activation bytes inside a layer therefore grows as `d`, and `d` is in
-the thousands. Activation traffic is not a term in this model.
+An MLP intermediate is `d_ff`. Materialised attention scores are `n_q · T` per
+layer. These are different objects and only the first is the size people
+usually have in mind. The weights in a single layer number `O(d²)` elements, so
+inside a layer the ratio of matrix-weight bytes to hidden-state bytes grows as
+`d`, and `d` is in the thousands.
+
+Activation traffic is therefore omitted from this first-order byte model. It is
+not zero. Fused attention avoids writing the score matrix out at all [11],
+which is a choice about this traffic rather than a reason to ignore it, and a
+payload that is small at the memory boundary can still be distributed to many
+destinations on chip. That is the subject of the last section.
 
 ### An arithmetic example
 
 Not a measurement. Every input stated: the configuration [1] uses for its
 Table 1 is Llama-2-7b at sequence length 2048, batch size one, on an NVIDIA
-A6000. Take `d` = 4096, 32 attention heads, `d_h` = 128, no grouped-query
-attention so `n_kv` = 32, MLP intermediate width 11008, weights and KV at two
-bytes per element.
+A6000. Take `d` = 4096, `n_q` = `n_kv` = 32 so there is no grouped-query
+attention, `d_h` = 128, `d_ff` = 11008, `V` = 32000, and two bytes per weight,
+KV and activation element. `T` = 2048 means 2048 positions visible to this
+attention, not 2048 old ones plus an uncounted new one.
 
-One layer's query projection holds `d²` = 16.8M weights, so 34M bytes read and
-2 × 16.8M = 34M FLOP. The table's `q_proj` row reads 34M, 34M, intensity 1.
+Count a multiply–add as two FLOP. Where an operator is charged its full
+standalone I/O, that means its input reads and its output writes at one stated
+boundary.
+
+One layer's query projection holds `d²` = 16,777,216 weights, so 33,554,432
+bytes read and 33,554,432 FLOP. The table's `q_proj` row reads 34M, 34M,
+intensity 1. Adding the input and output vectors, 16,384 bytes, gives
+33,570,816 bytes and an intensity of 0.999512.
 
 One layer's attention reads `T · n_kv · d_h · b_kv` = 2048 × 32 × 128 × 2, or
-17M bytes of keys, and the same again of values. The QK product does two FLOP
-per stored key element per query head, 2 × 2048 × 32 × 128 = 17M FLOP. The
-table's `qk_matmul` row reads 17M, 17M, intensity 0.99. It is 0.99 rather than 1 under an
-accounting that charges the operator its full standalone I/O: the keys, the
-query vector, and the scores written out. The query is 32 x 128 x 2 = 8K bytes
-and moves the ratio to 0.9995, which rounds to 1.00. The scores are 32 x 2048 x
-2 = 131K bytes, and adding them gives 0.9918. Which bytes a profile charges to
-an operator is a convention, and the decimal is a consequence of that
-convention rather than of the algorithm.
+16,777,216 bytes of keys, and the same again of values. The QK product does two
+FLOP per stored key element per query head, 2 × 32 × 2048 × 128 = 16,777,216
+FLOP. The table's `qk_matmul` row reads 17M, 17M, intensity 0.99. It is 0.99
+rather than 1 under an accounting that charges the operator its full standalone
+I/O: the keys, the query vector, and the scores written out. The query is
+32 × 128 × 2 = 8,192 bytes and moves the ratio to 0.999512, which rounds to
+1.00. The scores are 32 × 2048 × 2 = 131,072 bytes, and adding them gives
+0.991768, which rounds to 0.99. Which bytes a profile charges to an operator is
+a convention, and the decimal is a consequence of that convention rather than
+of the algorithm. The survey reports 0.99; that agreement does not establish
+the rest of its internal accounting.
 
-The MLP's gate projection holds 4096 × 11008 = 45M weights, so 90M bytes and
-90M FLOP. The table's `gate_proj` row reads 90M, 90M, intensity 1.
+The MLP's gate projection holds 4096 × 11008 = 45,088,768 weights, so
+90,177,536 bytes and 90,177,536 FLOP. The table's `gate_proj` row reads 90M,
+90M, intensity 1.
 
 Two things fall out of the reconstruction that the table does not state: its
-rows are per layer, and its precision is two bytes per element. A third is on
-the table already. The residual add row moves 16K bytes, two copies of a
-4096-element hidden state, against 34M for the projection beside it.
+rows are per layer, and its precision is two bytes per element. A third is a
+place where conventions have to be read carefully. The residual add's row has
+an intensity of 0.25, which for 4096 additions implies 16,384 bytes: two input
+vectors. A standalone `z = x + y` that crosses the same boundary three times —
+two reads and a write — moves 24,576 bytes, for 1/6 FLOP per byte. Both are
+defensible; they are not the same convention, and they should not be compared
+without saying which is in use.
+
+Summing the matrix terms over the whole configuration gives `P_mat` =
+6,607,077,376 elements and 13,214,154,752 bytes of matrix-weight payload per
+pass, against `C` = 524,288 bytes per KV position and 1,073,741,824 bytes of KV
+payload at `T` = 2048.
 
 ## Why this is memory-bound
 
 A matrix–vector product does one multiply and one add per weight element: 2
 FLOP. Reading one byte of that matrix therefore buys `2 / b_w` FLOP. At two
-bytes per weight the arithmetic intensity is 1 op/byte. At one byte it is 2. At
-four bits it is 4. The intensity of a decode projection is set by the weight
-format. The parameter count does not enter it, and neither does the width of
-the layer or the number of layers.
+bytes per weight the arithmetic intensity is 1 FLOP/byte. At one byte it is 2.
+At four bits it is 4, before the scales, zero points, packing and conversion
+that a quantised format also costs. The intensity of a decode projection is set
+by the weight format. The parameter count does not enter it, and neither does
+the width of the layer or the number of layers.
 
-That is the whole argument. Table 1 of [1] labels every operator in the decode
-stage memory-bound, at intensities of 1 for the four projections and the three
-MLP matrices, 0.99 for the two attention matmuls, 1.25 for softmax, 1.75 for
-the norm and 0.25 for the residual add. In the prefill stage, on the same
-device, `q_proj` has an intensity of 1024 and is labelled compute-bound.
+A roofline bounds achievable throughput by two ceilings at once: the applicable
+compute ceiling and the bandwidth available at a named memory boundary.
 
-The size of the gap is in the table's own ceiling column. The prefill `q_proj`
-is capped at 155 TFLOP/s, the device's peak. The decode `q_proj`, over
-identical weights, is capped at 768 GFLOP/s. That is a factor of about two
-hundred, and the only difference between the two rows is one token instead of
-2048.
+```
+throughput ≤ min(compute ceiling, bandwidth × intensity)
+```
 
-## Where the bytes come from
+Table 1 of [1] labels every operator in its decode stage memory-bound, at
+intensities of 1 for the four projections and the three MLP matrices, 0.99 for
+the two attention matmuls, 1.25 for softmax, 1.75 for the norm and 0.25 for the
+residual add. In the prefill stage, on the same device, `q_proj` has an
+intensity of 1024 and is labelled compute-bound. That number reconstructs
+directly: over 2048 input positions the same matrix is read once for
+33,554,432 bytes while the input and output activations add 2 × 2048 × 4096 × 2
+bytes, giving 67,108,864 bytes against 68,719,476,736 FLOP. The matrix did not
+change; the opportunities to reuse it did.
 
-HBM3 splits its interface into multiple independent channels that may operate
-asynchronously, and each channel interface carries two pseudo-channels with a
-32-bit data bus each [2]. Pseudo-channel mode divides a channel into two
-subchannels that operate semi-independently: they share the command bus but
-execute commands individually, and because command and address signals run at a
-lower frequency than data, command and address information can be sent between
-the two pseudo-channels in an interleaved fashion [3]. The same source names what
-that flexibility costs: scheduling accesses efficiently within each
-pseudo-channel at that command rate is hard.
+The size of the gap comes from the device. The A6000's published memory
+bandwidth is 768 GB/s, and its 309.7 TFLOPS tensor figure is quoted with
+sparsity, so the corresponding dense FP16 ceiling is about 154.85 TFLOPS [9].
+The ridge point is 154.85e12 / 768e9 ≈ 202 FLOP/byte. An operator at an
+intensity near 1 is bounded by 768 GFLOP/s no matter how fast the multipliers
+are — about two hundred times below the compute ceiling, with one token instead
+of 2048 as the only difference between the two rows.
+
+Two things that argument does not establish. It does not say the memory system
+is saturated, or that the multipliers are idle at every instant, or which
+subcomponent is the actual bottleneck of a particular kernel; latency, limited
+parallelism and launch overhead all sit between an intensity and a measured
+rate. And a dense tensor-core ceiling is the wrong ceiling for a norm, a
+softmax or a residual add in the first place.
+
+Note also what the A6000 is doing here. It is a bandwidth-and-compute ceiling
+to check the arithmetic against, and its memory is GDDR6, not HBM [9].
+
+## Where the bytes are placed
+
+Everything above is a byte count derived from tensor shapes. It is not a
+topology: nothing in it has an address, a channel or a wire. To go further, the
+memory has to be instantiated, and from here the machine is a different,
+hypothetical one — an accelerator with HBM3 — rather than the part used for the
+roofline above.
+
+HBM3 splits a 1024-bit interface into sixteen independent 64-bit channels that
+may operate asynchronously, each carrying two pseudo-channels with a 32-bit
+data bus [2]. Pseudo-channel mode divides a channel into two subchannels that
+operate semi-independently: they share the command bus but execute commands
+individually, and because command and address signals run at a lower frequency
+than data, command and address information can be sent between the two
+pseudo-channels in an interleaved fashion [3]. The same source names what that
+flexibility costs: scheduling accesses efficiently within each pseudo-channel
+at that command rate is hard.
 
 Every channel reaches its own distinct set of DRAM banks, and a request on one
 channel cannot reach data belonging to another [2]. So whether a contiguous run
@@ -156,14 +269,43 @@ select bank, row and column inside a channel. The inner decision alone is worth
 an order of magnitude: on an FPGA HBM stack, changing nothing but the
 bank/row/column mapping moved sequential-traversal throughput by that much [4].
 
+To make the policy concrete rather than gestural, the figure below assumes one:
+
+```
+G = 256 bytes
+channel(a) = floor(a / G) mod 16
+```
+
+`G` is an illustration chunk, chosen for the drawing. It is not a JEDEC burst
+and not any named device's line size. Under this policy seventeen consecutive
+chunks land on channels 0 through 15 and then back on 0, and a different base
+address starts the cycle somewhere else.
+
 <ChannelStripePlate />
+
+The digits are address order. They are not a service schedule: nothing requires
+channel 0 to finish before channel 1 starts, and queueing, scheduling, bank
+state and concurrency decide issue and completion order. The channel a byte
+lands on is placement; when it arrives is a different question with a different
+answer.
+
+The tensor's name does not decide the map either. Weight and KV allocations can
+each be contiguous, strided, blocked or paged, virtual contiguity need not be
+physical contiguity, and a head is a dimension of a tensor rather than an
+allocation of its own — reference implementations and optimised attention
+kernels lay the same cache out differently [8, 12]. The figure's two ranges are
+assumed placements, labelled as such.
 
 For anyone modelling the memory system, that is the part to carry across. A
 weight read is not one stream with a bandwidth number attached to it. It is
 many streams that have to stay balanced, and the balance is a property of the
 address map, not of the tensor.
 
-## How the bytes get on chip
+## Where the bytes go on chip
+
+The address map decides where bytes enter the die. It says nothing about where
+they go next. That is the dataflow mapping, and it is a separate choice with
+its own traffic.
 
 The interface is on one side of the die. The multipliers are not.
 
@@ -176,75 +318,139 @@ rows while weights and partial sums traverse the columns, and builds them with
 activation multicast and partial-sum fan-in, multicasting each activation value
 to `U` consecutive processing elements per cycle [6].
 
-The return path is not a gather of independent replies either. A partial sum is
-forwarded to the next element and accumulated there, so what arrives at the
-edge is one value rather than a stack of messages.
+Rather than generalise from those, take one projection and state its mapping:
+
+```
+y = W x,  W is [M,K],  x is [K],  y is [M]
+```
+
+Partition the reduction index `K` into slices `I_r` and the output index `M`
+into slices `J_c`. Tile `(r,c)` owns the block `W[J_c, I_r]`, computes the local
+partial `z[r,c] = W[J_c, I_r] · x[I_r]`, and the output slice is
+`y[J_c] = Σ_r z[r,c]`.
 
 <MulticastReducePlate />
 
-Tiwari et al. name both shapes and the problem with them. The traffic in a DNN
-accelerator is one-to-many and many-to-one; mesh-based NoCs inherently cannot
-support it efficiently; and many-to-one traffic rarely occurs in conventional
-parallel workloads at all. They add the detail that decides a design:
-in these workloads the multicast has the same source and destination set most
-of the time [7].
+Three different movements come out of that one assignment. The weight blocks go
+to their owning tiles: six different blocks, not one matrix broadcast six
+times. The activation slice `x[I_r]` is reused by every tile along its row, so
+one source has to reach several destinations, whether by a multicast primitive,
+by forwarding from tile to tile, or by replication at the source. And the
+partial products reduce down a column, because every row of a column
+contributes to the same output slice — which is also why the array does not
+collapse to a single value. Three columns produce three different slices of
+`y`, and they are never summed together.
 
-I think that last point is the one to take away. A NoC evaluated on synthetic
-uniform-random traffic is being evaluated on the wrong workload. Uniform random
-assumes every source picks a fresh destination independently. This workload has
-one source feeding a fixed set of destinations over and over, and a fixed set
-of sources collapsing into one. A network either has hardware for those two
-patterns or it does not, and a uniform-random sweep will not say which.
+This is a chosen mapping on an illustrative array, not a floorplan and not a
+claim about every weight-stationary machine. Weight stationarity constrains
+where operands rest during an execution phase; it does not by itself forbid
+replicating weights elsewhere in a design.
 
-## What changes as T grows
+Tiwari et al. name the two shapes and argue that mesh-based networks do not
+support them efficiently, and they add the detail that decides a design: in
+these workloads the multicast has the same source and destination set most of
+the time [7]. That last observation is the transferable one. A network-on-chip
+evaluated only on synthetic uniform-random traffic is being evaluated on a
+workload with different structure: uniform random assumes every source picks a
+fresh destination independently, while this mapping has fixed destination sets,
+fixed reduction groups and reuse that a random pattern never exercises. Uniform
+random remains a useful baseline; it is not sufficient on its own. Nor does the
+absence of a native multicast primitive make one-to-many delivery impossible —
+source replication, routing-level replication, software reduction and dedicated
+networks all deliver it, at costs that a design should account for rather than
+assume away.
 
-Weight traffic per step is `P · b_w`, a constant. KV read per step is linear in
-`T`. Over a generation of `N` tokens the weight term totals `N · P · b_w` while
-the KV term totals roughly `L · n_kv · d_h · b_kv · N²`, so the mix moves with
-context length whether or not anyone plans for it.
+## What changes as context grows
 
-A crossover exists: the `T` at which one step's KV read equals one step's
-weight read.
+Matrix-weight payload per pass is constant for a dense model. KV payload per
+pass is linear in `T`.
+
+Counting a generation is where this gets misstated. Let `T0` be the valid
+positions after prefill and `D` the number of one-token forward passes that
+follow it; pass `j` sees `T = T0 + j`. `D` is not the number of sampled output
+tokens: a typical loop samples its first token from the prefill logits, before
+any one-token pass runs [8], so converting between the two needs a stated
+convention.
 
 ```
-P · b_w = 2 · L · T* · n_kv · d_h · b_kv
+total matrix-weight payload = D · P_mat · b_w
 
-T* = P · b_w / (2 · L · n_kv · d_h · b_kv)
+total unique KV payload
+  = C · Σ(j=1..D) (T0 + j)
+  = C · [ D·T0 + D(D+1)/2 ]
 ```
 
-Where it lands is not one number, so read the expression instead. `T*` rises
-with parameter count and with weight precision. It falls with layer count, with
-the number of KV heads, with head dimension and with KV precision.
-Grouped-query attention cuts `n_kv` and quantising the KV cache cuts `b_kv`, so
-both push the crossover out; a deeper model at the same parameter count pulls
-it in. A figure quoted for one model says nothing about the next. [1] makes the
-qualitative version of the point in its hardware
-section: arithmetic intensity varies substantially with batch size and sequence
-length, and a long sequence raises the KV-cache read cost of every decoding
-step.
+There is a quadratic term, but calling the total `O(N²)` hides which term is
+actually paying. The two are equal only when `T0 = (D+1)/2`, so for a
+2048-position prompt the triangular term does not catch the prompt term until
+`D` = 4095. Below that — a long prompt and a short continuation, which is a
+great deal of real usage — the `D · T0` term dominates and the cost is linear
+in the number of passes.
+
+A crossover also exists within a single pass: the `T` at which one pass's KV
+payload equals one pass's matrix-weight payload.
+
+```
+P_mat · b_w = C · T*
+T* = P_mat · b_w / C
+```
+
+For the configuration above that is 13,214,154,752 / 524,288 = 25,204
+positions, about twelve times the `T` the example is drawn at. That number is a
+payload-equality point and nothing more. It is a formal solution: it is not a
+latency crossover, since the two terms need not realise the same bandwidth or
+reuse, and there is no guarantee it lies inside a context length or a memory
+capacity a given deployment can actually run.
+
+Read the expression rather than the number. `T*` rises with matrix parameter
+count and with weight precision. It falls with layer count, with KV heads, with
+head dimension and with KV precision. Grouped-query attention cuts `n_kv` and
+quantising the cache cuts `b_kv`, so both push the crossover out.
+
+Grouped-query attention [10] is worth stating in full, because it has two
+consequences and only one of them is usually quoted. Fewer KV heads cut the KV
+payload, since `C` is proportional to `n_kv`. They do not cut the attention
+work, which follows the query heads: the two attention matmuls stay at
+`4 · L · n_q · T · d_h` FLOP, so under ideal reuse the KV-only intensity
+works out to `2 · (n_q / n_kv) / b_kv`. And fewer KV heads also
+shrink the K and V projection matrices, so `P_mat` moves too. A partial
+derivative in one symbol is fine as algebra; an actual model change moves
+correlated dimensions together, and both sides have to be recomputed.
 
 ## What this does not contain
 
-Everything above is a byte count derived from tensor shapes. Calling it a
-memory model would be wrong, so here is what is absent.
+Everything above is a byte count derived from tensor shapes, plus two
+explicitly chosen mappings. Calling it a memory model would be wrong, so here
+is what is absent.
 
 No DRAM refresh. No bank conflicts, no row-buffer hits or misses, no bus
-turnaround, no queueing anywhere in the controller: the ordering effects that
-[3] and [4] are about do not appear in any expression here. No grouped-query
-attention detail beyond the single symbol `n_kv`, which hides how heads are
-grouped and how that grouping interacts with placement in memory. Batch one
-only, and batching is the knob that changes the conclusion. No speculative
-decoding, where one weight read verifies several tokens. No paged attention, so
-no block granularity and no fragmentation. No KV quantisation, so `b_kv` is a
+turnaround, no transaction padding, no queueing anywhere in the controller: the
+ordering effects that [3] and [4] are about do not appear in any expression
+here. No cache residency and no reuse across passes, which is the assumption
+that turns a nominal payload into a traffic estimate. Activation traffic is
+omitted rather than shown to be negligible. No grouped-query attention detail
+beyond the single symbol `n_kv`, which hides how heads are grouped and how that
+grouping interacts with placement. Batch one only, and batching is the knob
+that changes the conclusion. No speculative decoding, where one weight read
+verifies several tokens. No paged attention, no prefix sharing and no sliding
+window, so `T` is the full valid range and the address example is a chosen
+placement rather than a block allocator. No KV quantisation, so `b_kv` is a
 constant rather than a variable someone is tuning. Dense models only: in a
 mixture of experts the per-token active parameter count is a fraction of `P`
-and the weight term stops being `P · b_w`.
+and the weight term stops tracking it. And nothing here is measured: no
+contention, no utilisation, no achieved bandwidth, no wall-clock anything.
+
+The order is the useful part. Derive the operand set, pick a byte-count
+boundary and say which one it is, then choose the address map and the dataflow
+mapping. Only once those are explicit does a number on a memory diagram mean
+one thing rather than four.
 
 ## References
 
 1. Z. Yuan, Y. Shang, Y. Zhou, Z. Dong, Z. Zhou, C. Xue, B. Wu et al.,
    "LLM Inference Unveiled: Survey and Roofline Model Insights."
-   [arxiv.org/abs/2402.16363](https://arxiv.org/abs/2402.16363)
+   [arxiv.org/abs/2402.16363](https://arxiv.org/abs/2402.16363).
+   Counts reconstructed here use the stated conventions above.
 2. Synopsys, "What is High Bandwidth Memory 3 (HBM3)?"
    [synopsys.com/glossary/what-is-high-bandwitdth-memory-3.html](https://www.synopsys.com/glossary/what-is-high-bandwitdth-memory-3.html)
 3. H. Kanayama and Y. Yao, "Memory controller with pseudo-channel support."
@@ -264,3 +470,22 @@ and the weight term stops being `P · b_w`.
 7. B. Tiwari, M. Yang, X. Wang and Y. Jiang, "Data Streaming and Traffic
    Gathering in Mesh-based NoC for Deep Neural Network Acceleration."
    [arxiv.org/abs/2108.02569](https://arxiv.org/abs/2108.02569)
+8. Meta, Llama reference implementation:
+   [model.py](https://github.com/meta-llama/llama/blob/main/llama/model.py)
+   for `Attention`, `FeedForward` and `TransformerBlock`, and
+   [generation.py](https://github.com/meta-llama/llama/blob/main/llama/generation.py)
+   for the loop that samples its first token from the prefill logits.
+9. NVIDIA, "RTX A6000" — 48 GB GDDR6, 768 GB/s memory bandwidth, 309.7 TFLOPS
+   tensor performance quoted with sparsity.
+   [nvidia.com/en-us/design-visualization/rtx-a6000](https://www.nvidia.com/en-us/design-visualization/rtx-a6000/)
+10. J. Ainslie, J. Lee-Thorp, M. de Jong, Y. Zemlyanskiy, F. Lebrón and
+    S. Sanghai, "GQA: Training Generalized Multi-Query Transformer Models from
+    Multi-Head Checkpoints."
+    [arxiv.org/abs/2305.13245](https://arxiv.org/abs/2305.13245)
+11. T. Dao, "FlashAttention-2: Faster Attention with Better Parallelism and
+    Work Partitioning."
+    [arxiv.org/abs/2307.08691](https://arxiv.org/abs/2307.08691)
+12. vLLM, "PagedAttention" design documentation.
+    [docs.vllm.ai/en/latest/design/paged_attention](https://docs.vllm.ai/en/latest/design/paged_attention/).
+    Cited as an example of a different KV layout, not as the allocation model
+    assumed here.

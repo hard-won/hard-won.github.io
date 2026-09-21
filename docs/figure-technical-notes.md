@@ -1,4 +1,4 @@
-# FIG. 01 — technical notes
+# The homepage figure — technical notes
 
 What `src/components/DataflowFigure.astro` encodes, in three strictly separated
 parts:
@@ -6,143 +6,102 @@ parts:
 - **[A. Cited claims](#a-cited-claims)** — statements with a source that was
   fetched and read, and that actually supports the statement it is attached to.
 - **[B. Assumptions of the depicted configuration](#b-assumptions-of-the-depicted-configuration)**
-  — things the figure draws that are design choices, not facts about any
-  shipping part. Nothing here is sourced, and nothing here should be repeated
-  as though it were.
+  — things the figure draws that are design or presentation choices, not facts
+  about any shipping part. Nothing here is sourced, and nothing here should be
+  repeated as though it were.
 - **[C. Omissions and simplifications](#c-omissions-and-simplifications)** —
   what is absent, so nobody mistakes a schematic for a model.
 
-The plate prints no number carrying a unit — no GB/s, no FLOP/byte, no latency,
-no percentage. Every quantitative statement is here, in prose. Where a source's
-number differs from a number this figure was originally briefed to encode, the
-number below is the source's.
+The figure prints no number carrying a physical unit: no GB/s, no FLOP/byte,
+no measured latency, no percentage, no bar whose length stands for a rate. It
+prints two things: a count of valid KV positions for one layer, and a position
+in the depicted sequence, in seconds of display time, on a line that also says
+`ORDER, NOT LATENCY`. Every quantitative statement about this
+workload lives in the Note, [*A decode step, as
+traffic*](../src/content/notes/decode-step-as-traffic.mdx), and is derived in
+`src/lib/decode-traffic/traffic-model.ts`.
+
+**The figure is a rendering of a tested model, not a drawing of one.**
+`src/lib/decode-traffic/event-model.ts` holds the event ledger — every event,
+its duration, its dependencies and its route — and validates it on
+construction. `src/lib/figure/frame.ts` turns `(ledger, t)` into the complete
+visual state of a frame. The component calls it once at build time for the
+static frame; `src/scripts/dataflow-figure.ts` calls the same functions on each
+tick. There are no CSS keyframes, no transitions and no independent periods in
+the figure, so a claim below that is enforced by the ledger is enforced in every
+frame, not just the one that was checked.
+
+Tests: `tests/reference.test.ts` and `tests/note-numbers.test.ts` cover the
+model and the Note's numbers; `tests/figure-frame.test.ts` sweeps the sampler
+across both scenes at 10 ms intervals and at every event boundary.
 
 ---
 
 ## A. Cited claims
 
-### A1 — The operator order
+### A1 — The operator order (View A)
 
-| # | Claim | Source |
-|---|---|---|
-| 1 | A Llama-style decoder layer is **pre-norm**: the norm is applied to each sublayer's input and the residual is added after the sublayer. | `meta-llama/llama`, `llama/model.py`, `TransformerBlock.forward`: `h = x + self.attention(self.attention_norm(x), ...)`; `out = h + self.feed_forward(self.ffn_norm(h))`. [2] |
-| 2 | Within attention the order is **QKV projection → RoPE → append K,V to the cache → attend over the whole cache → output projection**. | Same file, `Attention.forward`: `wq/wk/wv` → `apply_rotary_emb(xq, xk, freqs_cis)` → `self.cache_k[..., start_pos:start_pos+seqlen] = xk` (and `cache_v`) → read cache → `repeat_kv` → softmax attention → `self.wo(output)`. [2] |
-| 3 | **`KV READ` is not a peer operator of `QKV PROJ`.** It is operand traffic belonging to attention, in exactly the way a weight fetch is operand traffic belonging to a projection. This is the error the rebuild exists to fix: the figure tags `ATTN` with `RD KV` and gives KV read no block of its own. | Follows from claim 2. Corroborated by the per-operator decomposition in [1] Table 1, whose decode rows are `q_proj`, `k_proj`, `v_proj`, `o_proj`, `qk_matmul`, `sv_matmul`, `softmax`, `norm`, `add` — there is no "KV read" operator. |
-| 4 | Three operators of the layer read weights (`QKV PROJ`, `O PROJ`, `MLP`), one writes KV (`KV APPEND`), one reads KV (`ATTN`). | Claims 1–3. |
+| # | Claim | Source | Where it is enforced |
+|---|---|---|---|
+| 1 | A Llama-style decoder layer is **pre-norm**: the norm is applied to each sublayer's input and the residual is added after the sublayer, so there are **two residual adds** per layer and each adds a different thing. | `meta-llama/llama`, `llama/model.py`, `TransformerBlock.forward`: `h = x + self.attention(self.attention_norm(x), ...)`; `out = h + self.feed_forward(self.ffn_norm(h))`. [1] | `STAGES` has `res1` and `res2`; each residual event records its own `skip` source, and `validateLayerSemantics` asserts `res1` skips `layer_input` and `res2` skips `after_attention_residual`. The stage strip prints those two sources verbatim. |
+| 2 | Within attention the order is **QKV projection → RoPE → append K,V to the cache → attend over the whole valid range → output projection**. | Same file, `Attention.forward`: `wq/wk/wv` → `apply_rotary_emb(xq, xk, freqs_cis)` → `self.cache_k[..., start_pos:start_pos+seqlen] = xk` (and `cache_v`) → read cache → `repeat_kv` → softmax attention → `self.wo(output)`. [1] | The ledger's dependency edges. `attn.qk` depends on `attn.k.return`; `o.compute` depends on `attn.pv`. |
+| 3 | **RoPE is applied to Q and K only, never to V** (`apply_rotary_emb(xq, xk, freqs_cis)` takes two tensors). | Same file. [1] | The `rope` event records `targets: ['q','k']` and `notTargets: ['v']`; the stage label `ROPE (Q,K)` is generated from those fields. |
+| 4 | **A KV read is not a peer operator of a projection.** It is operand traffic belonging to attention, exactly as a weight fetch is operand traffic belonging to a projection. | Follows from claim 2, and corroborated by the per-operator decomposition in [2] Table 1, whose decode rows are `q_proj`, `k_proj`, `v_proj`, `o_proj`, `qk_matmul`, `sv_matmul`, `softmax`, `norm`, `add` — there is no "KV read" operator. | KV reads are `request` / `memory-read` / `read-return` events **inside** the `attention` stage. They are parcels on the lane, never stage boxes. |
+| 5 | **The current token contributes its own key and value to its own attention**, so the range attention reads includes the position just appended. | [1], `Attention.forward`: the cache is written at `start_pos` and then read as `keys = self.cache_k[:bsz, : start_pos + seqlen]`. | `kv.visible` records `validBefore = T0 + stepIndex` and `validAfter = T0 + stepIndex + 1`, and `attn.k.request` depends on `kv.visible`. The counter increments at exactly that event and nowhere else. |
+| 6 | **At batch size one every weight is read from memory once per forward pass, and the compute core is largely idle while that happens.** | Pope et al. §2: these tensors "need to be transferred from HBM to the compute cores of the chip once per forward pass (prefill or decode step)"; §2.1: the KV cache is loaded from off-chip memory "once for every token generated during which the computational core of the chip is essentially idle." [3] | Each weight matrix has exactly one `memory-read` event per layer visit, and the COMPUTE band reads `WAITING FOR …` for every instant a read is outstanding. |
 
-Precision the figure does not draw: RoPE is applied to Q and K only, never to V
-(`apply_rotary_emb(xq, xk, freqs_cis)` takes two tensors).
+### A2 — Operand distribution and reduction (View B)
 
-### A2 — HBM structure
+| # | Claim | Source | Where it is enforced |
+|---|---|---|---|
+| 7 | An accelerator's distribution network carries **one-to-many traffic on the way in and many-to-one on the way back**, because the same operands feed many processing elements. | Dave et al. §VIII-A: "Data can be reused spatially by distributing it to multiple PEs or functional units… Most accelerators leverage spatial reuse with multicast or broadcast NoC." [4] Flexagon §3.1: the distribution network "needs to support unicast, multicast and broad-cast data delivery." [5] | View B draws the row activation slice `x[I_r]` delivered once and forwarded across the row — one-to-many — and partial sums converging down each column — many-to-one. |
+| 8 | **Partial sums are forwarded and accumulated along one dimension toward an edge**, rather than drifting between neighbours. | Dave et al. §VIII-B-3 ("Spatio-temporal"): "when data streams through PEs of a systolic array, there is an inter-PE spatial reduction of partial outputs (via PEs of each column). Then, the bottom PE-row provides the reduced partial outputs to accumulator buffers." [4] | `psum.r.c` routes `T(r-1)c → Trc`; `sum.r.c` depends on both that hop and the receiving tile's own local product; `output.c` routes `T(R-1)c → ACCc`. `validateProjectionSemantics` checks the contributor list at every step. |
+| 9 | Reduction **down the column, with activations traversing the rows**, is the weight-stationary convention, and accumulators sit at the far edge. | Scale-out Systolic Arrays [6]. Jouppi et al. §2: "The 16-bit products are collected in the 4 MiB of 32-bit Accumulators below the matrix unit"; Fig. 4: "data flows in from the left, and the weights are loaded from the top." [7] | The drawn edge set: `A_r → T_r0 → T_r1 → T_r2` horizontally, `WBUF → WROOT_c → T0c → T1c → ACC_c` vertically. |
+| 10 | **"Weight-stationary" does not by itself license sending the same weights to every tile.** Stationarity says where an operand rests during an execution phase; it does not fix the partitioning. | [6] describes the dataflow, not a partitioning rule; [4] §VIII-A distinguishes reuse mechanisms from mappings. This entry exists because the previous version of this figure drew an undifferentiated weight multicast trunk and called it weight-stationary. | View B gives every block exactly one owner: `weight.r.c` carries `W[J_c, I_r]` with `owner: T{r}{c}` and `destinations: [T{r}{c}]`. A block that transits a nearer tile does not make that tile ready — `tests/figure-frame.test.ts` asserts this at 1.450 s, where `W[J1,I1]` is passing through `T01` and `T11` is still not weight-ready. |
 
-| # | Claim | Source |
-|---|---|---|
-| 5 | An HBM3 stack's 1024-bit interface is divided into **16 independent 64-bit channels**, and each channel is split into **two 32-bit pseudo-channels** — 32 pseudo-channels per stack. The figure divides every channel bar into two lanes for this reason. | Synopsys, *What Designers Need to Know About HBM3*: "this 1024-bit interface is now divided into 16 64-bit channels"; "the width of the pseudo-channels has been reduced to 4 bytes". [3] |
-| 6 | The two pseudo-channels of a channel **share a command bus and execute commands individually**, and because the C/A bus runs slower than the data bus, command and address can be sent to the two pseudo-channels **in an interleaved fashion**. This is the mechanism the figure's alternating lane sweep depicts. | AMD, *Memory controller with pseudo-channel support*, US 12,117,945 B2. [4] |
-| 7 | **The address-to-channel/bank/row mapping is a memory-controller policy, and the choice is worth roughly an order of magnitude** in achieved throughput. Changing nothing but the bank/row/column mapping moved sequential-traversal throughput by about that much on an FPGA HBM stack. | Wang et al., *Benchmarking High Bandwidth Memory on FPGAs*, §IV-B and Table II. [8] Scope: HBM2 on a Xilinx U280, and its policies permute row, bank-group, bank and column **within** a channel. |
-| 8 | It is a policy and not a law, and real controllers differ. The Xilinx AXI HBM controller does **not** interleave across channels by default — each pseudo-channel owns a contiguous 256 MB region, and out-of-region traffic must cross a switch at a cost. | Xilinx, Vitis Tutorials — *Using HBM: Overview*. [7] Corroborated by [8] §II: "A pseudo channel is only allowed to access its associated HBM channel that has its own address region of memory." A different controller model chooses the opposite: the gem5/Rambus HBM2 model "interleaves the memory requests across pseudo channels at a granularity of 64B". [6] |
+### A3 — Algebra of the blocked product
 
-**Not claimed, anywhere, by the figure or by this document: "the pseudo-channel
-is selected by address bit BA4."** That wording appears in search-engine
-summaries and could not be found in US 12,117,945 B2, in US 12,073,114 B2, or
-in the Synopsys HBM3 documentation. JESD238 is paywalled and was not read. The
-figure encodes only claim 6's mechanism.
-
-### A3 — The on-chip network
-
-| # | Claim | Source |
-|---|---|---|
-| 9 | An accelerator's distribution network must support **unicast, multicast and broadcast** delivery — point-to-point flits to arbitrary tiles are the wrong picture. | Flexagon §3.1: "the DN needs to support unicast, multicast and broad-cast data delivery." [9] Corroborated by [10] Table VIII. |
-| 10 | The reason is **reuse**: the same weights and activations feed many PEs, so traffic is one-to-many on the way in and many-to-one on the way back. The figure draws weight delivery as a tree that fans out to every tile on a row. | Dave et al. §VIII-A: "Data can be reused spatially by distributing it to multiple PEs or functional units... Most accelerators leverage spatial reuse with multicast or broadcast NoC." [10] Tiwari et al.: DNN accelerator traffic is one-to-many and many-to-one, and mesh-based NoCs cannot support it efficiently. [11] |
-| 11 | **Partial sums are forwarded and accumulated along one dimension toward an edge** — spatio-temporal reduction — rather than drifting between neighbours. | Dave et al. §VIII-B-3 ("Spatio-temporal"): "when data streams through PEs of a systolic array, there is an inter-PE spatial reduction of partial outputs (via PEs of each column). Then, the bottom PE-row provides the reduced partial outputs to accumulator buffers (CompAct, TPU)." [10] |
-| 12 | In a **weight-stationary** array the dimension is the column: activations traverse the rows, partial sums traverse the columns, with activation multicast and partial-sum fan-in. | Scale-out Systolic Arrays. [12] |
-| 13 | The TPU is built that way: accumulators sit **below** the matrix unit. | Jouppi et al. §2: "The 16-bit products are collected in the 4 MiB of 32-bit Accumulators below the matrix unit"; Fig. 4: "data flows in from the left, and the weights are loaded from the top." [13] |
-
-### A4 — Decode is memory-bandwidth-bound
-
-| # | Claim | Source |
-|---|---|---|
-| 14 | **Every operator of the decode stage is memory-bound.** The figure encodes this with two bars drawn in the same grammar: four channel bars that never leave the top of their range, and one `TILES` bar that spends the step near the bottom of its. | [1] §4: "in the decode stage, all computations are memory-bound, resulting in performance significantly below the computational capacity of the GPU's computation units." Table 1 labels all nine decode rows "memory". |
-| 15 | The gap between decode arithmetic intensity and the hardware ridge point is about **two orders of magnitude**. | [1] Table 1 — Llama-2-7b, **batch 1, sequence 2048, FP16, NVIDIA A6000**: arithmetic intensity **1 OP/byte** for all six projections, 0.99 for `qk_matmul` and `sv_matmul`, 1.25 softmax, 1.75 norm, 0.25 add. The ridge point is not printed in the table. It is computed from the part's published specification, not back-inferred from the table: the RTX A6000 datasheet gives **768 GB/s** memory bandwidth and **309.7 TFLOPS** Tensor performance *with sparsity*, i.e. **≈ 154.85 TFLOPS dense**, so the ridge is **154.85e12 / 768e9 ≈ 202 OP/byte** [16]. That matches both the 155 T OPS ceiling the table uses and the turning point drawn near 200 in Fig. 5, which is the corroboration rather than the source. |
-| 16 | The same gap on current hardware. | NVIDIA H100 **SXM** [14]: BFLOAT16 tensor-core peak 1,979 TFLOPS *with sparsity*, i.e. **≈ 989.5 TFLOPS dense**; memory bandwidth **3.35 TB/s**. Ridge ≈ 989.5e12 / 3.35e12 ≈ **295 FLOP/byte**. H100 NVL/PCIe differs materially (≈ 836 TFLOPS dense over 3.9 TB/s ≈ 214 FLOP/byte), so the part must be named. |
-| 17 | At batch size one **every weight is read from HBM once per token**, and the compute core is largely idle while it happens. | Pope et al. §2: these tensors "need to be transferred from HBM to the compute cores of the chip once per forward pass (prefill or decode step)"; §2.1: the KV cache is loaded from off-chip memory "once for every token generated during which the computational core of the chip is essentially idle." [15] |
-
-**Two numbers from the original brief were not inherited.** The brief gave
-"~3–15 FLOP/byte against a ridge point near 100 FLOP/byte on H100". The cited
-paper measures **≈ 1 OP/byte** at batch 1, on an **A6000**, against a ridge near
-**202**; the H100 SXM BF16 dense ridge is **≈ 295**, not 100. Because the plate
-prints no number, only the qualitative gap is encoded, and the corrected figures
-live here.
-
-### A5 — Traffic proportions
-
-| # | Claim | Source |
-|---|---|---|
-| 18 | **Weight traffic dominates per-token traffic at short sequence lengths**, which is why the weight class is drawn as a whole network lighting up while KV is a handful of small flits. | Pope et al. §2.1: "At small batch sizes and sequence lengths, the time to load weights dominates." [15] |
-| 19 | **The KV cache grows by this token's K and V at every decode step, per layer.** The figure shows the write leaving a tile, crossing the controller edge into HBM, and the gauge gaining a group of cells on arrival. | [1] §2.1: `K_cat = [K_cache, X_dec·W_k]`, `V_cat = [V_cache, X_dec·W_v]`, "These newly computed ... are then appended to the KV cache"; each layer is "equipped with its own unique KV cache." |
-| 20 | **Attention at step T reads O(T) of cache, so KV read traffic grows every step.** The figure emits 2, then 4, then 6 KV-read flits across the three steps of the loop. | [1] §2.1 and §6: "a long sequence length may increase the memory access overhead of KV-cache reading in each decoding step." |
-| 21 | **Cumulative KV read traffic over a generation is O(T²).** | A one-line consequence of claim 20 summed over T steps. No source found prints it, so it is a **derivation, not a citation**. Pope et al. make the neighbouring point that "inference cost from the attention mechanism scales quadratically with input sequence length." [15] |
-| 22 | **Where the crossover lands is workload-dependent, and the figure does not assert it.** Nothing on the plate says at which sequence length KV traffic overtakes weight traffic. | Pope et al. §2 states both ends and no constant: "At small batch sizes and sequence lengths, the time to load weights dominates. At larger batch sizes and sequence lengths (e.g. 2048+ tokens with batch size 512+), the time to load the KV cache dominates." [15] The site's own note derives the expression `T* = P·b_w / (2·L·n_kv·d_h·b_kv)`. |
+| # | Claim | Source | Where it is enforced |
+|---|---|---|---|
+| 11 | With rows partitioning the reduction index and columns partitioning the output index, `y[J_c] = Σ_r W[J_c, I_r] · x[I_r]` reproduces the unblocked product exactly. | Elementary; proved by execution rather than cited. | `blockedMatvec()` in `traffic-model.ts` returns both the blocked result and the direct one, and `tests/reference.test.ts` asserts they agree and that every element of `W` has exactly one owner. |
 
 ---
 
 ## B. Assumptions of the depicted configuration
 
-None of this is sourced. All of it is a drawing decision. It is listed
-separately because the figure would be misleading if any of it were read as a
+None of this is sourced. All of it is a drawing or presentation decision. It is
+listed separately because the figure would mislead if any of it were read as a
 fact about a shipping part.
 
-### B1 — The accelerator model
-
-The interconnect band is not "a generic mesh". It is one assumed machine, and
-the figure should only be read against it.
-
-| # | Assumed | Why it is only an assumption |
-|---|---|---|
-| A | Weight-stationary tiles in a **2D mesh**. | A dataflow and topology choice. Real accelerators use Benes networks, trees, buses, crossbars and hierarchies; [9] builds its distribution network as a Benes network, not a mesh. |
-| B | **Memory controllers at one die edge**, drawn on the left between the channels and the array. | No primary source was found for this placement. It is a plausible and common floorplan, and it is drawn because the figure needs the interface to be *somewhere* and putting it on one side makes the distance the traffic crosses visible. Nothing more. |
-| C | Weights **multicast from that edge** along a trunk down the edge and a branch along each row. | The *need* for multicast is cited (claims 9–10). This tree shape, and rooting it at the memory edge, is drawn, not sourced. **These row branches are not the systolic weight-load path.** Claim 13 has the TPU loading weights into the array from the top; the rows here are the NoC delivering weight blocks from HBM to the tiles, which happens at a different level. The figure draws the delivery, not the load, and puts it on rows so that it stays perpendicular to the reduction in D. |
-| D | Partial sums reduce **down each column** into an accumulator bank at the bottom edge. | The direction is consistent with claims 11–13, but the bank's position and the one-flit-per-column rendering are drawing choices. Distribution on rows and reduction on columns also makes the two directions perpendicular, so they can never be confused — a legibility decision as much as an architectural one. |
-| E | Four HBM channels; a 4×4 tile array (4×3 on the narrow plate). | HBM3 has **sixteen** channels per stack (claim 5). The counts on the plate are illustrative. |
-
-**Departure from the brief, logged.** The brief for this figure pinned "partial
-sums reduced along a row toward the edge". The figure reduces down columns
-instead. The brief's own correction permitted "a row or a column"; claims 12–13
-show the column is the weight-stationary convention; and perpendicular
-directions are unambiguous where two opposing streams on the same rows are not.
-
-### B2 — The HBM stripe sweep
-
-The figure draws all four channels busy at once, with the served stripe sweeping
-CH0 → CH1 → CH2 → CH3 in staggered phase.
-
-**This is what fine-grained cross-channel interleaving looks like, and
-fine-grained cross-channel interleaving is assumed, not demonstrated.** No
-source was found showing that a real device interleaves a weight tensor across
-all HBM channels. What *is* cited is that the address map is a controller policy
-(claim 7) and that controllers genuinely differ (claim 8) — the Xilinx default
-gives each pseudo-channel its own contiguous region, which would produce a
-completely different picture.
-
-The plate states the assumption on itself, in a footnote beside the key:
-`ASSUMES FINE-GRAIN CHANNEL INTERLEAVE`.
-
-The two-lane split within each channel bar, and the sweep alternating between
-the lanes, depicts claim 6's mechanism (shared C/A bus, commands executed
-individually, C/A interleaved between the two pseudo-channels). The figure does
-**not** name an address bit, and no address bit should be inferred from it.
-
-### B3 — Everything else on the plate that is a drawing decision
+### B1 — The schedule
 
 | # | Assumed |
 |---|---|
-| F | **Occupancy fills are qualitative.** No axis, no units. Their peaks are placed by operator, not measured. The channel/`TILES` contrast encodes the direction of claims 14–16, not their magnitude. |
-| G | **The eight operator slots are equal width.** That is an *order*, not a latency breakdown; real operator durations differ by more than an order of magnitude. |
-| H | **The KV gauge is an occupancy readout, not a capacity limit.** It is segmented because a cache grows a page at a time, it gains one group per step, and six of its eighteen cells are never reached in the loop — a full bar would read as a measured ceiling. |
-| I | **Traffic volumes are not to scale.** Weights are drawn as a whole network lighting up and KV as a few flits to encode the *direction* of claims 18–20. The ratio on the plate is not a measured ratio. |
-| J | **The loop rates mean nothing.** The 18s loop, the 6s step and the 4.5s stripe cycle are drawing rates chosen for legibility. |
-| K | **Three decode steps and a reset.** A real sequence is thousands of steps; the gauge would not fit on the page. |
-| L | The tile drawing — a router with an input queue compartment beside a PE — is a **pictogram**. Queue depth, occupancy and backpressure are not modelled. |
+| A | **The layer's work is serialized.** Q, K and V are three logically parallel projections; the ledger runs them one after another so a reader can follow one operand at a time. Nothing about the hardware requires it, and the caption says the schedule is a chosen serial illustration. |
+| B | **Cache-first: the appended K and V are written toward memory and become visible before attention reads the range.** This is a depiction, not a hardware law. An implementation may keep the current K and V on chip, forward them into the kernel, or overlap the write with the read. Drawing the round trip makes the dependency visible; the caption says so, and the Note argues the payload accounting separately (`C·T` unique payload versus `C·(T−1)` cold read of the older cache). |
+| C | **No prefetch, no overlap, no fusion.** Every read is requested, serviced and returned before its consumer runs. A real implementation that prefetched would be a different, also-valid picture; this one was chosen because overlap is what made the previous figure's causality unreadable. |
+| D | **The durations are legibility settings.** The layer scene is 16.2 s and the projection scene 5.75 s of display time, the latter played at 0.5×. Stage boxes are equal width. Real operator durations differ by more than an order of magnitude, so the strip is an **order**, not a latency breakdown — printed on the figure as `EVENT ORDER ONLY · NOT A LATENCY SCALE`. |
+| E | **Position along a path does not encode propagation speed.** A parcel's time is split evenly across the hops its route declares. |
+
+### B2 — The topology
+
+| # | Assumed |
+|---|---|
+| F | **Four endpoints in a line — device memory, memory controller, local buffers, compute.** A schematic boundary diagram, not a die floorplan, and not a claim about where a controller sits. The drawn lane is exactly `LAYER_EDGES`, and `tests/figure-frame.test.ts` asserts the two sets are equal, so no parcel can cross a line the figure does not draw. |
+| G | **Weight and KV traffic share those endpoints** while keeping distinct tensor identities. The figure does not claim they share a physical path. |
+| H | **A 2×3 tile array in View B.** Tiles hold submatrices and local arithmetic and storage; they are not six scalar PEs, and their drawn size is not a claim about area. The fixture in `blockedMatvec()` is a demonstration size, not a layer shape. |
+| I | **The column link carries two different things** — a weight block descending to its owner, and a partial sum descending to be accumulated. Both are drawn on the same line because the ledger routes both there; they are told apart by parcel class and by the readout. |
+
+### B3 — What the visual states mean
+
+| # | Assumed |
+|---|---|
+| J | **Stage highlight, compute-waiting and compute-active are three distinct states**, drawn distinctly: an accent-marked stage box, a dashed marker on the compute band, and a filled accent band. A highlighted stage means "this is the phase being explained, possibly waiting"; only the filled band means arithmetic is running with its operands in hand. |
+| K | **Request, read return and KV write are three distinct parcel classes**, told apart by fill and shape, not by colour alone. A request carries no payload (`payloadBytes: 0` in `attachLayerPayloads`). |
+| L | **Operand demand is qualitative.** The figure names what class of operand a stage pulls across the memory boundary and appends `(QUALITATIVE, NOT MEASURED)`. There is no occupancy fill, no percentage and no bar whose length stands for a rate. Low arithmetic intensity bounds attainable throughput; it does not measure how busy a channel is, and the earlier version of this figure drew that confusion as two utilization-shaped bars. |
+| M | **The KV readout is a count of valid positions for this one layer**, from a prefilled baseline of `T0 = 2048` to 2049. It is not capacity, not allocation, and not a page count. At wrap the figure says the count returns to that baseline; context never appears to evaporate mid-pass. |
+| N | **`UNSHOWN WORK` is a separator, not an estimate.** The other layers, the final norm, the LM head and sampling are not drawn, and the width of that box says nothing about their cost. One layer never emits a sampled token. |
+| O | **The static frames are chosen, and stated.** View A ships at 5.700 s, where attention is highlighted, `K[0:T]` is between device memory and the buffers, and compute reads `WAITING`. View B ships at 3.600 s, with a partial sum descending column 1 while two tiles are still forming their own products. These are the frames rendered without JavaScript and under `prefers-reduced-motion`. |
 
 ---
 
@@ -151,99 +110,107 @@ individually, C/A interleaved between the two pseudo-channels). The figure does
 Everything absent, so nothing here is mistaken for a model.
 
 **Memory**
-- No refresh. No bank conflicts, no row-buffer hits or misses, no bus
-  turnaround, no read/write turnaround penalty, no controller queueing. The
-  ordering effects that make the address map matter (claim 7) are exactly the
-  effects that do not appear.
-- One stack. No stack-to-stack or NUMA structure. No ECC, no repair, no
-  thermal throttling.
-- No distinction between the KV write path and the weight read path other than
-  direction — no write buffering, no write-combining.
+
+- No refresh, no bank conflicts, no row-buffer hits or misses, no bus
+  turnaround, no read/write turnaround penalty, no controller queueing, no
+  transaction granularity. The ordering effects that make an address map matter
+  are exactly the effects that do not appear.
+- No channel structure, no pseudo-channels, no address-to-channel map. The
+  figure previously drew a sixteen-lane channel sweep on its own free-running
+  cycle; that mechanism now lives only in the Note's FIG. 02, where it is a
+  static mapping example with an explicit toy policy, and where the plate says
+  in as many words that it is not service order.
+- No cache residency, no reuse across passes, no write buffering or
+  write-combining. Payloads, where `attachLayerPayloads` attaches them, are
+  nominal element counts times a format width — not a DRAM transaction trace.
 
 **Interconnect**
-- One statically routed multicast tree shape. No arbitration, no virtual
-  channels, no credit-based flow control, no congestion, no deadlock avoidance,
-  and no flit/packet distinction — a "flit" here is a parcel of traffic and
-  nothing more.
-- No local scratchpad, no SRAM hierarchy between HBM and the array, no
-  double-buffering of weights.
-- The accumulator bank tints on arrival; accumulation width, spill and
-  writeback are not shown.
-- One tile, one PE. No intra-tile datapath, no systolic skew, no pipeline fill
-  or drain.
+
+- No arbitration, no virtual channels, no credit-based flow control, no
+  congestion, no deadlock avoidance, no port or bandwidth limits, no FIFO
+  depth, and no flit/packet distinction — a parcel here is one transfer and
+  nothing more. View B is a dependency-valid narrative, not a cycle-accurate
+  NoC simulation, and says so on the plate.
+- No claim that a particular mesh or commercial accelerator routes this way,
+  and no claim that native multicast hardware exists or is required. Source
+  replication, routed replication and software reduction all have different
+  costs, and none of them is modelled.
+- No scratchpad hierarchy between memory and the array, no double buffering,
+  no intra-tile datapath, no systolic skew, no pipeline fill or drain.
+  Accumulation width, spill and writeback are not shown.
 
 **Workload**
+
 - **Batch of one.** Batching is the knob that changes the conclusion, and the
   figure assumes it away.
-- One layer, one decode step. **No prefill** — prefill is compute-bound and
-  would look nothing like this.
-- **No grouped-query or multi-query attention.** Head grouping directly scales
-  KV traffic and is not drawn.
+- **One layer of one decode step**, titled as such. Not one decode step, not
+  the whole forward pass, and no prefill.
+- No grouped-query or multi-query grouping diagram; the ledger's `nKV` is a
+  symbol, and how heads are grouped is not drawn.
 - No KV quantisation, no paged attention, no block granularity, no
-  fragmentation, no eviction, no prefix sharing.
-- Dense model only. In a mixture of experts the per-token active parameter
+  fragmentation, no eviction, no prefix sharing, no sliding window.
+- Dense model only; in a mixture of experts the per-token active parameter
   count is a fraction of the total and the weight term stops being constant.
-- No speculative decoding, where one weight read verifies several tokens.
-- No tensor, pipeline or sequence parallelism; no inter-device collectives.
-- RoPE is drawn as one block and the two residual adds are not drawn at all.
-  Residual adds do move bytes ([1] Table 1 gives `add` an intensity of 0.25);
-  they are omitted for space, as the brief permitted. Their *position* in the
-  order is still correct, because nothing was reordered to make room.
+- No speculative decoding, no tensor, pipeline or sequence parallelism, no
+  inter-device collectives.
+- Norm scale vectors are parameters but not large matrices; they are recorded
+  in the ledger as resident and are not drawn as traffic. On-chip activation
+  movement is not drawn in View A either, and its absence is not evidence that
+  it is negligible.
 
 ---
 
 ## References
 
-1. Z. Yuan et al., "LLM Inference Unveiled: Survey and Roofline Model
-   Insights." <https://arxiv.org/abs/2402.16363>
-2. Meta, `meta-llama/llama`, `llama/model.py`.
+1. Meta, Llama reference implementation, `llama/model.py` —
+   `Attention.forward`, `FeedForward`, `TransformerBlock.forward`.
    <https://github.com/meta-llama/llama/blob/main/llama/model.py>
-3. Synopsys, "What Designers Need to Know About HBM3."
-   <https://www.synopsys.com/articles/hbm3-ip-dwtb.html>
-4. H. Kanayama and Y. Yao, "Memory controller with pseudo-channel support."
-   US Patent 12,117,945 B2, Advanced Micro Devices, 2024.
-   <https://patents.google.com/patent/US12117945B2/en>
-5. *(withdrawn — see "Sources deliberately not cited")*
-6. M. Akram, M. Babaie, W. Elsasser, J. Lowe-Power, "Modeling HBM2 Memory
-   Controller." gem5 Users' Workshop @ ISCA 2022.
-   <https://arch.cs.ucdavis.edu/assets/papers/gem5Users_HBM_2022.pdf>
-7. Xilinx, Vitis Tutorials — "Using HBM: Overview."
-   <https://xilinx.github.io/Vitis-Tutorials/2021-1/build/html/docs/Hardware_Acceleration/Feature_Tutorials/07-using-hbm/1_overview.html>
-8. Z. Wang, H. Huang, J. Zhang, G. Alonso, "Benchmarking High Bandwidth Memory
-   on FPGAs." <https://arxiv.org/abs/2005.04324>
-9. F. Muñoz-Martínez et al., "Flexagon." §3.1.
+2. Z. Yuan et al., "LLM Inference Unveiled: Survey and Roofline Model
+   Insights." Table 1's per-operator decode decomposition.
+   <https://arxiv.org/abs/2402.16363>
+3. R. Pope et al., "Efficiently Scaling Transformer Inference." §2, §2.1.
+   <https://arxiv.org/abs/2211.05102>
+4. S. Dave et al., "Hardware Acceleration of Sparse and Irregular Tensor
+   Computations of ML Models." §VIII-A, §VIII-B-3.
+   <https://arxiv.org/abs/2007.00864>
+5. F. Muñoz-Martínez et al., "Flexagon." §3.1.
    <https://arxiv.org/abs/2301.10852>
-10. S. Dave et al., "Hardware Acceleration of Sparse and Irregular Tensor
-    Computations of ML Models." §VIII-A, §VIII-B-3, Table VIII.
-    <https://arxiv.org/abs/2007.00864>
-11. B. Tiwari, M. Yang, X. Wang, Y. Jiang, "Data Streaming and Traffic
-    Gathering in Mesh-based NoC for Deep Neural Network Acceleration."
-    <https://arxiv.org/abs/2108.02569>
-12. A. C. Yüzügüler et al., "Scale-out Systolic Arrays." TACO,
-    DOI 10.1145/3572917; preprint <https://arxiv.org/abs/2203.11540>
-13. N. Jouppi et al., "In-Datacenter Performance Analysis of a Tensor
-    Processing Unit." §2, Fig. 4. <https://arxiv.org/abs/1704.04760>
-14. NVIDIA, H100 Tensor Core GPU product page (SXM column).
-    <https://www.nvidia.com/en-us/data-center/h100/>
-15. R. Pope et al., "Efficiently Scaling Transformer Inference." §2, §2.1.
-    <https://arxiv.org/abs/2211.05102>
-16. NVIDIA, "NVIDIA RTX A6000 datasheet" — 48 GB GDDR6, 384-bit interface,
-    768 GB/s memory bandwidth, 309.7 TFLOPS Tensor performance with sparsity.
-    <https://www.nvidia.com/en-us/design-visualization/rtx-a6000/>
+6. A. C. Yüzügüler et al., "Scale-out Systolic Arrays." TACO,
+   DOI 10.1145/3572917; preprint <https://arxiv.org/abs/2203.11540>
+7. N. Jouppi et al., "In-Datacenter Performance Analysis of a Tensor
+   Processing Unit." §2, Fig. 4. <https://arxiv.org/abs/1704.04760>
 
-### Sources deliberately not cited
+### Claims withdrawn in this rebuild
 
-- **JESD238 (HBM3)** — paywalled, not read. Claim 6 rests on [4].
-- **Intel HBM2 FPGA IP User Guide** (the BA4 pseudo-channel selector) — both
-  URLs failed (403 / table-of-contents only). Not cited, and the claim it would
-  support is not encoded anywhere in the figure.
-- **PIMMiner, arXiv 2306.10257** §4.3.1 — states that a default address mapping
-  interleaves consecutive addresses across channels. **Withdrawn (ref 5) on
-  review:** it describes one PIM platform's default mapping and is not evidence
-  that an accelerator interleaves a weight tensor across HBM channels, which is
-  the claim it was going to be attached to. That claim is now listed as an
-  assumption (§B2) with no source at all, which is the honest place for it.
-- **Kwon et al., NOCS'17, "Rethinking NoCs for spatial neural network
-  accelerators"** — text not retrieved; claim 10 rests on [9], [10], [11].
-- **arXiv 2501.17567** (wireless multi-chip AI accelerators) — relevant only to
-  multicast congestion, and [9]–[11] say it more directly.
+These were in the previous version of this document, attached to parts of the
+figure that no longer exist. They are listed rather than deleted so the change
+is auditable.
+
+- **"Every operator of the decode stage is memory-bound," encoded as two
+  occupancy bars** (four channel bars near the top of their range, one `TILES`
+  bar near the bottom). The cited statement is about arithmetic intensity
+  against a memory bound; the bars read as measured utilization of a channel
+  and of the processing elements, which no source supported and this figure
+  never measured. Both bars are gone. The intensity argument is made in the
+  Note, in bytes and FLOP, where it can be checked.
+- **The A6000 and H100 ridge-point framing** (≈202 and ≈295 FLOP/byte). Correct
+  arithmetic, but it described a roofline the figure did not draw, and mixing
+  a GDDR6 part into an HBM discussion invited exactly the conflation the Note
+  now separates. The roofline discussion belongs to the Note.
+- **The HBM3 pseudo-channel sweep** and the claim that a weight tensor is
+  interleaved fine-grained across all channels. The sweep ran on its own 4.5 s
+  cycle, independent of any operator, so it implied channels busy during
+  RMSNorm and RoPE. It is gone from the figure; the structure and the address
+  map survive as a static example in the Note.
+- **"The KV cache grows a page at a time."** Pages are not modelled anywhere,
+  and the statement contradicted the Note's own exclusion of paged attention.
+  The readout now counts valid positions.
+- **"2, then 4, then 6 KV-read flits across the three steps."** Parcel count
+  was standing in for payload growth on a figure with no block identities. The
+  count of valid positions carries that now, and the growth argument is the
+  Note's.
+- **KV described as fragmented per head, weights as contiguous.** Layout is a
+  placement choice, not a property of the tensor's role; the figure asserts no
+  physical layout at all.
+- **"Prefill is compute-bound"** as an unqualified statement. It depends on
+  sequence length, shape and implementation.

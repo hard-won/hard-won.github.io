@@ -34,6 +34,10 @@ function stamp(displayDate: string): string {
 
   <DataflowFigure />
 
+  <p class="note-link">
+    <a href="/notes/decode-step-as-traffic/">READ THE NOTE → A DECODE STEP, AS TRAFFIC</a>
+  </p>
+
   <blockquote class="pullquote">
     <p>Life is a long trade, not a greedy algorithm.</p>
   </blockquote>
@@ -70,3 +74,14 @@ function stamp(displayDate: string): string {
     </p>
   </section>
 </BaseLayout>
+
+<style>
+  /* Sits directly under the figure caption, in the caption's own idiom, and
+     needs no JavaScript to be there. */
+  .note-link {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    margin: 0 0 4rem;
+  }
+</style>
