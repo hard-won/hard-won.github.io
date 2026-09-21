@@ -1,18 +1,19 @@
 ---
-title: "工业级RTL风格"
+title: "Industrial-grade RTL style"
 date: 2024-05-23T18:19:35-07:00
 displayDate: "2024-05-23"
 slug: "RTL-style"
-lang: zh
-categories: ["技术", "数字IC", "如何成为RTL工程师"]
+lang: en
+category: "rtl"
 tags: []
+description: "A collection of RTL coding-style rules: a fully commented Verilog style template, and the Hummingbird E203 core's conventions for standard DFF instantiation and for preferring assign over if-else and case."
 originalUrl: "/2024/05/23/RTL-style/"
 ---
-代码风格很重要，让别人读懂，增加效率。
+Coding style matters. It lets other people read what you wrote, and that makes everyone faster.
 
-下面是简单的代码书写风格
+What follows is a simple way of writing code.
 
-# RTL代码书写风格
+# RTL coding style
 
 ```verilog
 /* STYLE_NOTES begin
@@ -254,18 +255,17 @@ submodule_2 sub2(
 
 endmodule   // coding_style
 ```
+That was a simple set of coding conventions.
 
-以上是简单的代码规范
+From here on I am quoting and carrying over some good designs, to study as conventions.
 
-下面开始 引用搬运 一些好的设计作为规范学习
+# The RTL coding style of the Hummingbird E203 processor core
 
-# 蜂鸟E203处理器核的RTL代码风格
+## 1. Generate registers by instantiating a standard DFF module
 
-## 1\. 使用标准 DFF 模块例化生成寄存器
+The register is the basic unit of a synchronous digital circuit. When designing digital circuits in Verilog, the most common way to create one is the always block. This section covers the principle the Hummingbird E203 processor core recommends; the principle comes from a rigorous industrial-grade development standard.
 
-寄存器是数字同步电路中基本的单元。当使用 Verilog 进行数字电路设计时， 最常见的方式是使用 always块语法生成寄存器。本节介绍蜂鸟 E203 处理器核推荐的原则， 本原则来自严谨的工业级开发标准。
-
-对于寄存器，避免直接使用always块编写，而应该采用模块化的标准 DFF 模块进行例化。示例如下所示, 除时钟(clk)和复位信号(rst\_n)之外, 一个名为**flg\_dfflr**的寄存器还有使能信号 flg\_ena和输入(flg\_nxt) /输出信号(flg\_r)。
+For registers, avoid writing an always block directly; instantiate a modular, standard DFF module instead. An example follows. Besides the clock (clk) and the reset (rst\_n), a register named **flg\_dfflr** also has an enable, flg\_ena, and an input (flg\_nxt) and output (flg\_r).
 
 ```verilog
 wire flg_r;
@@ -273,29 +273,29 @@ wire flg_nxt= ~flg_r;
 wire flg_ena = (ptr_r == ('E203_OITF_DEPTH-1)) & ptr_ena;
 ```
 
-//此处使用例化 sirv\_gnrl\_dfflr 的方式实现寄存器， 而不使用显式的 always块
+// the register is realised here by instantiating sirv\_gnrl\_dfflr, not by an explicit always block
 
 ```verilog
 sirv_gnrl_dfflr #(1) flg_dfflrs(flg_ena, flg_nxt, flg_r, clk, rst_n);
 ```
 
-使用标准DFF 模块例化的好处以下：
+What instantiating a standard DFF module buys you:
 
-1.  便于全局替换寄存器类型。
-2.  便于在寄存器中全局插入延迟。
-3.  明确的load-enable 使能信号(如下例中的 flg \_ena)可方便综合工具自动插入寄存器级别的门控时钟以降低动态功耗。
-4.  便于规避 Verilog 语法中if-else 不能传播不定态（x 或 z）的问题。（避免bug在仿真过程中被掩盖）
+1.  Register types are easy to swap out globally.
+2.  Delays are easy to insert into registers globally.
+3.  An explicit load-enable (flg\_ena in the example below) lets the synthesis tool insert register-level clock gating automatically and cut dynamic power.
+4.  It sidesteps the Verilog problem that if-else cannot propagate unknowns (x or z). (Which keeps bugs from being masked during simulation.)
 
-标准 DFF 模块是一系列不同的模块，列举如下：
+The standard DFF modules are a family:
 
--   sirv\_gnrl\_dfflrs: 带 load-enable使能信号、带异步 reset信号、复位默认值为1 的寄存器。
--   sirv\_gnrl\_dfflr:带load-enable使能信号、带异步 reset信号、复位默认值为0的寄存器。
--   sirv\_gnrl\_dffl: 带 load-enable使能信号、不带 reset信号的寄存器。
--   sirv\_gnrl\_dffrs:不带 load-enable使能信号、带异步 reset信号、复位默认值为1 的寄存器。
--   sirv\_gnrl\_dffr:不带load-enable使能信号、带异步 reset信号、复位默认值为0的寄存器。
--   sirv\_gnrl\_ltch: Latch模块。
+-   sirv\_gnrl\_dfflrs: with load-enable, with asynchronous reset, reset value 1.
+-   sirv\_gnrl\_dfflr: with load-enable, with asynchronous reset, reset value 0.
+-   sirv\_gnrl\_dffl: with load-enable, no reset.
+-   sirv\_gnrl\_dffrs: no load-enable, with asynchronous reset, reset value 1.
+-   sirv\_gnrl\_dffr: no load-enable, with asynchronous reset, reset value 0.
+-   sirv\_gnrl\_ltch: the latch module.
 
-标准 DFF 模块内部则使用 Verilog语法的 always块进行编写, 以 sirv\_gnrl\_dfflr为例,代码如下所示。由于 Verilog if-else 语法不能传播不定态, 因此对于 if条件中 lden信号为不定态的非法情况使用断言(assertion) 进行捕捉。
+Inside, the standard DFF modules are written with Verilog always blocks. Take sirv\_gnrl\_dfflr; the code is below. Because Verilog's if-else cannot propagate unknowns, the illegal case where the if condition's lden signal is unknown is caught with an assertion.
 
 ```verilog
 module sirv_gnrl_dfflr # (
@@ -310,7 +310,7 @@ module sirv_gnrl_dfflr # (
 
 reg [DW-1:0] qout_r;
 
-// 使用always块编写寄存器逻辑
+// register logic written with an always block
 always @(posedge clk or negedge rst_n)
 begin : DFFLR_PROC
     if (rst_n == 1'b0)
@@ -321,12 +321,12 @@ end
 
 assign qout = qout_r;
 
-// 使用 assertion 捕捉 lden信号的不定态
+// an assertion catches an unknown on lden
 `ifndef FPGA_SOURCE
 `ifndef SYNTHESIS
 sirv_gnrl_xchecker # (
     .DW(1)
-) u_sirv_gnrl_xchecker ( //该模块内部是使用SystemVerilog编写的断言
+) u_sirv_gnrl_xchecker ( // inside, this module is an assertion written in SystemVerilog
     .i_dat(lden),
     .clk (clk)
 );
@@ -336,9 +336,9 @@ sirv_gnrl_xchecker # (
 endmodule
 ```
 
-sirv\_gnrl\_xchecker模块的代码片段 ,
+A fragment of the sirv\_gnrl\_xchecker module.
 
-此模块专门捕捉不定态，一旦输入的i\_dat出现不定态， 则会报错并终止仿真
+This module exists to catch unknowns: the moment its input i\_dat goes unknown, it reports an error and aborts the simulation.
 
 ```verilog
 module sirv_gnrl_xchecker # (
@@ -355,16 +355,16 @@ else $fatal ("\n Error: Oops, detected a X value!!! This should never happen. \n
 endmodule
 ```
 
-## 2\. 推荐使用 assign语法替代 if-else 和case语法
+## 2. Prefer assign over if-else and case
 
-Verilog中的 if-else 和 case 语法存在两大缺点。
+Verilog's if-else and case have two big drawbacks.
 
--   不能传播不定态。
--   会产生优先级的选择电路而非并行选择电路， 从而不利于优化时序和面积。
+-   They cannot propagate unknowns.
+-   They produce priority selection logic rather than parallel selection logic, which works against timing and area.
 
-为了规避这两大缺点， 蜂鸟E203 处理器核推荐使用 assign 语法进行代码编写， 本原则来自严谨的工业级开发标准。
+To sidestep both, the Hummingbird E203 processor core recommends writing with assign; the principle comes from a rigorous industrial-grade development standard.
 
-Verilog的 if-else不能传播不定态， 以如下代码片段为例。假设a的值为X(不定态)，按照 Verilog语法它会将等效于a==0,从而让 out等于in2, 最终没有将X(不定态) 传播出去。这种情况可能会在仿真阶段掩盖某些致命的bug， 造成芯片功能错误。
+Verilog's if-else cannot propagate unknowns. Take the fragment below. Suppose a is X (unknown); by Verilog's rules that is equivalent to a==0, so out becomes in2, and the X never propagates out. In this situation a fatal bug can be masked during simulation, and the chip's function comes out wrong.
 
 ```verilog
 if(a)
@@ -373,17 +373,17 @@ else
 out = in2;
 ```
 
-而使用功能等效的 assign语法,如下所示, 假设a的值为X(不定态), 按照 Verilog语法，则会将X(不定态) 传播出去， 从而让out也等于X。通过对X(不定态) 的传播，开发人员可以在仿真阶段将bug彻底暴露出来
+With the functionally equivalent assign below, if a is X, Verilog's rules do propagate the X, so out is X too. Propagating the X is what lets a developer expose the bug fully during simulation.
 
 ```verilog
 assign out = a ? in1 : in2;
 ```
 
-虽然现在有的EDA 工具提供的专有选项(例如 Synopsys VCS 提供的 xprop 选项)可以将 Verilog 原始语法中定义的“不传播不定态”的情形强行传播出来， 但是一方面， 不是所有的EDA 工具支持此功能； 另一方面，在操作中此选项也时常被忽视， 从而造成疏漏。
+Some EDA tools do now offer a proprietary option (Synopsys VCS's xprop, for instance) that forces propagation in the cases Verilog's own semantics define as non-propagating. But not every EDA tool supports it, and in practice the option is often overlooked, so things slip through.
 
-Verilog 的 Case语法也不能传播不定态,与问题一中的 if-else 同理。而使用等效的 assign 语法即可规避此缺陷。
+Verilog's case cannot propagate unknowns either, for the same reason as if-else above. The equivalent assign sidesteps the flaw.
 
-Verilog 的if-else 语法会被综合成优先级选择电路， 面积和时序均没有得到充分优化， 如下所示。
+Verilog's if-else synthesises into priority selection logic, with area and timing both left unoptimised, as below.
 
 ```verilog
 if(sell)
@@ -396,7 +396,7 @@ else
 out = 4'b0;
 ```
 
-如果此处确实要生成一种优先级选择逻辑， 则推荐使用 assign 语法等效地写成如下形式， 以规避X(不定态)传播的问题。
+If priority selection logic really is what you want here, write it equivalently with assign, as below, to sidestep the X-propagation problem.
 
 ```verilog
 assign out = sell ? in1[3:0] :
@@ -405,7 +405,7 @@ assign out = sell ? in1[3:0] :
              4'b0;
 ```
 
-而如果此处本来要生成一种并行选择逻辑，则推荐使用 assign语法明确地使用“与或”逻辑， 代码如下。
+And if parallel selection logic is what you want here, write the AND-OR logic out explicitly with assign:
 
 ```verilog
 assign out  = ({4{sel1}} & in1[3:0])
@@ -413,18 +413,18 @@ assign out  = ({4{sel1}} & in1[3:0])
               |  ({4{sel3}} & in3[3:0]) ;
 ```
 
-使用明确的assign语法编写的“与或”逻辑一定能够保证综合成并行选择的电路。
+AND-OR logic written explicitly with assign is guaranteed to synthesise into parallel selection.
 
-同理， Verilog 的 case 语法也会被综合成优先级选择电路，面积和时序均未充分优化。有的EDA 综合工具可以提供注释(例如 synopsys parallel\_case 和full\_case)来使综合工具综出并行选择逻辑，但是这样可能会造成前后仿真不一致的严重问题，从而产生重大的 bug。因此在实际的工程开发中， 注意以下两点。
+Verilog's case likewise synthesises into priority selection logic, with area and timing left unoptimised. Some EDA synthesis tools offer pragmas (synopsys parallel\_case and full\_case, for instance) that make the tool synthesise parallel selection logic, but that can cause a serious pre- versus post-synthesis simulation mismatch, and a major bug with it. So in real engineering work, note two things.
 
-应该明令禁止使用EDA 综合工具提供的注释(例如 synopsys parallel\_case 和 full\_case)。
+Pragmas offered by EDA synthesis tools (synopsys parallel\_case and full\_case, for instance) should be banned outright.
 
-应该使用等效的 assign 语法设计电路。
+The circuit should be designed with the equivalent assign.
 
-## 3.其他若干注意事项
+## 3. A few other things to watch
 
-其他编码风格中的若干注意事项如下。
+Some other things to watch in coding style.
 
--   由于带 reset信号的寄存器面积略大，时序稍微差一点， 因此在数据通路上可以使用不带reset信号的寄存器， 而只在控制通路上使用带 reset信号的寄存器。
--   信号名应该避免使用拼音，使用英语缩写， 信号名不可过长， 但是也不可过短。代码即注释， 应该尽量让开发人员能够从信号名中看出其功能。
--   Clock和 Reset信号应禁止用于任何其他的逻辑功能, Clock 和 Reset信号只能接入DFF，作为其时钟和复位信号。
+-   A register with a reset is slightly larger and slightly worse for timing, so the datapath can use registers without reset and only the control path needs registers with reset.
+-   Signal names should avoid pinyin and use English abbreviations; a signal name should be neither too long nor too short. The code is the comment, so as far as possible a developer should be able to see what a signal does from its name.
+-   Clock and reset signals must not be used for any other logic function. Clock and reset go into DFFs, as their clock and reset, and nowhere else.

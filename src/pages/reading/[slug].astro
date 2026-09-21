@@ -1,0 +1,99 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { entryCount, stamp } from '../../lib/date';
+import { titleLang } from '../../lib/reading';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('reading');
+  // Paths come from the frontmatter slug, not the loader-generated id, so the
+  // original Hexo permalink segment is preserved exactly (case included).
+  return posts.map((post) => ({ params: { slug: post.data.slug }, props: { post } }));
+}
+
+interface Props {
+  post: CollectionEntry<'reading'>;
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const { source, furtherReading } = post.data;
+const year = post.data.displayDate.slice(0, 4);
+const formattedDate = stamp(post.data.displayDate);
+
+const description =
+  post.data.description ??
+  `${post.data.title} — reading note from ${year}` +
+    (source ? `, worked through from ${source.title}` : '') +
+    '.';
+---
+
+{/* The page takes the language of its body, which the frontmatter declares.
+    A cited work keeps its own title, in its own language, marked accordingly. */}
+<BaseLayout
+  title={post.data.title}
+  description={description}
+  lang={post.data.lang === 'en' ? 'en' : 'zh-CN'}
+  ogType="article"
+  publishedTime={post.data.date.toISOString()}
+>
+  <article>
+    <header class="article__head">
+      {/* The attribution sits above the title, not in a footer: this section
+          exists to make it impossible to mistake a worked-through note for
+          original writing. */}
+      <p class="article__eyebrow from-line" lang="en">
+        <span>Reading note</span>
+        <span class="from-line__sep" aria-hidden="true">·</span>
+        {
+          source ? (
+            <span>
+              From{' '}
+              <a class="from-line__source" href={source.url} lang={titleLang(source.title)}>
+                {source.title}
+              </a>
+            </span>
+          ) : (
+            <span class="from-line__absent">Source not recorded</span>
+          )
+        }
+      </p>
+      <h1 class="article__title" lang={titleLang(post.data.title)}>{post.data.title}</h1>
+      <p class="article__meta" lang="en">
+        <time datetime={post.data.displayDate}>{formattedDate}</time>
+        <span>{post.data.category}</span>
+        {post.data.tags.map((tag) => <span lang={titleLang(tag)}>{tag}</span>)}
+      </p>
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {
+      furtherReading.length > 0 && (
+        <section class="further" aria-labelledby="further">
+          <h2 class="index-head index-head--stacked" id="further" lang="en">
+            <span>ALSO CITED</span>
+            <span>{entryCount(furtherReading.length)}</span>
+          </h2>
+          <ul class="further__list">
+            {furtherReading.map((ref) => (
+              <li>
+                <a href={ref.url} lang={titleLang(ref.title)}>
+                  {ref.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </article>
+
+  <p class="crumbs" lang="en">
+    <a href="/reading">ALL READING</a>
+    <a href="/notes">NOTES</a>
+  </p>
+</BaseLayout>

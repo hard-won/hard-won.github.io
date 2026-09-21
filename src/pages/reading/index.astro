@@ -1,0 +1,80 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { entryCount, stampDay } from '../../lib/date';
+import { READING_CATEGORIES, titleLang } from '../../lib/reading';
+
+const posts = (await getCollection('reading')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+const byYear = new Map<number, typeof posts>();
+for (const post of posts) {
+  // Group by the date the post originally carried, not the UTC instant.
+  const year = Number(post.data.displayDate.slice(0, 4));
+  const bucket = byYear.get(year);
+  if (bucket) bucket.push(post);
+  else byYear.set(year, [post]);
+}
+const years = [...byYear.entries()].sort((a, b) => b[0] - a[0]);
+
+// The kicker is derived, not typed: it can never drift from what is actually here.
+const present = new Set(posts.map((post) => post.data.category));
+const kicker = READING_CATEGORIES.filter((c) => present.has(c))
+  .join(' · ')
+  .toUpperCase();
+---
+
+<BaseLayout
+  title="Reading"
+  description="Notes taken while working through other people's material — blog series, specifications, repositories — with the source named on every entry."
+>
+  <header class="page-head">
+    <h1 class="page-head__title">Reading</h1>
+    <p class="page-head__kicker">{kicker}</p>
+    <p class="page-head__lede">
+      Notes taken while working through other people's material — a blog series, a specification, a
+      repository — with the source named on every entry. These are not original write-ups; those are
+      in <a href="/notes">Notes</a>. The bodies are still Chinese, preserved from the previous
+      version of this site, and every old permalink still resolves here.
+    </p>
+  </header>
+
+  {
+    years.map(([year, items], i) => (
+      <section aria-labelledby={`y${year}`}>
+        <h2 class:list={['index-head', i > 0 && 'index-head--stacked']} id={`y${year}`}>
+          <span>{year}</span>
+          <span>{entryCount(items.length)}</span>
+        </h2>
+
+        <ol class="index">
+          {items.map((post) => (
+            <li>
+              <a class="index__row" href={`/reading/${post.data.slug}/`}>
+                <span class="index__tick" aria-hidden="true">
+                  +
+                </span>
+                <time class="index__date" datetime={post.data.displayDate}>
+                  {stampDay(post.data.displayDate)}
+                </time>
+                <span class="index__cell">
+                  <span class="index__title" lang={titleLang(post.data.title)}>
+                    {post.data.title}
+                  </span>
+                  <span class="index__tag">{post.data.category}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))
+  }
+
+  <p class="crumbs">
+    <a href="/links">LINKS</a>
+    <a href="/notes">NOTES</a>
+    <a href="/">HOME</a>
+  </p>
+</BaseLayout>

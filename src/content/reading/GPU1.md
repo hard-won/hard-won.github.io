@@ -1,71 +1,76 @@
 ---
-title: "手搓GPU（一）"
+title: "Building a GPU by hand (1)"
 date: 2024-06-03T23:03:29-07:00
 displayDate: "2024-06-03"
 slug: "GPU1"
-lang: zh
-categories: ["技术", "数字IC", "GPU"]
+lang: en
+category: "gpu"
 tags: []
+source:
+  title: "adam-maj/tiny-gpu"
+  url: "https://github.com/adam-maj/tiny-gpu"
+description: "A walk-through of the architecture and top-level Verilog of adam-maj/tiny-gpu: how a kernel is launched, and how the compute cores are generated and wired to their load/store units."
 originalUrl: "/2024/06/03/GPU1/"
 ---
+
 # GPU
 
-Nvda暴涨了一年，GPU可太火了，但大家都缺少合适的学习资料，GitHub上有一个入门GPU的项目TinyGPU \[[https://github.com/adam-maj/tiny-gpu](https://github.com/adam-maj/tiny-gpu)\] 很适合学习。所以我手扒了全部的设计思路来供大家了解GPU的设计思路，可以在家手搓GPU玩玩。本手册基本逐行解读代码，可以不用在收藏夹吃灰了。
+Nvidia has been surging for a year and GPUs are everywhere, but nobody has good material to learn from. There is a beginner's GPU project on GitHub, tiny-gpu \[[https://github.com/adam-maj/tiny-gpu](https://github.com/adam-maj/tiny-gpu)\], that is well suited to studying. So I have picked apart its entire design, so that everyone can get a feel for how a GPU is designed and build one at home for fun. This write-up reads the code more or less line by line, so it need not sit gathering dust in your bookmarks.
 
-# 架构
+# Architecture
 
-目前CPU的架构开源的更多，但先进的GPU的low-level设计都是保密的。这个TinyGPU是目前最简单的GPU实现但也包含了GPU的工作原理。这个GPU突出的功能是**并行计算**「硬件加速」而不是图形化处理「渲染引擎」。
+More CPU architectures are open today, but the low-level design of advanced GPUs is kept secret. tiny-gpu is the simplest GPU implementation there is, and it still covers how a GPU works. What this GPU is about is **parallel computation** ("hardware acceleration"), not graphics ("the rendering engine").
 
-三个要点：
+Three things to look at:
 
--   架构
--   并行处理
--   内存（突破内存带宽限制）
+-   the architecture
+-   parallel processing
+-   memory (getting past the memory-bandwidth limit)
 
-## 架构图
+## Architecture diagram
 
-总体架构图如下：
+The overall architecture:
 
-![GPUarchitecture](/2024/06/03/GPU1/GPUarchitecture.png)
+![GPU architecture](/2024/06/03/GPU1/GPUarchitecture.png)
 
-Compute Core里有：
+Inside a compute core:
 
-![GPUcore](/2024/06/03/GPU1/GPUcore.png)
+![GPU core](/2024/06/03/GPU1/GPUcore.png)
 
-## 总体运行
+## How it runs, end to end
 
-TinyGPU每次执行一个Core
+tiny-gpu executes one core at a time.
 
-为了启动Core，操作如下：
+To start a core:
 
-1.  用kernel代码（也就是py写的，用的是cocotb这个协同仿真框架，和makefile协同使用）load global program memory
-2.  将必要的代码load进data memory里
-3.  在device control register里指定要启动多少thread
-4.  把start signal拉高来运行kernel
+1.  Load global program memory with the kernel code (it is written in Python, using the cocotb co-simulation framework together with a makefile).
+2.  Load whatever code is needed into data memory.
+3.  Set how many threads to launch in the device control register.
+4.  Pull the start signal high to run the kernel.
 
-GPU架构里包含：
+The GPU architecture contains:
 
-1.  Device Control Register
-2.  Dispatcher
-3.  很多个Compute Core
-4.  Memory Controller for Data Memory & Program Memory
-5.  Cache
+1.  a device control register
+2.  a dispatcher
+3.  several compute cores
+4.  memory controllers for data memory and program memory
+5.  a cache
 
-Data flow是这样的：
+The data flow goes like this.
 
-代码中.py都是kernel来进行仿真测试的框架，还有makefile作为脚本。
+The `.py` files are the framework that runs the kernel in simulation, with a makefile as the script.
 
-其实就是虚拟化的memory（因为我们GPU架构里只有mem的controller），还有指定程序（加减乘除）的机器码（根据ISA），时钟。相当于input和output destination。然后就是控制各个阶段运行状态和仿真后printer一些logger文件。
+It really amounts to virtualised memory (because our GPU architecture only has memory controllers), plus the machine code for the program you want (add, subtract, multiply, divide, per the ISA), plus a clock. Think of it as the input and the output destination. Then there is the part that controls the running state of each stage and prints some logger files after the simulation.
 
-下面来详细讲解下各个部分和verilog代码。
+Below, each part in detail, along with the Verilog.
 
-# Top Level
+# Top level
 
-[详见gpu.sv](http://xn--gpu-xz8iq2g.sv)
+See `gpu.sv`.
 
-定义了很多变量，把各个部分实例化并连接到一起。
+It declares a lot of variables, instantiates each part, and wires them together.
 
-这里主要说一下core的实例化
+The part worth explaining here is the core instantiation.
 
 ```verilog
 // Compute Cores
@@ -135,13 +140,13 @@ generate
 endgenerate
 ```
 
-用到了generate，并且数量可自定义。generate虽然用到了for loop，循环的次数也没写死，但实际硬件infer时会根据实际定义的核心数量进行生成，生成真实的网表。
+This uses `generate`, and the count is yours to set. The generate block does use a for loop, and the iteration count is not hard-coded, but when the hardware is inferred it elaborates against the core count actually defined and produces a real netlist.
 
-在实例化core中，我们GPU是有多个core，每个core里也有多个thread的。所以一个简单的double loop。
+In the core instantiation: our GPU has several cores, and each core has several threads. So, a simple double loop.
 
-LSU是Load & Store Unit，每个thread有单独的LSU，这里`localparam lsu_index = i * THREADS_PER_BLOCK + j;` 是因为 i 表示 core的index，j 表示 thread的index，比如 有2个core，每个core里4个thread
+LSU is the load/store unit. Each thread has its own LSU, and `localparam lsu_index = i * THREADS_PER_BLOCK + j;` is there because `i` is the core index and `j` is the thread index. Say there are 2 cores with 4 threads each.
 
-第一个core里：
+In the first core:
 
 core\[0\] thread\[0\] LSU\[0\]
 
@@ -151,9 +156,9 @@ core\[0\] thread\[2\] LSU\[2\]
 
 core\[0\] thread\[3\] LSU\[3\]
 
-那么第二个core就需要重新分配LSU的index了，因为LSU就那一个信号通道：
+The second core then needs fresh LSU indices, because there is only the one set of LSU signal channels:
 
-i \* THREADS\_PER\_BLOCK + j = 1 \* 4 + 0 = 4
+`i * THREADS_PER_BLOCK + j = 1 * 4 + 0 = 4`
 
 core\[1\] thread\[0\] LSU\[4\]
 
@@ -180,9 +185,9 @@ for (i = 0; i < NUM_CORES; i = i + 1) begin : cores
      reg [THREADS_PER_BLOCK-1:0] core_lsu_write_ready;
 ```
 
-这里前半部分必须要定义一些**全局变量**，原因：reusable、用来slice signal、同步每个信号的时钟
+This first half has to declare some **global variables**. Why: they are reusable, they are what you slice signals out of, and they get every signal onto the same clock.
 
-对于slice signal，因为 比如valid信号 每个core里的每个thread其实就一位，我们这里用one hot，后面在连接core的pin时里我们连接每个valid 要把对应的那位提出来 `.program_mem_read_valid(fetcher_read_valid[i]),`。这就是slice。所以不能把最顶层的全局信号（top-level signals）直接传进去。
+On slicing: take the valid signal. Per thread per core it is really only one bit, and here we use one-hot, so later, when connecting the core's pins, each valid has to have its own bit pulled out — `.program_mem_read_valid(fetcher_read_valid[i]),`. That is the slice. Which is why the top-level signals cannot be passed straight in.
 
 ```verilog
 // Pass through signals between LSUs and data memory controller
@@ -205,6 +210,6 @@ for (j = 0; j < THREADS_PER_BLOCK; j = j + 1) begin
 end
 ```
 
-这里就是一个always块把这些信号先时钟对齐一下。
+This is just an always block lining those signals up to the clock.
 
-然后就是pin和pin的连接，没什么了。
+After that it is pin-to-pin connections, and nothing more.
