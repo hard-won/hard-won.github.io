@@ -15,7 +15,6 @@ export const READING_CATEGORIES = [
   'interconnect',
   'gpu',
   'rtl',
-  'architecture',
   'notebook',
 ] as const;
 

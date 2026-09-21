@@ -47,6 +47,9 @@ const movedElsewhere = {
   Resources: '/links/',
   GPU3: '/reading/GPU2/',
   'PCIe-5': '/reading/PCIe-4/',
+  // The coursework note reported a figure that the committed predictor cannot
+  // produce; it is replaced by a note that measures the rebuilt one.
+  'Advanced-Architecture-CA1': '/notes/rebuilding-a-branch-predictor/',
 };
 
 const redirects = {};
@@ -61,6 +64,9 @@ for (const [slug, date] of Object.entries(postDates)) {
 for (const from of ['/archive/zh/', '/archives/', '/categories/', '/tags/']) {
   redirects[from] = '/reading/';
 }
+
+// /reading/Advanced-Architecture-CA1/ was briefly live before the rebuild.
+redirects['/reading/Advanced-Architecture-CA1/'] = '/notes/rebuilding-a-branch-predictor/';
 
 export default defineConfig({
   site: 'https://hard-won.github.io',
