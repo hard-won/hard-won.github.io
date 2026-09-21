@@ -3,316 +3,313 @@ title: "LifeManual"
 date: 2024-05-29T10:31:30-07:00
 displayDate: "2024-05-29"
 slug: "LifeManual"
-lang: zh
+lang: en
 category: "notebook"
 tags: []
 source:
   title: "Ultra Mindset – Lessons from Ultrarunners"
   url: "https://uphillathlete.com/trail-running/ultra-mindset-lessons-ultrarunners/"
+description: "Personal notes summarising other people's ideas: personal algorithms, a winner-takes-all economy, the ultrarunner's mindset, and compounding in habits, skills and relationships."
 originalUrl: "/2024/05/29/LifeManual/"
 ---
-从别人处取来观点，进行总结。
+Views taken from other people, and summarised.
 
-# 个人算法
+# Personal algorithms
 
-个人算法（Personal Algorithms）是一个有趣的概念，通过算法来简化和优化我们的生活决策。Bryan Johnson的Blueprint项目是这方面的一个典型案例，他通过健康算法来管理自己的健康和长寿。他放弃了自己在健康决策上的自主权，把这些决策交给了他和团队开发的健康算法。
+Personal algorithms are an interesting idea: using an algorithm to simplify and improve the decisions we make in our lives. Bryan Johnson's Blueprint project is the classic example — he manages his own health and longevity with a health algorithm. He has given up his own authority over health decisions and handed those decisions to an algorithm he and his team developed.
 
-## 什么是个人算法？
+## What is a personal algorithm?
 
-个人算法可以理解为一种系统化的方法，通过预先设定的规则和数据来做出决策。它可以应用于生活的各个方面，如健康管理、时间管理、财务规划等。核心思想是将复杂的、多变的决策过程简化为一个二元选择：遵循算法或不遵循算法。
+A personal algorithm can be understood as a systematic method: making decisions from rules and data set in advance. It can be applied to any part of life — health, time, financial planning. The core idea is to reduce a complicated, changeable decision process to a binary choice: follow the algorithm, or don't.
 
-### Bryan Johnson的健康算法
+### Bryan Johnson's health algorithm
 
-Bryan Johnson的健康算法围绕长寿和健康展开，他通过这个算法来管理自己的饮食、锻炼和其他健康相关的活动。具体来说，他把每天数百个健康决策简化为一个简单的选择：是否遵循算法。这种方法使得他可以专注于执行，而不必纠结于每一个具体的决策。
+Bryan Johnson's health algorithm is built around longevity and health, and he uses it to manage his diet, his exercise and his other health-related activities. Specifically, he reduces hundreds of daily health decisions to one simple choice: follow the algorithm or not. That lets him concentrate on execution rather than agonising over each individual decision.
 
-### 举例说明
+### An example
 
-假设你正在减肥，有人给你一个甜甜圈。在传统的决策过程中，你可能会考虑很多因素：你喜欢甜甜圈，但你在控制糖分和碳水化合物摄入；你昨天去过健身房，今天再去的话可能可以弥补一下；但是两天前你又吃了那块蛋糕，等等。这些复杂的思考过程会导致决策疲劳，最终可能让你做出不利于长期目标的决定。
+Say you are losing weight and someone offers you a doughnut. In the ordinary decision process you might weigh up a great many factors: you like doughnuts, but you are watching sugar and carbohydrates; you went to the gym yesterday, and if you go again today maybe that makes up for it; but then two days ago you had that slice of cake; and so on. Complicated thinking like this leads to decision fatigue, and in the end you may make a decision that works against your long-term goal.
 
-但是，如果你像Bryan Johnson一样使用健康算法，这个决策就会变得非常简单和直接：“根据算法，饮食中不包括甜甜圈，所以不吃。”整个决策过程被算法接管，你几乎不需要费心思考，从而减少了决策疲劳，轻松地积累起有利于健康的正向决策。
+But if you use a health algorithm, the way Bryan Johnson does, the decision becomes very simple and direct: "The algorithm says no doughnuts in the diet, so no." The whole decision process is taken over by the algorithm, you barely need to think about it, decision fatigue drops, and the decisions that favour your health accumulate easily.
 
-## 决策缺陷
+## Where our decisions fail
 
-人们在为自己做长期决策时往往表现不佳，因为我们倾向于追求短期的满足感，同时对未来的表现过于乐观。这种特点使得我们很难坚持长期目标，比如健康、习惯养成和职业发展等。
+People are often bad at making long-term decisions for themselves, because we tend to chase short-term satisfaction while being too optimistic about our future performance. That makes it very hard to stick to long-term goals — health, building habits, career development.
 
-## 个人算法的潜力
+## What personal algorithms could do
 
-如果我们将类似Johnson风格的算法应用到生活的其他方面，比如习惯养成、坏习惯改正、职业目标达成等，会发生什么？假设有一个全知的智能体来控制你的行动，它会让你做什么？
+What would happen if we applied a Johnson-style algorithm to other parts of life: building habits, breaking bad ones, reaching career goals? Suppose an omniscient agent controlled your actions. What would it have you do?
 
-虽然这种潜在的缺乏自主性让很多人感到害怕，但这真的算是缺乏自主性吗？还是说你只是让你的“聪明自我”提前为你的“弱小自我”做决策？
+This potential lack of autonomy frightens a lot of people, but is it really a lack of autonomy? Or is it just letting your "smart self" decide ahead of time on behalf of your "weak self"?
 
-通过个人算法，我们实际上是在利用自己的智慧和理性，为未来的自己做出最优决策，从而避免短期欲望和冲动带来的负面影响。这样，不仅可以减少决策疲劳，还能更加坚定地朝着长期目标前进。
+With a personal algorithm we are really using our own intelligence and reason to make the best decision for our future selves, and so avoiding the damage that short-term desires and impulses do. That reduces decision fatigue, and it also keeps us moving more firmly towards the long-term goal.
 
-# 赢家通吃
+# Winner takes all
 
-2024年5月，胜者为王的理念正在加剧。少数人和多数人之间的差距将不断扩大，导致最优秀的人获得最多的资源和机会。
+May 2024. The winner-takes-all logic is intensifying. The gap between the few and the many will keep widening, so that the best get the most resources and the most opportunities.
 
-## 赢家效应
+## The winner effect
 
-在各个领域，最优秀的创造者将吸引最多的关注；最优秀的医生将为所有人看病；最优秀的pizza厨师将为全世界制作pizza；最强大的国家将主导全球文化。我们的活动方式正在发生变化，导致能力的差异越来越大。小的能力差异会导致生产力的巨大差异，而生产力与收入之间的关联度也在提高。这个循环正在加速，导致一个“赢家得最多”的世界。
+In every field, the best creators will attract the most attention; the best doctors will see everyone; the best pizza chefs will make pizza for the whole world; the strongest countries will dominate global culture. The way we operate is changing, and it is making the differences in ability larger and larger. Small differences in ability lead to enormous differences in productivity, and the link between productivity and income is tightening too. The cycle is accelerating, and it produces a world where the winner gets the most.
 
-我们无法逆转或减缓这种转变，因为这样做会减缓进步。在一个机会均等、技术更先进、自由度更大的世界里，最优秀的人将获得最多。
+We cannot reverse or slow this shift, because doing so would slow progress. In a world with equal opportunity, better technology and more freedom, the best will get the most.
 
-## 复杂活动与能力差异
+## Complex work and the spread of ability
 
-从事复杂活动的人，即使接受了相同的训练，能力差异也会更大。无论创业者、创作者或营销人员接受了多少训练，他们的能力仍然存在巨大差异。
+Among people doing complex work, the spread of ability is wider even when the training is identical. However much training founders, creators or marketers receive, huge differences in their ability remain.
 
-活动越复杂，可能性就越多。例如，工厂工人在任何特定时刻的选择有限，导致他们的工作方式相对简单。而艺术家则有无限的选择和可能性，使他们的工作更加复杂。
+The more complex the work, the more possibilities there are. A factory worker, for instance, has limited choices at any given moment, which makes the way they work relatively simple. An artist has unlimited choices and possibilities, which makes their work more complex.
 
-对于简单的活动，通过足够的训练，有可能接近最优秀的水平。最优秀的工厂工人比普通工人的生产力只高一些。但最优秀的创业者的生产力比普通创业者高出数倍，普通创业者可能会失败，而最优秀的创业者则会取得不可思议的成就。
+For simple work, enough training can bring you close to the best. The best factory worker is only somewhat more productive than an average one. But the best founder is many times more productive than an average founder; the average founder may fail, while the best founder achieves something incredible.
 
-即使最优秀的企业家或艺术家全天候指导学生十年，学生的能力差异仍然很大。因为复杂的活动需要更高的天赋和创造力，有些人天生就更擅长满足人们的需求。
+Even if the best entrepreneur or artist coached a student round the clock for ten years, the spread in ability among students would still be wide. Complex work demands more talent and creativity, and some people are simply born better at meeting what people need.
 
-如果我们把专业人士的能力画在图表上，会发现它遵循幂律分布。最优秀的人比第二优秀的人要优秀很多，第二和第三优秀之间的差距则较小，以此类推。
+If we plot professionals' ability on a chart, we find it follows a power law. The best is far better than the second best; the gap between second and third is smaller; and so on.
 
-## 杠杆效应与活动复杂性
+## Leverage and complexity
 
-更大的杠杆效应使得活动更加复杂，因为我们可以跳过简单的活动，使复杂的活动变得更复杂。杠杆效应指的是实现一个想法所需的时间越少，杠杆效应就越大。
+Greater leverage makes work more complex, because we can skip the simple work and make the complex work more complex still. Leverage means: the less time it takes to realise an idea, the greater the leverage.
 
-在计算机发明之前，我们花费大量时间进行数字计算。随着技术的进步，我们可以花更多时间来思考创造什么和如何创造，这比单纯的数字计算要复杂得多。
+Before computers were invented, we spent a great deal of time on numerical calculation. As technology advanced, we could spend more time thinking about what to create and how, which is far more complex than calculation alone.
 
-杠杆效应使得曾经不可能的事情变得可能，增加了活动的复杂性。智能手机普及后，软件开发变得更加复杂，因为可以开发的东西和服务的对象都增加了。
+Leverage makes what was once impossible possible, and increases the complexity of the work. Once smartphones spread, software development became more complex, because both what could be built and who could be served increased.
 
-杠杆效应还增加了我们做决策的速度。当实现一个想法需要很长时间时，个体之间的差异不会很快显现出来。想象一场每一步棋都需要五年的国际象棋比赛。玩家去世时，他们的差异并不明显。但如果每步棋都很快完成，能力差异会迅速转化为生产力差异。
+Leverage also increases the speed at which we make decisions. When realising an idea takes a long time, the differences between individuals do not show up quickly. Imagine a game of chess in which every move takes five years. By the time the players die, their differences are not obvious. But if every move is quick, differences in ability turn into differences in productivity fast.
 
-## 最优秀者与中等者的差距
+## The gap between the best and the middle
 
-团队将无法再雇佣那些不是最优秀的人。如果一个最优秀的人比普通人生产力高1000倍，那么等待雇佣一个最优秀的人比雇佣1000个普通人更有意义。
+Teams will no longer be able to hire people who are not the best. If one of the best is 1000 times more productive than an average person, then waiting to hire one of the best makes more sense than hiring 1000 average people.
 
-随着机会均等的增加和世界联系的加强，竞争将更加激烈。这将带来更多的创新，提升杠杆效应，使最优秀者与普通者之间的生产力差距进一步扩大。
+As opportunity becomes more equal and the world more connected, competition will get fiercer. That will bring more innovation, raise leverage, and widen the productivity gap between the best and the ordinary further still.
 
-在一个公平、高杠杆的世界中，最优秀的人将获得最多的回报。
+In a fair, high-leverage world, the best will be rewarded the most.
 
-## 公平与不公平的机会
+## Fair and unfair opportunity
 
-有两种机会。一种是由出生决定的，另一种是由工具、教育和自由的获取决定的。
+There are two kinds of opportunity. One is determined by birth; the other by access to tools, education and freedom.
 
-每个人天生的能力、个性和情感倾向不同。没有两棵树是一样的，也没有两块石头是一样的。人类在能力上存在差异，这对任何复杂的活动来说，有些人天生就有优势。
+Everyone is born with different abilities, personality and emotional disposition. No two trees are the same, and no two stones are the same. Humans differ in ability, and for any complex activity some people have an innate advantage.
 
-试图在出生时创造平等是危险的，因为这意味着抹杀我们的独特性。我们低估了生物学对我们个性的影响。基因编辑以求同化会导致我们失去多样性，最终导致物种的失败。
+Trying to create equality at birth is dangerous, because it means erasing our uniqueness. We underestimate how much biology shapes our personalities. Gene editing in pursuit of sameness would cost us our diversity, and in the end fail the species.
 
-我们应该加强我们的独特性，而不是消除它。
+We should strengthen our uniqueness, not eliminate it.
 
-工具、教育和自由获取的不平等是不公平的。
+Inequality in access to tools, education and freedom is unfair.
 
-公平和不公平都会导致结果的不平等。我们不能仅仅因为结果不平等就说世界不公平。
+Both fairness and unfairness produce unequal outcomes. We cannot say the world is unfair merely because outcomes are unequal.
 
-## 经济与财富分配
+## The economy and the distribution of wealth
 
-在一个公平的世界中，生产力和财富的平等是可能的，但只有在活动简单的情况下。对于复杂活动，在一个公平的世界中，结果不会完全平等。如果复杂活动的结果看起来是平等的，你不需要找很远就会发现有少数人比其他人更优秀。
+In a fair world, equality of productivity and wealth is possible, but only where the work is simple. For complex work, in a fair world, outcomes will not be perfectly equal. If the outcomes of complex work look equal, you do not have to look far to find a few people who are better than the rest.
 
-在一个公平、高杠杆的世界中，向上的流动性是困难的。这种困难不是因为机会减少，而是因为成为最优秀者更难，也更难知道自己在哪些方面能成为最优秀者。
+In a fair, high-leverage world, upward mobility is hard. It is hard not because opportunity has shrunk, but because becoming one of the best is harder, and because it is harder to know what you could be best at.
 
-因此，我们不能用向上的流动性困难作为衡量不公平的标准。这就像说国际象棋不公平，因为我不能成为一名职业棋手并靠下棋谋生。生活不是公平的，而游戏可以是公平的。
+So we cannot use the difficulty of upward mobility as our measure of unfairness. That is like saying chess is unfair because I cannot become a professional player and make a living at it. Life is not fair; a game can be.
 
-更好的衡量标准是观察赢家的起点。在一个公平的世界中，我们会发现他们起点的特权和最终结果之间几乎没有关联。虽然我们还有很长的路要走，但现在比以往任何时候都要好。
+A better measure is to look at where the winners started. In a fair world, we would find almost no correlation between the privilege of their starting point and their final outcome. We still have a long way to go, but things are better now than ever.
 
-## 赢家通吃的未来
+## The winner-takes-all future
 
-我们正在加速进入一个赢家通吃的世界。未来几年，不平等将急剧上升，其幅度可能超过过去一个世纪，甚至更多。这将令我们震惊。
+We are accelerating into a winner-takes-all world. In the next few years, inequality will rise sharply, by a margin that may exceed the last century, or more. It will shock us.
 
-杠杆效应指数级增长，加速了最优秀者与其他人的生产力差距。
+Leverage grows exponentially, and it accelerates the productivity gap between the best and everyone else.
 
-全球GDP是杠杆效应的一个低估，因为杠杆效应也增加了不涉及金钱的交易，这些交易尚未反映在GDP中。随着杠杆效应的增长，GDP将变得更加准确。
+Global GDP understates leverage, because leverage also increases the transactions that involve no money, and those are not yet reflected in GDP. As leverage grows, GDP will become more accurate.
 
-没有中产阶级：那些不在某一领域中最优秀的人将无法谋生。中产阶级只存在于一个活动较简单、杠杆效应较少的世界中，那时最优秀者与普通者的生产力差距不大。
+No middle class: those who are not the best at something will not be able to make a living. The middle class existed only in a world where the work was simpler and there was less leverage, where the productivity gap between the best and the ordinary was small.
 
-在理论上，每个人都可以在某个领域成为世界上最优秀的人，因为活动的数量是无限的。但在实践中，这不太可能发生。
+In theory anyone could be the best in the world at something, because the number of activities is unlimited. In practice, that is unlikely to happen.
 
-一些人的长处只会在世界不重视的活动中体现（或者在他们的一生中不会被重视）。有些人无法发现自己的优势，无论多么努力，他们都无法在任何事情上成为最优秀者。还有些人不会以正确的方式训练自己。
+Some people's strengths will show only in activities the world does not value (or will not value within their lifetime). Some cannot discover their strengths, and however hard they try they will not be the best at anything. And some will not train themselves the right way.
 
-因此，我们需要一个随着杠杆效应增长的全民基本收入。
+So we need a universal basic income that grows with leverage.
 
-## 全民基本收入的必要性
+## Why a universal basic income is necessary
 
-全民基本收入不会“感觉足够”。如果它有足够高的收入，感觉也会是短暂的。这是因为医学、技术、文化等方面的下一个突破会让你渴望你在基本收入下无法负担的东西。这些突破会更频繁地发生，依赖基本收入的人将永远渴望无法获得的感觉像基本必需品的东西。
+A universal basic income will never "feel like enough". If it were high enough, the feeling would be brief anyway. That is because the next breakthrough in medicine, technology or culture will make you want what a basic income cannot buy. Those breakthroughs will come more often, and people who depend on a basic income will always want things they cannot get, things that feel like basic necessities.
 
-基本收入永远不会高到使最佳成果接近平均水平，因为那样的分配不会最大化增长（GDP）。
+A basic income will never be high enough to bring the best outcomes close to the average, because that distribution would not maximise growth (GDP).
 
-“赢家得最多”也适用于国家：那些无法在增长上竞争的国家将面临一种新的殖民主义。他们将需要赢家的帮助，而这种帮助将伴随着不舒服的条件。接受者将被迫削减基本收入到最大化增长的金额，他们的文化将被赢家的文化吞没。我们已经看到这种早期迹象。
+"Winner gets the most" applies to countries too: those unable to compete on growth will face a new kind of colonialism. They will need the winners' help, and that help will come with uncomfortable conditions. Recipients will be forced to cut their basic income to the amount that maximises growth, and their culture will be swallowed by the winners' culture. We are already seeing early signs of this.
 
-为了生存，国家将无法提高基本收入到损害其竞争力的地步。那些这样做的国家将在接受帮助时被迫削减基本收入。随着杠杆效应的增长，抵制这些激励措施将变得更加困难。
+To survive, countries will be unable to raise a basic income to the point of damaging their competitiveness. Those that do will be forced to cut it as a condition of receiving help. As leverage grows, resisting these incentives will get harder.
 
-没有人创造这些激励措施。任何想要迅速获得自己想要东西的生物群体都会感受到这些激励措施。赢家只是更擅长优化这些激励。
+Nobody created these incentives. Any group of organisms that wants what it wants quickly will feel them. The winners are just better at optimising for them.
 
-不要依赖基本收入来获得你想要的东西；只将其视为：
+Do not rely on a basic income to get what you want; treat it only as:
 
-## 发现自己的优势
+## Finding your own strength
 
-发现你能在世界上被重视（或将来会被重视）的领域，并在其中做到最好。其他的事情交给自然。
+Find what you can be valued for in the world (or will be valued for in future), and be the best at it. Leave the rest to nature.
 
-# 超级心态——超级马拉松运动员的经验教训
+# Ultra mindset — lessons from ultrarunners
 
-当我爬上俄勒冈州海岸山脉中一条泥泞且人迹罕至的小道时，太阳才刚刚落山。我的100英里赛跑已经进行了40英里，接下来的漫漫长夜还在等着我。我检查了一下自己：“感觉不错，Alexa。继续努力。你比任何人都更了解这些小道。”
+The sun had only just set as I climbed a muddy, little-used trail in Oregon's Coast Range. My 100-mile race was 40 miles in, and the long night was still ahead. I checked in with myself: "Feeling good, Alexa. Keep at it. You know these trails better than anyone."
 
-就在我结束这个想法的那一刻，我突然感到右膝一阵剧痛。我痛得跌倒在地。我试图站起来，却惊恐地意识到我几乎无法支撑那条腿。我距离下一个救助站还有5英里，我的队员们正在那里等着帮助我。我坐在路边潮湿的树枝和灌木丛上，深吸一口气。呼吸。计划。行动。这就是我所处的位置，没有什么可以改变现状。相反，我必须想办法应对这种情况。我保持冷静，试图站起来，但立即摔倒了。我沮丧地意识到，我别无选择，只能用一条无法正常运作的腿完成接下来的五英里，我的比赛结束了。想到我为此投入了这么多时间的训练，而我所有的目标都被我膝盖上的小韧带粉碎了，我的眼泪顺着脸颊流下来。
+The moment I finished that thought, a sharp pain shot through my right knee. It hurt so much I fell to the ground. I tried to get up, and realised with horror that I could barely put weight on that leg. I was five miles from the next aid station, where my crew were waiting to help. I sat down in the wet branches and brush at the side of the trail and took a deep breath. Breathe. Plan. Act. This was where I was, and nothing could change that. Instead, I had to find a way to deal with it. I stayed calm and tried to stand, and fell straight back down. In frustration I realised I had no choice but to cover the next five miles on a leg that would not work, and that my race was over. Thinking about all the time I had put into training for this, and all my goals shattered by a small ligament in my knee, tears ran down my cheeks.
 
-我通过提醒自己我的力量和毅力战胜了这种想法。哎呀，我在这些小路上训练了数百个小时，穿过积雪、雨夹雪和湍急的河流。我绝对可以跑完接下来的5英里。虽然可能很慢而且很痛苦，但我必须做到。我深吸一口气，站起身，开始慢慢地一瘸一拐地走下小路。我一路深呼吸，记住今天又是森林里美好的一天。这不会是我最后一次比赛。
+I beat that thought by reminding myself of my strength and my grit. Come on — I had trained hundreds of hours on these trails, through snow, sleet and fast-running rivers. I could absolutely cover the next five miles. It might be slow and painful, but I had to do it. I took a deep breath, got up, and started limping slowly down the trail. I breathed deeply the whole way, and remembered that today was another beautiful day in the forest. This would not be my last race.
 
-## 超级马拉松的心理特征
+## The ultrarunner's psychological profile
 
-当超级马拉松运动员讨论他们故意跑50、100甚至更多英里时，他们会收到奇怪的表情。典型的反应包括“比如……一下子跑完？”或“你为什么要这么做？这听起来很糟糕”，或者最常说的“我甚至不喜欢开车那么远！”。这引出了一个好问题，为什么有人会想要跑这么痛苦的长距离？幸运的是，科学家也对此感到好奇，研究表明超级马拉松运动员在心理上与其他类型的运动员略有不同。我们可以从超级马拉松运动员身上学到很多东西，并将他们的超级马拉松心态应用到我们的日常生活中。所以，让我们通过Alexa作为一名精英超级马拉松运动员的轶事和各种经历，了解超级马拉松运动员处理棘手情况的方式。
+When ultrarunners talk about deliberately running 50, 100 or more miles, they get odd looks. Typical responses are "like... all at once?" or "why would you do that? It sounds awful", or most often "I don't even like driving that far!". Which raises a good question: why would anyone want to run such a painful distance? Fortunately, scientists are curious about this too, and the research shows that ultrarunners are psychologically a little different from other kinds of athlete. There is a lot we can learn from ultrarunners, and their ultra mindset is something we can apply to everyday life. So let us look, through Alexa's anecdotes and varied experience as an elite ultrarunner, at how ultrarunners handle difficult situations.
 
-超级马拉松运动员要忍受极度的运动疲劳、无聊、肠胃不适、疼痛和伤害。他们要奔跑一整天、一整夜，穿越风雪、雨水、浓雾和极端温度和海拔。什么样的大脑化学反应能让他们达到这些运动极限，并享受其中的乐趣，从而继续坚持下去？
+Ultrarunners endure extreme exercise fatigue, boredom, gut trouble, pain and injury. They run all day and all night, through wind, snow, rain, thick fog, extremes of temperature and altitude. What brain chemistry lets them reach these physical limits, enjoy it, and keep going back?
 
-“当我意识到我为此投入了那么多训练，而我所有的目标却因为膝盖上的小韧带而被粉碎时，我的眼泪不禁流了下来。”
+> "When I realised how much training I had put into this, and that all my goals had been shattered by a small ligament in my knee, I could not help but cry."
 
-亚历克萨·哈斯曼 (Alexa Hasman) 正在争夺2020年羚羊峡谷100英里赛冠军
+*Alexa Hasman racing for the win at the 2020 Antelope Canyon 100 Mile.*
 
-## 超级马拉松运动员的关键心理特征
+## The key psychological traits of ultrarunners
 
-“每次我报名参加超级马拉松，我都期待着这场斗争。我喜欢在艰难的身体时刻努力拼搏的那种强烈感觉。我喜欢独自一人在树林里，想办法在我不想继续的时候继续下去。当我和我的超级马拉松朋友交谈时，他们经常描述同样的渴望。对斗争和挑战的需要。这就是我们的动力。”
+> "Every time I sign up for an ultra, I look forward to the struggle. I love that intense feeling of fighting through the hard physical moments. I love being alone in the woods, working out how to keep going when I do not want to. When I talk to my ultrarunning friends, they often describe the same craving. The need for struggle and challenge. That is what drives us."
 
-科学研究将非运动员与超级马拉松运动员进行了对比，得出了一些有趣的结论。超级马拉松运动员的适应力和适应能力更强，对负面刺激的反应率更低 (1)。他们的亲和力外向性也较低（社交热情和友好程度较低）。这可能是独自在森林中奔跑漫长而孤独的路程的一个重要因素，但这似乎与紧密团结的超级马拉松运动员群体格格不入。
+Scientific studies comparing non-athletes with ultrarunners have reached some interesting conclusions. Ultrarunners are more resilient and more adaptable, and react less to negative stimuli (1). They also score lower on agreeableness and extraversion (less social warmth and friendliness). That may be an important factor in running long, lonely stretches alone in the forest, but it seems at odds with the tight-knit ultrarunning community.
 
-我们可以由此得出的结论是，超长跑就像是那些不喜欢社交的人的社交俱乐部。在这个社区里，人们可以一边在树林里吃着碗里湿漉漉的薯片，一边谈论和交流他们所热爱的孤独运动。当传统的社交互动形式可能超出我们的舒适区时，这就是我们联系的方式。
+What we can conclude from that is that ultrarunning is a social club for people who do not like socialising. In this community, people can talk and connect about the solitary sport they love while eating soggy crisps out of a bowl in the woods. When conventional forms of social interaction fall outside our comfort zone, this is how we connect.
 
-“每次我报名参加超级马拉松，我都期待着这场斗争。我喜欢在艰难的身体时刻努力拼搏的那种强烈感觉。我喜欢独自一人在树林里，想办法在我不想继续的时候继续下去。当我和我的超级马拉松朋友交谈时，他们经常描述同样的渴望。对斗争和挑战的需要。这就是我们的动力。”
+One study found that ultra-endurance athletes score higher than the general population on openness to risk and experience seeking (2). One look at an ultrarunner's inner world and those traits are obvious. The study showed that participants in ultra events tend to choose activities that carry danger and risk.
 
-一项研究发现，超耐力运动员在风险开放度和寻求体验方面得分高于普通人（2）。只要看看超跑运动员的内心世界，这些特质就一目了然。该研究证明，超跑赛事的参与者倾向于选择有危险和风险的活动。
+Surprisingly, the same study also showed that ultra athletes score lower than the general population on disinhibition. They tend to avoid drugs, alcohol and other substances they believe might harm their performance.
 
-令人惊讶的是，同一项研究还显示，超级运动员在脱抑制方面的得分低于普通人。他们倾向于避免使用毒品、酒精和其他他们认为可能对其表现产生负面影响的物质。
+> "I started putting the aid-station pancakes, which looked delicious, into my mouth. It was 5 a.m. and the sun was starting to come up. I should have been crossing the finish line in about an hour. Instead, I ran 20 miles and started vomiting uncontrollably. This was not the day I wanted. I had to stop and rest. I did not feel good, and I was moving slowly. As I started biting into the pancake, I threw up all over the high desert trails of Oregon. In that state, I doubted whether I would carry on. I would finish later than planned, or not at all. I could not keep food down, and I was seeing wildlife and ghosts in every tree. But then again, I had already run 80 miles. Why stop now? Why not see whether I could finish and conquer this race under conditions this hard?"
 
-“我开始把看起来美味的补给站煎饼放进嘴里。现在是早上5点，太阳开始升起。我应该在一小时左右越过终点线。然而，我跑了20英里，开始无法控制地呕吐。这不是我想要的一天。我不得不停下来休息。我感觉不太好，而且我走得很慢。当我开始咬煎饼时，我吐得俄勒冈州的高沙漠小径到处都是。在这种情况下，我怀疑自己是否要继续下去。我会比计划的更晚完成，甚至根本无法完成。我无法控制住食物，我看到了野生动物和每棵树上的鬼魂。但话又说回来，我已经跑了80英里。为什么现在停下来？为什么不看看我是否能在如此艰苦的情况下完成并征服这场比赛呢？”
+Ultrarunners score low on the boredom susceptibility scale (3). That makes sense, since running alone in the forest for hours requires a certain capacity to entertain yourself. Another interesting study, in the Journal of Pain, tested ultra-endurance athletes' pain tolerance. It found that ultrarunners score 40% lower than the general population on the pain anxiety symptoms scale. The authors hypothesised that ultrarunners' use of pain intervention and avoidance techniques means they cope with pain better because of how they process it psychologically, not because they have a higher physical pain tolerance (4).
 
-超级马拉松运动员在无聊易感性量表上的得分较低 (3)。这是有道理的，因为在森林里独自奔跑数小时需要一定的自娱自乐能力。然而，《疼痛杂志》上的另一项有趣的研究测试了超耐力运动员的疼痛耐受力。研究发现，超级马拉松运动员在疼痛焦虑症状量表上的得分比普通人群低40%。作者假设，超级马拉松运动员使用疼痛干预和回避技术意味着他们更有能力应对疼痛，因为他们在心理上处理疼痛的方式，而不是他们在身体上具有更高的疼痛耐受力 (4)。
+Using these traits, we can sharpen our skills and improve our craft. That means spending time honing our pain tolerance through breathing techniques, and reminding ourselves that we are fine (in cases where the pain is not injury or danger). Understanding these traits also helps us see why we, as ultrarunners, may be unlike other people, and why our hobby looks strange to the ordinary observer.
 
-利用这些特点，我们可以磨练技能，提高我们的技艺。这意味着花时间通过呼吸技巧磨练我们的疼痛耐受能力，并提醒自己我们没事（在疼痛没有伤害或危险的情况下）。了解这些特征还有助于我们认识到为什么我们作为超级马拉松运动员可能与众不同，以及为什么我们的爱好在普通人看来很奇怪。
+## The non-ultrarunner's view
 
-## 非超级马拉松运动员的观点
+It is worth asking how ultrarunners compare with non-athletes and with athletes in other sports. Here too we see significant differences. Research rates ultrarunners as more neurotic than short-distance runners. But because they spend longer running in nature, they also experience more flow while running (5).
 
-值得一问的是，超级马拉松运动员与非运动员和其他运动项目的运动员相比如何。在这里，我们也看到了重大差异。研究评估称，与短距离跑步者相比，超级马拉松运动员更加神经质。然而，由于他们在大自然中奔跑的时间较长，因此他们在跑步时也体验到了更多的流畅感 (5)。
+> "Most of the time, when I talk to people who do not run ultras, they respond: 'that sounds awful. I would never do that. Why would you want to run that far?' My thought is, 'why wouldn't you?' Why wouldn't you want to work towards a goal that looks impossible? A goal that scares you and astonishes people. Why wouldn't you want to explore the depths of your own capability, and see the incredible beauty of our planet in such a vulnerable, singular way."
 
-“大多数情况下，当与不参加超级马拉松的人交谈时，他们会回答说：“这听起来很糟糕。我永远不会这样做。你为什么想跑那么远？”我的想法是，“你为什么不呢？”为什么你不想努力实现一个看似不可能实现的目标？一个让你害怕并让人们大吃一惊的目标。为什么你不想探索自己能力的深度，以如此脆弱和独特的方式看到我们星球令人难以置信的美丽。”
+Many studies find that ultra-endurance athletes are more motivated than athletes in other sports to explore their own psychological and physical limits (6). They also have more grit, drive and motivation (7). The most important factor is the difference in motivation level between endurance and ultra-endurance athletes, with the latter scoring higher on that trait.
 
-许多研究发现，与其他运动项目的运动员相比，超耐力运动员更有动力去探索自己的心理和身体极限 (6)。他们也更有毅力、动力和动力 (7)。最重要的因素是耐力运动员和超耐力运动员之间的动力水平差异，突出后者在这一特质上的得分更高。
+This helps us understand why we look forward to the next hard event, and how and why we can push ourselves out of our comfort zone. We can also conceptualise our capacity to persist and keep going when most people would not. Finally, we can see that our motivation drives us inevitably, which makes it important to examine and reflect on what that motivation is.
 
-这可以帮助我们理解我们为什么期待下一次艰难事件，以及我们如何以及为什么能够将自己推离舒适区。我们还可以概念化我们坚持和继续的能力，而大多数人不会这样做。最后，我们可以看到我们的动机不可避免地驱动着我们，因此检查和思考我们的动机是什么很重要。
+## Where ultrarunners' drive comes from
 
-## 超级马拉松运动员的动力来源
+> "I always tell my athletes that many of their training runs will not be rainbows and butterflies. They are hard, relentless, unforgiving. You will question why you are doing this and think about quitting. That is when you remind yourself why you are doing it. How will you feel when you cross the finish line, when you climb to the top of that big mountain, when you taste the pancakes at the aid station at mile 80? How will the hug at the end of the race feel? How will the world feel? Will you feel different? Yes, you will! You get that feeling through these relentless, unglamorous training miles," coach Alexa explains.
 
-“我总是告诉我的运动员，他们的许多训练跑步不会是彩虹和蝴蝶。它们是艰苦的、无情的、无情的。你会质疑你为什么要这样做，并考虑放弃。那时你就会提醒自己你为什么要这样做。当你越过终点线、爬上那座大山的顶端、在80英里处的补给站品尝煎饼时，你会有什么感觉？比赛结束时拥抱的感觉如何？世界会有什么感觉？你会有不同的感觉吗？是的，你会的！你会通过这些无情的、毫无魅力的训练英里来获得这种感觉，”教练Alexa解释道。
+The science of motivation is interesting. Research shows that for ultrarunners, achieving a personal goal is what motivates them (8). The motivation to reach those goals is intrinsic, not about impressing others with their athletic feats. They are trying to prove to themselves that they can do it. This is very different from participants in other endurance sports, such as marathoners, whose motivation is driven by health and self-esteem. A study that compared ultrarunners' motivations directly with those of marathon and half-marathon runners showed that health and weight matter less to ultrarunners, and that life meaning and belonging are what keep them going (9). Strikingly, 74.1% of ultrarunners said they would not stop running even if ultrarunning were found to be bad for their health (10). They justify this by saying that running satisfies their need for achievement and their psychological needs.
 
-动机的科学很有趣。研究表明，对于超级马拉松运动员来说，实现个人目标会激励他们 (8)。实现这些目标的动机是内在的，而不是用他们的运动壮举给别人留下深刻印象。他们试图向自己证明他们可以做到。这与其他耐力运动参与者（如马拉松运动员）有很大不同，他们的动机是由健康和自尊驱动的。一项直接比较超级马拉松运动员与全程和半程马拉松运动员的动机的研究显示，健康和体重对超级马拉松运动员来说并不那么重要，但生命意义和归属感才是他们前进的动力 (9)。令人震惊的是，74.1%的超级马拉松运动员表示，即使发现超级马拉松对健康有害，他们也不会停止跑步 (10)。他们为此辩解说，跑步满足了他们的成就感和心理需求。
+Ultrarunners are often looking for their next goal race or a more challenging terrain. That is what keeps them moving. It is not about proving anything to other people (although it does make a good story over coffee). Having a clear goal and realistic expectations of yourself helps you prepare. Ultrarunners know it will be hard, but they also know it will change them as people, and change how they see the handling of a situation.
 
-超级马拉松运动员经常寻找下一个目标比赛或更具挑战性的地形。这是他们继续前进的动力。这并不是为了向别人证明（尽管这可以成为喝咖啡时的一个好故事）。对自己有一个明确的目标和现实的期望有助于你做好准备。超级马拉松运动员知道这会很困难，但它也会改变他们作为一个人以及他们对情况处理的看法。
+> 74.1% of ultrarunners said they would not stop running even if ultrarunning were found to be bad for their health.
 
-74.1%的超级马拉松运动员表示，如果发现超级马拉松对健康有害，他们不会停止跑步。
+## Grit — the ultrarunner's secret
 
-## 毅力——超级马拉松运动员成功秘诀
+Talking about ultrarunning, the subject of mental toughness is unavoidable. There is no question that ultrarunning takes enormous mental toughness, but what is it? And are ultrarunners better equipped with it?
 
-讨论超长跑时，心理韧性的话题是不可避免的。毫无疑问，超长跑需要极强的心理韧性，但那是什么？超长跑运动员是否更具备这种韧性？
+> "Six in the morning, on a dusty course in Arizona, I watched the field start. They slowly disappeared into the distance, and when I looked around I found myself alone. This was my first 100-mile race, and suddenly I questioned everything. Why am I this far back? Am I that bad? How is this possible? My mind raced as I tried to work out what I had done wrong. I looked down at my watch and realised I was running well. I realised I needed to control my own mind. I took a deep breath and remembered to run my own race. I should not be worrying about other people. I cannot control any of those runners, so why worry about them? All I can do is stay calm, breathe, and focus on myself and how I feel. In the end those runners would come back to me. By mile 60 I had moved up to first woman and eighth overall. By working on my race and my mindset, I beat the demons of self-doubt and fear. If I had worried about the other competitors, I would not have been in that position at mile 60. It would have exhausted me, and I would very likely have failed to finish."
 
-“早上6点，在亚利桑那州一条尘土飞扬的赛道上，我看着参赛者们开始起跑。他们慢慢地消失在远处，当我环顾四周时，我发现自己孤身一人。这是我第一次参加100英里比赛，我突然质疑一切。为什么我落后这么多？我有那么差吗？这怎么可能？当我弄清楚自己做错了什么时，我的思绪飞速运转。我低头看了看手表，意识到我跑得很好。我意识到我需要控制自己的思绪。我深吸一口气，记住要跑我的比赛。我不应该担心别人。我无法控制任何跑步者，所以为什么要担心他们？我所能做的就是保持冷静，呼吸，专注于自己和我的感受。最终，那些跑步者会回到我身边。到60英里时，我升至女子第一名和总排名第八。通过努力提高我的比赛和心态，我克服了自我怀疑和恐惧的恶魔。如果我担心其他选手，我就不会跑到60英里的这个位置。这会让我精疲力竭，很可能会未能完赛。”
+In one study, researchers interviewing ultrarunners learned that "mental toughness in ultramarathon running is the persistent use of psychological skills to overcome physical, mental, emotional and environmental obstacles in the relentless pursuit of a goal" (11). The study further established that mental toughness helps athletes overcome physical and psychological distress, allowing them to maintain emotional control and stay positive in adversity.
 
-在一项研究中，研究人员从对超级马拉松运动员的采访中了解到，“超级马拉松比赛中的心理韧性是指在不懈追求目标的过程中，坚持不懈地运用心理技能克服身体、心理、情感和环境障碍的能力 (11)。该研究进一步确定，心理韧性有助于运动员克服身体和心理上的困扰，使他们能够保持情绪控制并在逆境中保持积极态度。
+## Ideas for building grit and mental toughness
 
-## 培养毅力和心理韧性的想法
+-   Get through the hard parts of training. There will always be training days harder than others. Rather than giving up, endure the discomfort and keep going.
+-   Assess the difficulty in front of you now, and take a moment to ask yourself how you could get through it.
+-   Watch how you feel, deliberately. Turn negative thoughts into positive ones. Instead of saying "I can't do this", take a moment to rephrase. "This is hard, I am struggling. I am going to walk for a bit and see whether that feels better. I know that usually it does." Remember not to show weakness to your own mind.
+-   Remind yourself of your training, and of the last time you finished something hard or something you did not think you could do. It motivates you and gives you confidence.
+-   The single best predictor of success in life happens to be grit. Watch Angela Duckworth's superb TED talk — Grit: the power of passion and perseverance.
 
--   克服训练中的困难。总会有比其他日子更难的训练日。不要放弃，而是要忍受这种不适并继续前进。
--   评估一下现在的困难，花一点时间问问自己如何才能克服这种情况。
--   有意识地观察自己的感受。将消极的想法转变为积极的想法。不要说“我做不到”，而是花点时间重新措辞。“这很难，我很挣扎。我要走一会儿，看看感觉会不会好些。我知道通常情况下，这样做会让我感觉好些”。记住不要向你的思想展示软弱。
--   提醒自己你的训练，以及你上次完成某件困难的事情或你认为自己无法完成的事情。这会激励你并给你注入信心。
--   人生成功的第一预测因素恰好就是毅力。观看安吉拉·达克沃斯精彩绝伦的TED演讲——毅力：激情和毅力的力量。
+> "As training tapers, we start to doubt ourselves. Have I run enough? Have I climbed enough? Do I even know how to use my poles? Wait, am I sure I like Tailwind? When you look at the race's elevation profile your palms sweat, remembering the many miles of vertical ahead. Is this really possible? Fear and self-doubt are normal, and they help when you are on the start line on race day. Without that emotional response we would not have the drive and purpose behind the action."
 
-“随着训练逐渐减少，我们开始怀疑自己。我跑得够多了吗？我爬得够多了吗？我甚至知道怎么用我的登山杖吗？等等，我确定我喜欢Tailwind吗？当你看着比赛的海拔地图时，你的手心会出汗，想起你有许多英里的垂直高度。这真的可能吗？恐惧和自我怀疑是正常的，当你在比赛当天排队时会很有帮助。如果没有这种情绪反应，我们就不会有行动背后的动力和目的。”
+## Learning from ultrarunners
 
-## 向超级马拉松运动员学习
+> "Ultrarunning teaches us a lot. It teaches us patience, grit, determination, and how to handle things when they do not go to plan. We can apply those lessons to life. Everyday life does not go to plan; how we choose to handle it matters. What we do on the trail affects how we handle things in the real world, which takes patience, grit, determination and adaptability."
 
-“超长跑教会我们很多东西。它教会我们耐心、毅力、决心，以及当事情没有按计划进行时如何处理。我们可以将这些经验运用到生活中。日常生活不会按计划进行；我们选择如何处理它很重要。我们在赛道上所做的事情会影响我们如何在现实世界中处理事情，需要耐心、毅力、决心和适应性。”
+Ultrarunners persist, commit fully and push forward, and that lets them keep running even after the zombie hallucinations and the conversations with trees. A rare and incredible sense of achievement motivates them, running a distance most people do not even enjoy driving. All these traits make for incredible, determined, impressive athletes, psychologically a little different from ordinary people, but in every respect the best.
 
-超级马拉松运动员坚持不懈、全心投入、积极进取，这帮助他们即使在出现僵尸幻觉和与树木对话后仍能继续奔跑。罕见而不可思议的成就感激励着他们，跑一段距离，大多数人甚至不喜欢开车。所有这些特征造就了不可思议、坚定而令人印象深刻的运动员，他们在心理上与普通人略有不同，但在所有方面都是最好的。
+## In summary
 
-## 概括
+There are many lessons to take from ultrarunning and apply to the pressing situations in life. Every problem can be broken into smaller parts and handled; emotional stability brings clarity of vision; and so on. It teaches us patience, grit, determination, and how to handle things when they do not go to plan. Breathe — plan — act is always a good plan. We can apply these lessons and many others to life. Everyday life does not go to plan; how we choose to handle it matters, and what we do on the trail affects how we handle things in the real world — patience, grit, determination and adaptability.
 
-人们可以从超长跑中吸取许多教训，并将它们应用到生活中的紧迫情况中。每个问题都可以分解成更小的部分来处理，情绪稳定可以带来清晰的愿景，等等。它教会我们耐心、毅力、决心，以及当事情没有按计划进行时如何处理。呼吸——计划——行动总是一个好计划。我们可以将这些和许多其他教训应用到生活中。日常生活不会按计划进行；我们选择如何处理它很重要，我们在路上所做的事情会影响我们如何处理现实世界中的事情——耐心、毅力、决心和适应性。
+# Compounding
 
-[https://uphillathlete.com/trail-running/ultra-mindset-lessons-ultrarunners/](https://uphillathlete.com/trail-running/ultra-mindset-lessons-ultrarunners/)
+A tiny 5% improvement each year in some area of your life can mean that 15 years later you perform twice as well at something.
 
-# 复利
+## The maths of it
 
-每年你生活中的某个领域取得 5% 的微小进步可能意味着 15 年后你在某方面的表现会提高一倍
-
-## 数学角度解释
-
-每年的进步率是 5%，即 (1 + 0.05 = 1.05)。复利增长的公式为：
+The rate of improvement each year is 5%, that is (1 + 0.05 = 1.05). The formula for compound growth is:
 
 $$
 A = P \\times (1 + r)^n
 $$
-其中：
+where:
 
--   (A) 是最终结果
--   (P) 是初始值
--   (r) 是增长率
--   (n) 是时间段数
+-   (A) is the final result
+-   (P) is the initial value
+-   (r) is the growth rate
+-   (n) is the number of periods
 
-如果我们设初始值 (P) 为 1，增长率 (r) 为 0.05，时间段 (n) 为 15 年，那么：
+Setting the initial value (P) to 1, the growth rate (r) to 0.05 and the period (n) to 15 years:
 
 $$
 A = 1 \\times (1.05)^{15}
 $$
-计算得：
+which gives:
 
 $$
 A = 1 \\times 2.0789 = 2.0789
 $$
-这意味着每年进步 5%，15 年后你的表现将提高到原来的 **2.0789** 倍，约等于提高一倍。
+So improving 5% a year means that after 15 years your performance has risen to **2.0789** times what it was, or roughly double.
 
-## 各个领域的具体例子
+## Concrete examples across areas
 
-### 教育
+### Education
 
-假设你每年花 100 小时学习新知识，每年增加 5%，即第一年 100 小时，第二年 105 小时，依此类推。15 年后，你每年将花费 207.89 小时学习新知识。学习的累计效果将大大提升你的知识储备和学习能力。
+Say you spend 100 hours a year learning new things, and increase that by 5% each year: 100 hours in the first year, 105 in the second, and so on. After 15 years you will spend 207.89 hours a year learning new things. The cumulative effect of that learning will greatly improve both your store of knowledge and your ability to learn.
 
-### 职业技能
+### Professional skill
 
-如果你是一名程序员，每年提升 5% 的编程技能，包括学习新的编程语言、算法和工具。假设你起始时的技能水平是 100，15 年后你的技能水平将达到 207.89。这使得你在解决复杂问题和开发高效软件方面的能力大幅增强。
+If you are a programmer and you improve your programming skill by 5% a year — learning new languages, algorithms and tools — then starting from a skill level of 100 you reach 207.89 after 15 years. That makes you much stronger at solving complex problems and building efficient software.
 
-### 兴趣和爱好
+### Interests and hobbies
 
-例如，你喜欢绘画，每年提高 5% 的绘画技巧和创意水平。如果你的初始水平是 100，15 年后你的绘画水平将达到 207.89。你将能够创作出更加复杂和精美的作品，甚至可能举办个人画展。
+Say you like painting, and you improve your technique and creativity by 5% a year. Starting from 100, your painting reaches 207.89 after 15 years. You will be able to produce more complex and more beautiful work, and you might even hold your own exhibition.
 
-### 健康
+### Health
 
-在健康方面，每年提升 5% 的健康习惯，比如增加运动量、改善饮食习惯。如果你每周运动 100 分钟，每年增加 5%，15 年后你每周将运动 207.89 分钟。长期的坚持将显著提高你的身体素质和健康水平。
+On health, improve your habits by 5% a year — more exercise, better diet. If you exercise 100 minutes a week and add 5% a year, after 15 years you will be exercising 207.89 minutes a week. Sticking with it over the long run will significantly improve your fitness and your health.
 
-### 友谊和社交网络
+### Friendship and social networks
 
-每年增加 5% 的社交活动或与朋友互动的时间和质量。如果你每月与朋友见面 4 次，每年增加 5%，15 年后你每月将与朋友见面 8 次。通过这种方式，你的社交网络和友谊关系将变得更加紧密和广泛。
+Increase your social activity, or the time and quality of your interaction with friends, by 5% a year. If you see friends 4 times a month and add 5% a year, after 15 years you will see them 8 times a month. That way your social network and your friendships become closer and wider.
 
-通过在每个领域中不断进行微小的改进和积累，长期来看，这些改进将显著提升你的整体表现和生活质量。
+Through small improvements accumulated in each of these areas, over the long run those improvements significantly raise your overall performance and the quality of your life.
 
-## 关系的复利效应
+## Compounding in relationships
 
-当我们谈论复利时，通常想到的是金融投资。然而，有一种更强大的力量：关系的复利效应。在与斯科特·加洛韦（Scott Galloway）在《Uncensored CMO》播客上的对话中，这一概念深深触动了我。
+When we talk about compounding we usually think of financial investment. But there is a more powerful force: compounding in relationships. This idea struck me deeply in a conversation with Scott Galloway on the Uncensored CMO podcast.
 
-### 理解关系在成功中的角色
+### Understanding the role of relationships in success
 
-我们常常高估自己在成功中的作用，而低估他人所起的关键作用。想想看，是我们的父母如何抚养我们，还是我们所拥有的友谊圈子，或者是工作中出色的团队、鼓励我们接受工作的导师、支持我们的投资者，或者我们在社交媒体上建立的网络，这些都在不断累积。
+We often overestimate our own role in our success and underestimate the crucial part others play. Think about it: how our parents raised us, the circle of friendships we have, the excellent team at work, the mentor who encouraged us to take the job, the investors who backed us, the network we have built on social media — all of it keeps accumulating.
 
-围绕自己身边那些能成就你的人，能给你好的建议的人，这是一种超级力量。
+Surrounding yourself with people who can make you, people who give you good advice, is a superpower.
 
-### 如何最大化关系的复利效应？
+### How do you maximise the compounding in relationships?
 
-我认为关键在于以下几点：
+I think the key is this:
 
-👉 **慷慨** - 免费地分享你的时间、建议和专业知识。这看起来很疯狂，但“先付出”的习惯往往会给你带来惊人的回报。
+👉 **Be generous** — give away your time, advice and expertise freely. It looks mad, but the habit of "giving first" tends to repay you astonishingly.
 
-👉 **见面** - 在活动、晚宴、颁奖典礼、协会之外花时间离开你正常的环境。你会接触到新的网络。
+👉 **Show up** — spend time outside your normal environment, at events, dinners, award ceremonies, associations. You will be exposed to new networks.
 
-👉 **寻求帮助** - 当你请求帮助时，其他人的慷慨总是让我感到惊讶。这是建立关系的绝妙方式。
+👉 **Ask for help** — when you ask for help, other people's generosity always surprises me. It is a wonderful way to build a relationship.
 
-👉 **推荐朋友** - 请求介绍或主动介绍他人。你介绍他人时产生的信任转移是巨大的。
+👉 **Refer friends** — ask for an introduction, or make one. The transfer of trust when you introduce someone is enormous.
 
-👉 **创建社区** - 创建一个WhatsApp群组，启动一个播客，写一份新闻简报，在社交媒体上分享内容。为人们关注你并参与你的活动创造理由。
+👉 **Create community** — start a WhatsApp group, launch a podcast, write a newsletter, share content on social media. Give people a reason to follow you and take part in what you do.
 
-👉 **投资于他人** - 通过推荐一些东西或提供帮助来培养关系。无所求地去做事。
+👉 **Invest in others** — nurture a relationship by recommending something or offering help. Do things without expecting anything back.
 
-如果你想要一个做得非常好的榜样，可以关注营销学会的首席执行官索菲·德文希尔（Sophie Devonshire）⚡️。她不仅管理着一个帮助全球营销人员有所作为的杰出组织，而且经常发布其他人值得关注的推荐、播客、活动等。在私下，她是一名“Super Connector”，利用她广泛的网络将人们聚集在一起，让美好的事情发生。
+If you want an example of someone who does this very well, follow Sophie Devonshire, chief executive of the Marketing Society ⚡️. Not only does she run an outstanding organisation that helps marketers around the world make a difference, she constantly posts recommendations, podcasts and events worth other people's attention. Privately, she is a "super connector", using her wide network to bring people together and let good things happen.
 
-这可能一开始会让你感到有些不舒服，或者像是额外的工作，但我保证，当你投资于关系时，你会获得巨大的回报。
+It may feel uncomfortable at first, or like extra work, but I promise that when you invest in relationships, the returns are enormous.
 
-### 结论
+### Conclusion
 
-关系的复利效应远远超出了个人努力的范畴。通过慷慨、见面、寻求帮助、推荐朋友、创建社区和投资于他人，我们能够建立强大而持久的关系网络，这将不断为我们的成功铺平道路。
+Compounding in relationships reaches far beyond what individual effort can. By being generous, showing up, asking for help, referring friends, creating community and investing in others, we can build a strong, lasting network of relationships that keeps paving the way to our success.

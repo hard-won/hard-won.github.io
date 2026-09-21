@@ -1,9 +1,9 @@
 ---
-title: "Advanced Computer Architecture CA1 分支预测竞赛"
+title: "Advanced Computer Architecture CA1: the branch predictor contest"
 date: 2024-04-12T14:15:03-07:00
 displayDate: "2024-04-12"
 slug: "Advanced-Architecture-CA1"
-lang: zh
+lang: en
 category: "architecture"
 tags: []
 source:
@@ -16,19 +16,14 @@ furtherReading:
     url: "https://blog.csdn.net/edonlii/article/details/8754724"
   - title: "Satjpatel/Branch-Predictor-Project — my_predictor.h"
     url: "https://github.com/Satjpatel/Branch-Predictor-Project/blob/fb34a61660f788c0339b68218e5c790d43d77e0e/Newr%20Final%20Infrastructure/cbp2-infrastructure-v3/src/my_predictor.h#L37"
+description: "Coursework notes on the CA1 branch predictor contest: reading the gshare baseline, why lengthening its history made things worse, and the local plus bimodal hybrid built on top of it."
 originalUrl: "/2024/04/12/Advanced-Architecture-CA1/"
 ---
-竞赛内容：[https://docs.google.com/document/d/1wGhjB8iqROP4Ovs78SrmGrZcxDbrATPX9CFyKd7pTxo/edit](https://docs.google.com/document/d/1wGhjB8iqROP4Ovs78SrmGrZcxDbrATPX9CFyKd7pTxo/edit)
-
-Branch Predictor汇总：[https://www.cnblogs.com/arthurzyc/p/16895277.html](https://www.cnblogs.com/arthurzyc/p/16895277.html)
-
-汇总：[https://blog.csdn.net/edonlii/article/details/8754724](https://blog.csdn.net/edonlii/article/details/8754724)
-
-# 例子解释
+# Walking through the example
 
 ![G-share](/2024/04/12/Advanced-Architecture-CA1/G-share.png)
 
-例子用的是G-share predictior，就是将Global History和PC进行XOR。这么做是因为PC太长了，我们只会会取PC的里面的几位，但有一个问题，有些instructions的PC的那几位是一样的，所以如果存进prediction table里就会影响结果。所以我们加入了Global History和PC进行XOR，XOR后得到的数据本身并没有意义，并不能说明任何事情（如这个instruction有没有发生过），它就只是作为prediction table的index，它的value（00 strongly not take，01，10，11）才是告诉predictor自己有没有发生过的。用XOR：原因一是适合被解耦，可以释放出原来的PC值；原因二是处理一下PC从而区别出更多PC，得到的index数量 > types of PC的那几位。
+The example uses a G-share predictor, which XORs the global history with the PC. The reason for doing that is that the PC is too long, so we only take a few of its bits — but that raises a problem, because some instructions share those same few PC bits, and storing them in the prediction table would skew the result. So we XOR the global history with the PC. The value that comes out of the XOR has no meaning in itself and does not tell you anything (such as whether this instruction has been taken before); it serves only as the index into the prediction table. It is the value at that index (00 strongly not taken, 01, 10, 11) that tells the predictor whether the branch has been taken. Why XOR: first, it decouples nicely and frees up the original PC value; second, it works the PC over so that more PCs can be told apart, giving a number of indices greater than the number of distinct values in those few PC bits.
 
 ```c++
 // my_predictor.h
@@ -88,7 +83,7 @@ public:
 };
 ```
 
-G-share结果数据展示：
+G-share results:
 
 ```
 traces/164.gzip/gzip.trace.bz2          	12.473
@@ -114,45 +109,45 @@ traces/300.twolf/twolf.trace.bz2        	21.489
 average MPKI: 6.305
 ```
 
-不同程序的分支预测失误率（Misses Per Kilo Instructions, MPKI），这是衡量分支预测器性能的一个关键指标。这些数据显示了各种不同类型的程序在G-Share预测器下的表现，其中一些程序的MPKI较高，表明分支预测失误较频繁，而有些程序的MPKI较低，预测相对较准确。
+Branch misprediction rate by program (misses per kilo instructions, MPKI), the key metric for a branch predictor's performance. The numbers show how various kinds of program do under the G-share predictor: some have a high MPKI, meaning mispredictions are frequent, while others have a low MPKI and are predicted relatively accurately.
 
-从数据来看，程序如 `twolf` 和 `mcf` 显示出非常高的 MPKI，可能是因为这些程序的分支模式特别复杂或包含大量的循环和条件分支，而G-Share预测器可能无法有效处理这种复杂性。而像 `bzip2` 这样的程序显示出极低的 MPKI，表明其分支模式相对简单或者与G-Share预测器的预测模式非常匹配。
+Looking at the data, programs like `twolf` and `mcf` show a very high MPKI, possibly because their branch patterns are especially complex or they contain a great many loops and conditional branches, which G-share may not handle well. A program like `bzip2` shows an extremely low MPKI, which suggests its branch patterns are relatively simple, or match G-share's prediction pattern very closely.
 
-对于G-Share预测器而言，其性能限制：
+The limits on G-share's performance:
 
-1.  **索引冲突（Alias Problem）：**
-    -   XOR操作用于生成索引可能会导致不同的分支历史和PC地址组合产生相同的索引结果。这种Alias问题可能导致预测错误，因为不相关的分支使用了相同的预测表条目，从而互相干扰。
-2.  **全局历史长度限制：**
-    -   G-Share使用固定长度的全局历史来生成索引，这可能不足以捕捉长期依赖或复杂分支模式，尤其是在大型或复杂的程序中。
-3.  **预测表大小限制：**
-    -   预测表的大小直接影响能够跟踪的分支上下文数量。表大小有限可能会导致更多的冲突和替换，尤其是在那些具有广泛分支行为的大型应用程序中。
-4.  **统一预测策略的局限性：**
-    -   G-Share预测器采用统一的预测策略来处理所有分支，不考虑分支类型的多样性和程序上下文的复杂性。
+1.  **Index conflicts (the alias problem):**
+    -   Using XOR to generate the index can make different combinations of branch history and PC address land on the same index. Aliasing like this can cause mispredictions, because unrelated branches share a prediction-table entry and interfere with each other.
+2.  **The fixed global history length:**
+    -   G-share generates its index from a global history of fixed length, which may not be enough to capture long-range dependencies or complex branch patterns, especially in large or complex programs.
+3.  **The prediction table's size:**
+    -   The table's size directly determines how many branch contexts can be tracked. A limited table means more conflicts and more replacement, especially in large applications with wide-ranging branch behaviour.
+4.  **The limits of one uniform prediction policy:**
+    -   G-share applies one uniform prediction policy to every branch, taking no account of the variety of branch types or the complexity of the program context.
 
-我的想法，为了改善 G-Share 预测器的性能，暂时考虑以下策略：
+My own thoughts. To improve G-share's performance, here are some strategies to consider for now:
 
--   **采用混合或锦标赛预测器（Hybrid or Tournament Predictor）**：结合使用不同类型的预测器，如局部history predictor和G-Share predictor，然后用selector选择表现最佳的预测器。
--   **增加历史长度和表大小**：根据资源允许的情况，适当增加全局历史的长度和预测表的大小，以减少冲突并改善预测准确性。
--   **改进XOR散列函数**：尝试使用更复杂的散列函数代替简单的XOR，以降低冲突率。
--   **引入路径感知预测**：考虑路径信息或程序执行上下文来增强预测器的决策能力。
+-   **Use a hybrid or tournament predictor**: combine predictors of different kinds, such as a local history predictor and a G-share predictor, and use a selector to pick whichever performs best.
+-   **Increase the history length and the table size**: as far as resources allow, lengthen the global history and enlarge the prediction table, to reduce conflicts and improve accuracy.
+-   **Improve the XOR hash**: try a more elaborate hash function in place of plain XOR, to lower the conflict rate.
+-   **Bring in path awareness**: use path information, or the program's execution context, to strengthen the predictor's decisions.
 
-当我只更改History Table Length时，将 `HISTORY_LENGTH` 从15增加到16时，增加了分支预测器使用的历史信息长度。这种改变理论上应该提供更多的历史数据来帮助预测器做出更准确的预测。然而，实际上MPKI（每千条指令失误预测数，Misses Per Kilo Instruction）增加了，这表明准确性实际上变差了。原因：
+When I changed only the history table length, raising `HISTORY_LENGTH` from 15 to 16, I lengthened the history the branch predictor uses. In theory that change should give the predictor more historical data to make a more accurate prediction with. In practice, though, MPKI (misses per kilo instruction) went up, which says accuracy actually got worse. Why:
 
-### 1\. History Info的过度拟合
+### 1. Overfitting to the history
 
-扩大 `HISTORY_LENGTH`可能导致预测器过度拟合特定的history，特别是在history不稳定或者过于复杂时。这可能导致预测器在面对不遵循已经见过的history的新情况时表现不佳。就像人如果只根据过去的经验做决定，有时候可能会错过新情况的正确处理方法。predictor也一样，如果history info太长，可能就难以灵活应对那些不太符合以往模式的新情况。
+Enlarging `HISTORY_LENGTH` can make the predictor overfit to particular histories, especially when the history is unstable or too complex. That can leave the predictor doing badly when it meets a new situation that does not follow a history it has already seen. It is like a person who decides only from past experience: sometimes they miss the right way to handle something new. A predictor is the same. If the history is too long, it can struggle to respond flexibly to new situations that do not match past patterns.
 
-### 2\. 表项碰撞（Table Entry Collisions）
+### 2. Table entry collisions
 
-如果 `TABLE_BITS` 保持不变而只增加 `HISTORY_LENGTH`，这可能导致更多的索引碰撞。由于现在有更多的history info被压缩到同样大小的index table中，不同的history可能映射到相同的表项上，增加了冲突的可能性，从而降低预测的准确性。就像预测器有一个用来存储history的table，如果`HISTORY_LENGTH`增加，不同的history info可能会被压缩到table的同一个位置。这就像多个人要抢同一个座位，最终可能导致混乱，predictor也难以准确预测。
+If `TABLE_BITS` stays the same and only `HISTORY_LENGTH` goes up, there can be more index collisions. More history information is now compressed into an index table of the same size, so different histories can map to the same entry, which raises the chance of a conflict and lowers prediction accuracy. It is as if the predictor has one table to store history in, and lengthening `HISTORY_LENGTH` compresses different histories into the same slot. Like several people going for one seat, it ends in a mess, and the predictor cannot predict accurately either.
 
-### 3\. 表容量不足
+### 3. Not enough table capacity
 
-与上面的点相关，增加`HISTORY_LENGTH`而不相应增加predictor的大小（由 `TABLE_BITS` 决定），可能导致predictor的有效容量不足以覆盖更多的history组合。这会限制预测器学习和适应新模式的能力。增加`HISTORY_LENGTH`而不扩大predictor table的大小，就好比文件越来越多但文件柜的大小不变，最终文件柜装不下，找文件时也更费劲。
+Related to the point above: raising `HISTORY_LENGTH` without a matching increase in the predictor's size (set by `TABLE_BITS`) can leave the predictor with too little effective capacity to cover the larger number of history combinations. That limits its ability to learn and adapt to new patterns. Raising `HISTORY_LENGTH` without enlarging the predictor table is like having more and more files while the filing cabinet stays the same size: eventually it will not hold them, and finding a file takes longer too.
 
-# 我的方法
+# My approach
 
-由于懒，我用的是相对简单的优化方法。关键词是 Local Branch Predictor，Bimodal Predictor，G Share。
+Being lazy, I went for a relatively simple optimisation. The keywords are local branch predictor, bimodal predictor, G-share.
 
 ```c++
 // my update
@@ -241,7 +236,7 @@ public:
 
 ![BHR](/2024/04/12/Advanced-Architecture-CA1/BHR.png)
 
-最后达到的MPKI是5.020。
+The MPKI I ended up with is 5.020.
 
 ```
 traces/164.gzip/gzip.trace.bz2          	12.699
@@ -267,11 +262,11 @@ traces/300.twolf/twolf.trace.bz2        	16.768
 average MPKI: 5.020
 ```
 
-首先，我定义了Branch History Register Table，这是一列数组，每行是int大小的BHR（Branch History Register）。BHR是用来作为PT（Pattern Table)的index的。这样做的目的是相当于直接对每个Branch instruction单独进行history统计，相比之下例子中的G-Share是只用一串history数据对所有Branch进行统一操作。然后我也往里面增加了G-Share的思路，就是再用一串history数据和PC进行XOR，特异化PC，然后作为BHRT存history用每个的index。这里的大体优化就差不多了。
+First, I defined a branch history register table: an array whose every row is an int-sized BHR (branch history register). The BHR is what indexes the PT (pattern table). The point is that this amounts to keeping history per branch instruction, whereas the G-share in the example uses one single stream of history for every branch alike. Then I folded in G-share's idea as well, XORing a stream of history with the PC to specialise the PC, and used that as the index into the BHRT where the history is kept. That is about it for the broad optimisation.
 
-进一步小优化，我用了Bimodal的思路。我设置的是3-bit count table（111 stands for Strongly Taken），也就是计数到7。但会有问题，比如011（3）和100（4）时，我们的判断并没有那么强力。所以加入Bimodal Predictor，这个predictor的table就是在记录index时完全不考虑history，直接把PC存进去。所以我们做一个判断，当带着History的predictor预测出这种边缘值时，我们该用Bimodal Predictor。
+For a further small optimisation I used the bimodal idea. What I set up is a 3-bit counter table (111 stands for strongly taken), so it counts up to 7. But there is a problem: at 011 (3) and 100 (4), our judgement is not all that strong. So I brought in a bimodal predictor, whose table records the index without regard to history at all and just puts the PC straight in. So we make a test: when the predictor that carries history predicts one of these borderline values, we should use the bimodal predictor instead.
 
--   **双模态表**（BimodalTable）仅使用程序计数器（PC）的低位部分来索引。这种方法使得预测更加依赖于指令的位置而非其执行历史。双模态表更多地反映了特定程序地址的分支行为的统计趋势。
--   **局部预测表**（PTable）结合了全局历史记录（history）和PC的特定位，通常是通过异或操作来生成索引。这样做可以捕捉到与过去的分支决策相关联的模式，使预测能够适应程序行为的变化。
+-   The **bimodal table** (BimodalTable) is indexed by the low bits of the program counter alone. That makes the prediction depend on where the instruction is rather than on how it has executed. The bimodal table reflects the statistical tendency of branch behaviour at a particular program address.
+-   The **local prediction table** (PTable) combines the global history with specific bits of the PC, usually XORed together to form the index. That captures patterns tied to past branch decisions, so the prediction can adapt as program behaviour changes.
 
-更优秀的方法应该用TAMG或者一些机器学习的方法。贴一个TAMG的实现方法，有兴趣可以看着论文去实现：[https://github.com/Satjpatel/Branch-Predictor-Project/blob/fb34a61660f788c0339b68218e5c790d43d77e0e/Newr Final Infrastructure/cbp2-infrastructure-v3/src/my\_predictor.h#L37](https://github.com/Satjpatel/Branch-Predictor-Project/blob/fb34a61660f788c0339b68218e5c790d43d77e0e/Newr%20Final%20Infrastructure/cbp2-infrastructure-v3/src/my_predictor.h#L37)
+A better approach would use TAMG, or some machine-learning method. Here is one TAMG implementation; if you are interested, read the paper and implement it: [https://github.com/Satjpatel/Branch-Predictor-Project/blob/fb34a61660f788c0339b68218e5c790d43d77e0e/Newr Final Infrastructure/cbp2-infrastructure-v3/src/my\_predictor.h#L37](https://github.com/Satjpatel/Branch-Predictor-Project/blob/fb34a61660f788c0339b68218e5c790d43d77e0e/Newr%20Final%20Infrastructure/cbp2-infrastructure-v3/src/my_predictor.h#L37)
