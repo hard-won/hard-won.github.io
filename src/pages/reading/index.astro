@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { entryCount, stampDay } from '../../lib/date';
-import { READING_CATEGORIES } from '../../lib/reading';
+import { READING_CATEGORIES, titleLang } from '../../lib/reading';
 
 const posts = (await getCollection('reading')).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
@@ -59,7 +59,7 @@ const kicker = READING_CATEGORIES.filter((c) => present.has(c))
                   {stampDay(post.data.displayDate)}
                 </time>
                 <span class="index__cell">
-                  <span class="index__title" lang="zh-CN">
+                  <span class="index__title" lang={titleLang(post.data.title)}>
                     {post.data.title}
                   </span>
                   <span class="index__tag">{post.data.category}</span>

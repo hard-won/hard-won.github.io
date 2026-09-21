@@ -29,13 +29,12 @@ const description =
     '.';
 ---
 
-{/* The page is zh-CN because the post body is. Every interface string on it is
-    English and marked lang="en"; a cited work keeps its own title, in its own
-    language, marked accordingly. */}
+{/* The page takes the language of its body, which the frontmatter declares.
+    A cited work keeps its own title, in its own language, marked accordingly. */}
 <BaseLayout
   title={post.data.title}
   description={description}
-  lang="zh-CN"
+  lang={post.data.lang === 'en' ? 'en' : 'zh-CN'}
   ogType="article"
   publishedTime={post.data.date.toISOString()}
 >
@@ -60,11 +59,11 @@ const description =
           )
         }
       </p>
-      <h1 class="article__title" lang="zh-CN">{post.data.title}</h1>
+      <h1 class="article__title" lang={titleLang(post.data.title)}>{post.data.title}</h1>
       <p class="article__meta" lang="en">
         <time datetime={post.data.displayDate}>{formattedDate}</time>
         <span>{post.data.category}</span>
-        {post.data.tags.map((tag) => <span lang="zh-CN">{tag}</span>)}
+        {post.data.tags.map((tag) => <span lang={titleLang(tag)}>{tag}</span>)}
       </p>
     </header>
 

@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import DataflowFigure from '../components/DataflowFigure.astro';
 import { SITE, FRAMING } from '../data/site';
-import { isFeatured } from '../lib/reading';
+import { isFeatured, titleLang } from '../lib/reading';
 
 // The front page lists the technical reading notes. `notebook` entries are
 // personal reading: they keep their place under /reading and stay off here.
@@ -62,7 +62,7 @@ function stamp(displayDate: string): string {
               <time class="index__date" datetime={post.data.displayDate}>
                 {stamp(post.data.displayDate)}
               </time>
-              <span class="index__title" lang="zh-CN">
+              <span class="index__title" lang={titleLang(post.data.title)}>
                 {post.data.title}
               </span>
             </a>
